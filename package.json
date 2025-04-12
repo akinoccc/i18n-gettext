@@ -1,0 +1,173 @@
+{
+  "publisher": "akino",
+  "name": "i18n-gettext",
+  "displayName": "i18n Gettext",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VSCode扩展用于提取、编译和管理基于gettext的翻译字符串",
+  "categories": [
+    "AI",
+    "Other"
+  ],
+  "main": "./dist/extension/index.js",
+  "l10n": "./l10n",
+  "engines": {
+    "vscode": "^1.89.0"
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "i18n-gettext.refreshView",
+        "title": "刷新视图",
+        "category": "i18n Gettext"
+      },
+      {
+        "command": "i18n-gettext.selectEntry",
+        "title": "选择条目",
+        "category": "i18n Gettext",
+        "icon": "$(globe)"
+      },
+      {
+        "command": "i18n-gettext.openTranslationEditor",
+        "title": "打开翻译编辑器",
+        "category": "i18n Gettext",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "i18n-gettext.searchEntries",
+        "title": "搜索条目",
+        "category": "i18n Gettext",
+        "icon": "$(search)"
+      },
+      {
+        "command": "i18n-gettext.clearSearch",
+        "title": "清除搜索",
+        "category": "i18n Gettext",
+        "icon": "$(clear-all)"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "i18n-gettext",
+          "title": "i18n Gettext",
+          "icon": "$(globe)"
+        }
+      ]
+    },
+    "views": {
+      "i18n-gettext": [
+        {
+          "id": "i18n-gettext.fileTranslation",
+          "name": "当前文件翻译",
+          "when": "true"
+        },
+        {
+          "id": "i18n-gettext.progress",
+          "name": "翻译进度",
+          "when": "true"
+        },
+        {
+          "id": "i18n-gettext.entries",
+          "name": "翻译条目",
+          "when": "true"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "i18n-gettext.refreshView",
+          "when": "view == i18n-gettext.progress",
+          "group": "navigation"
+        },
+        {
+          "command": "i18n-gettext.searchEntries",
+          "when": "view == i18n-gettext.entries",
+          "group": "navigation"
+        },
+        {
+          "command": "i18n-gettext.clearSearch",
+          "when": "view == i18n-gettext.entries",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "i18n-gettext.openTranslationEditor",
+          "when": "view == i18n-gettext.entries && viewItem == translationEntry",
+          "group": "inline"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "i18n-gettext.compile",
+          "when": "resourceExtname == .i18n-translation",
+          "group": "navigation"
+        }
+      ]
+    },
+    "customEditors": [
+      {
+        "viewType": "i18n-gettext.translationEditor",
+        "displayName": "i18n 翻译编辑器",
+        "selector": [
+          {
+            "filenamePattern": "*.i18n-translation"
+          }
+        ],
+        "priority": "default"
+      }
+    ],
+    "configuration": {
+      "title": "i18n Gettext",
+      "properties": {
+        "i18n-gettext.localesPath": {
+          "type": "string",
+          "default": "src/language",
+          "description": "Locales path"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "vscode:prepublish": "pnpm run build",
+    "webview:dev": "vite",
+    "webview:build": "vite build"
+  },
+  "dependencies": {
+    "@tomjs/vscode-webview": "^2.0.2",
+    "gettext-parser": "^8.0.0",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^4.12.0",
+    "@tomjs/tsconfig": "^1.7.1",
+    "@tomjs/vite-plugin-vscode": "^4.0.0",
+    "@types/node": "18.x",
+    "@types/vscode": "^1.89.0",
+    "@vitejs/plugin-vue": "^5.2.3",
+    "eslint": "^9.24.0",
+    "reactive-vscode": "^0.2.14",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.5",
+    "vite": "^6.2.6",
+    "vite-plugin-vue-devtools": "^7.7.2"
+  },
+  "pnpm": {
+    "ignoredBuiltDependencies": [
+      "esbuild"
+    ],
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}
