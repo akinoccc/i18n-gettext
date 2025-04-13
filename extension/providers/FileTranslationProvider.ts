@@ -1,4 +1,4 @@
-import { computed, useActiveTextEditor, watchEffect } from 'reactive-vscode'
+import { computed, useActiveTextEditor, watch, watchEffect } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { useTranslationEntries } from '../composables/useTranslationEntries'
 import { useTranslationsState } from '../state'
@@ -34,7 +34,7 @@ export class FileTranslationProvider implements vscode.TreeDataProvider<FileEntr
 
   constructor() {
     // 使用响应式API监听编辑器和文档变化
-    watchEffect(() => {
+    watch(this.activeEditor, () => {
       this.refresh()
     })
 
