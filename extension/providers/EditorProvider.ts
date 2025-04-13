@@ -4,9 +4,10 @@ import { EditorType } from '../constants'
 import { MessageService, WebViewService } from '../services'
 import { useTranslationsState } from '../state'
 import { logger } from '../utils/logger'
+import { watch } from 'reactive-vscode'
 
 // 当前选中的条目
-const { setSelectedEntry } = useTranslationsState()
+const { selectedEntry, setSelectedEntry } = useTranslationsState()
 
 // 自定义编辑器提供程序类
 export class TranslationEditorProvider {
@@ -17,10 +18,14 @@ export class TranslationEditorProvider {
   private constructor(panel: vscode.WebviewPanel, context: vscode.ExtensionContext) {
     this._panel = panel
 
-    // this._panel.onDidDispose(() => this.dispose(), null, this._disposables)
+    this._panel.onDidDispose(() => this.dispose(), null, this._disposables)
     this._panel.webview.html = WebViewService.setupHtml(this._panel.webview, context)
 
     WebViewService.setupWebviewHooks(this._panel.webview, this._disposables)
+
+    watch(selectedEntry, (newEntry) => {
+      MessageService.sendSelectEntryMessage(this._panel.webview, newEntry)
+    })
   }
 
   public static render(context: vscode.ExtensionContext) {

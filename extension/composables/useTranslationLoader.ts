@@ -1,7 +1,7 @@
 import type { PoData, TranslationEntry, TranslationStatisticsObject, TranslationTree } from '../state'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import { computed, ref, useWorkspaceFolders, watchEffect } from 'reactive-vscode'
+import { computed, ref, useWorkspaceFolders, watch } from 'reactive-vscode'
 import { localesConfig } from '../services/configService'
 import { useTranslationsState } from '../state'
 import { logger } from '../utils/logger'
@@ -23,18 +23,8 @@ export function useTranslationLoader() {
   // 正在加载的状态
   const isLoading = ref(false)
 
-  // 上次加载时间
-  const lastLoadTime = ref(0)
-
   // gettext-parser 模块
   let gettextParserModule: any = null
-
-  // 计算是否需要刷新
-  const needsRefresh = computed(() => {
-    const now = Date.now()
-    return !cachedTranslationTree.value
-      || (now - lastLoadTime.value > 5 * 60 * 1000) // 5分钟后过期
-  })
 
   // 根工作区路径
   const rootPath = computed(() => {
@@ -134,23 +124,38 @@ export function useTranslationLoader() {
     }
   }
 
+  // 上次配置的Hash值，用于比较
+  let lastConfigHash = ''
+  let lastRootPath = ''
+
   /**
    * 加载所有翻译
    */
   async function loadTranslations(): Promise<TranslationTree> {
     logger.info('Loading PO files from locales directory')
-    const now = Date.now()
-
-    // 如果有缓存且不超过5分钟，直接返回缓存
-    if (!needsRefresh.value && cachedTranslationTree.value) {
-      logger.info('Using cached translation tree')
-      return cachedTranslationTree.value
-    }
 
     if (!rootPath.value) {
       logger.warn('No workspace folder found')
       return { entries: [], locales: [] }
     }
+
+    // 准备当前配置状态的哈希值
+    const currentConfigHash = JSON.stringify(localesConfig.value)
+    const currentRootPath = rootPath.value
+
+    // 如果配置和路径没有变化，且缓存存在，直接返回缓存
+    if (
+      currentConfigHash === lastConfigHash && 
+      currentRootPath === lastRootPath && 
+      cachedTranslationTree.value
+    ) {
+      logger.info('配置未变化，使用缓存的翻译')
+      return cachedTranslationTree.value
+    }
+
+    // 更新哈希值和路径记录
+    lastConfigHash = currentConfigHash
+    lastRootPath = currentRootPath
 
     const config = localesConfig.value
     logger.info('config', JSON.stringify(config))
@@ -170,18 +175,32 @@ export function useTranslationLoader() {
     // 处理扫描到的PO文件
     const result = await processPoFiles(poFiles, locales, config)
 
-    // 更新缓存时间
-    lastLoadTime.value = now
+    // 只有结果真正变化时才更新缓存和状态
+    const resultHash = JSON.stringify({
+      entriesCount: result.entries.length,
+      localesCount: result.locales.length,
+    })
+    const cacheHash = cachedTranslationTree.value 
+      ? JSON.stringify({
+          entriesCount: cachedTranslationTree.value.entries.length,
+          localesCount: cachedTranslationTree.value.locales.length,
+        })
+      : '';
+    
+    if (resultHash !== cacheHash) {
+      // 更新缓存
+      cachedTranslationTree.value = result
 
-    // 更新缓存
-    cachedTranslationTree.value = result
+      // 更新翻译树状态
+      setTranslationTree(result)
 
-    // 更新翻译树状态
-    setTranslationTree(result)
-
-    logger.info(
-      `Loaded ${result.entries.length} translation entries from ${result.locales.length} locales`,
-    )
+      logger.info(
+        `Loaded ${result.entries.length} translation entries from ${result.locales.length} locales`,
+      )
+    } else {
+      logger.info('翻译内容未变化，跳过更新')
+    }
+    
     return result
   }
 
@@ -417,23 +436,29 @@ export function useTranslationLoader() {
    */
   function clearTranslationCache(): void {
     cachedTranslationTree.value = null
-    lastLoadTime.value = 0
     logger.info('Translation cache cleared')
   }
 
   // 监听配置变化，自动刷新翻译
-  watchEffect(() => {
-    if (localesConfig.value && rootPath.value) {
-      refreshTranslations()
-    }
-  })
+  watch(
+    [localesConfig, rootPath],
+    ([newConfig, newRootPath], [oldConfig, oldRootPath]) => {
+      // 只有当配置或路径真正变化时才执行刷新
+        logger.info('配置或工作区路径变化，刷新翻译')
+        logger.info('localesConfig', JSON.stringify(newConfig))
+        logger.info('rootPath', newRootPath)
+        if (newConfig && newRootPath) {
+          refreshTranslations()
+        }
+    },
+    { immediate: true }
+  )
 
   return {
     loadTranslations,
     refreshTranslations,
     clearTranslationCache,
     isLoading,
-    needsRefresh,
     cachedTranslationTree,
   }
 }

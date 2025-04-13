@@ -161,7 +161,7 @@ export class MessageService {
    * @param webview Webview实例
    * @param entry 翻译条目
    */
-  public static sendSelectEntryMessage(webview: Webview, entry: TranslationEntry): Thenable<boolean> {
+  public static sendSelectEntryMessage(webview: Webview, entry?: TranslationEntry): Thenable<boolean> {
     return webview.postMessage({
       type: WebViewMessageType.SELECT_ENTRY,
       data: {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TranslationEntry } from '../extension/state'
 import { computed, ref } from 'vue'
-import { useLocale } from '../extension/composables'
+import { useLocale } from '../extension/composables/useLocale'
 import { vscodeApi } from './utils'
 
 const translationEntry = ref<TranslationEntry>()
