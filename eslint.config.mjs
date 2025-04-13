@@ -7,5 +7,6 @@ export default antfu({
     'node/prefer-global/buffer': 'warn',
     'no-restricted-syntax': 'off',
     'node/prefer-global/process': 'off',
+    'no-template-curly-in-string': 'off',
   },
 })

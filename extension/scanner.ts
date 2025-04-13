@@ -7,11 +7,11 @@ import type {
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import * as vscode from 'vscode'
-import { localesPath } from './configs'
+import { getLocaleDirPath, localesConfig } from './configs'
 import {
   useTranslationsState,
 } from './state'
-import { logger } from './utils'
+import { logger } from './utils/logger'
 
 // 缓存的翻译树
 let cachedTranslationTree: TranslationTree | null = null
@@ -70,7 +70,7 @@ function extractTranslations(poData: PoData, locale: string) {
       translations[msgid] = {
         msgstr: translation.msgstr[0] || '',
         msgctxt: translation.msgctxt || '',
-        references: translation.comments.reference.split('\n'),
+        references: translation.comments?.reference?.split('\n') || [],
       }
     })
   })
@@ -101,7 +101,9 @@ export async function loadTranslations(): Promise<TranslationTree> {
   }
 
   const rootPath = workspaceFolders[0].uri.fsPath
-  const localesDirPath = path.join(rootPath, localesPath.value)
+  const config = localesConfig.value
+  logger.info('config', JSON.stringify(config))
+  const localesDirPath = path.join(rootPath, config.basePath)
 
   try {
     // 检查locales目录是否存在
@@ -112,92 +114,165 @@ export async function loadTranslations(): Promise<TranslationTree> {
     return { entries: [], locales: [], timestamp: now }
   }
 
-  // 读取locales目录
-  const items = await fs.promises.readdir(localesDirPath, {
-    withFileTypes: true,
-  })
+  let locales: string[] = []
+  const poFiles: { locale: string, domain: string, path: string }[] = []
 
-  // 筛选出目录（每个语言一个目录）
-  const localeDirs = items.filter(item => item.isDirectory())
-  const locales: string[] = localeDirs.map(dir => dir.name)
+  // 根据不同的目录结构类型加载PO文件
+  switch (config.type) {
+    case 'flat': {
+      // 扁平结构: locales/en.po, locales/zh.po
+      const items = await fs.promises.readdir(localesDirPath, { withFileTypes: true })
+      const poFilesInDir = items.filter(item => item.isFile() && path.extname(item.name).toLowerCase() === '.po')
+
+      for (const file of poFilesInDir) {
+        const locale = path.basename(file.name, '.po')
+        locales.push(locale)
+        poFiles.push({
+          locale,
+          domain: config.defaultDomain || 'app',
+          path: path.join(localesDirPath, file.name),
+        })
+      }
+      break
+    }
+
+    case 'nested':
+    case 'domain':
+    default: {
+      // 嵌套结构: locales/en/app.po, locales/zh/app.po
+      // 或域结构: locales/en/LC_MESSAGES/domain.po
+      const items = await fs.promises.readdir(localesDirPath, { withFileTypes: true })
+
+      // 筛选出目录（每个语言一个目录）
+      const localeDirs = items.filter(item => item.isDirectory())
+      locales = localeDirs.map(dir => dir.name)
+
+      // 对于每个语言目录
+      for (const locale of locales) {
+        let localeDir = getLocaleDirPath(locale)
+        if (!localeDir.startsWith(rootPath)) {
+          localeDir = path.join(rootPath, localeDir)
+        }
+
+        try {
+          await fs.promises.access(localeDir)
+        }
+        catch (error) {
+          logger.error(`Locale directory not found: ${localeDir}`)
+          continue
+        }
+
+        // 根据类型处理文件
+        if (config.type === 'domain') {
+          // 域结构: locale/en/LC_MESSAGES/domain.po
+          const lcMessagesDir = path.join(localeDir, 'LC_MESSAGES')
+          try {
+            const messagesFiles = await fs.promises.readdir(lcMessagesDir, { withFileTypes: true })
+            const domainPoFiles = messagesFiles.filter(
+              file => file.isFile() && path.extname(file.name).toLowerCase() === '.po',
+            )
+
+            for (const file of domainPoFiles) {
+              const domain = path.basename(file.name, '.po')
+              poFiles.push({
+                locale,
+                domain,
+                path: path.join(lcMessagesDir, file.name),
+              })
+            }
+          }
+          catch (error) {
+            logger.error(`LC_MESSAGES directory not found: ${lcMessagesDir}`)
+            continue
+          }
+        }
+        else {
+          // 嵌套结构: locale/en/app.po
+          try {
+            const lcItems = await fs.promises.readdir(localeDir, { withFileTypes: true })
+            const lcPoFiles = lcItems.filter(
+              item => item.isFile() && path.extname(item.name).toLowerCase() === '.po',
+            )
+
+            for (const file of lcPoFiles) {
+              const domain = path.basename(file.name, '.po')
+              poFiles.push({
+                locale,
+                domain,
+                path: path.join(localeDir, file.name),
+              })
+            }
+          }
+          catch (error) {
+            logger.error(`Failed to read locale directory: ${localeDir}`, error)
+            continue
+          }
+        }
+      }
+      break
+    }
+  }
 
   // 用于收集所有翻译条目
   const entriesMap = new Map<string, TranslationEntry>()
-
   const localeStatistics = new Map<string, TranslationStatisticsObject>()
 
-  // 遍历每个语言目录
+  // 初始化统计数据
   for (const locale of locales) {
-    const localeDir = path.join(localesDirPath, locale)
-    const lcItems = await fs.promises.readdir(localeDir, {
-      withFileTypes: true,
-    })
-
     localeStatistics.set(locale, {
       translated: 0,
       untranslated: 0,
       total: 0,
     })
+  }
 
-    // 筛选出.po文件
-    const poFiles = lcItems
-      .filter(
-        item =>
-          item.isFile() && path.extname(item.name).toLowerCase() === '.po',
-      )
-      .map(file => path.join(localeDir, file.name))
+  // 读取每个PO文件
+  for (const poFile of poFiles) {
+    const poData = await readPoFile(poFile.path)
+    if (!poData)
+      continue
 
-    // 读取每个.po文件
-    for (const poFile of poFiles) {
-      const poData = await readPoFile(poFile)
-
-      if (!poData)
-        continue
-
-      const translations = extractTranslations(poData, locale)
-
-      let translated = 0
-      let untranslated = 0
-
-      // 将翻译添加到条目映射
-      Object.keys(translations).forEach((msgid) => {
-        const translation = translations[msgid]
-
-        const entry = entriesMap.get(msgid)
-
-        if (translation.msgstr) {
-          translated++
-        }
-        else {
-          untranslated++
-        }
-
-        if (entry) {
-          if (!translation.msgstr) {
-            entry.hasUntranslated = true
-          }
-          // 已有此条目，添加此语言的翻译
-          entry.locales[locale] = translation.msgstr
-          entriesMap.set(msgid, entry)
-        }
-        else {
-          // 创建新条目
-          entriesMap.set(msgid, {
-            id: msgid,
-            msgctxt: translation.msgctxt,
-            locales: { [locale]: translation.msgstr },
-            references: translation.references,
-            hasUntranslated: false,
-          })
-        }
-      })
-
-      localeStatistics.set(locale, {
-        translated,
-        untranslated,
-        total: translated + untranslated,
-      })
+    const translations = extractTranslations(poData, poFile.locale)
+    const stats = localeStatistics.get(poFile.locale) || {
+      translated: 0,
+      untranslated: 0,
+      total: 0,
     }
+
+    // 将翻译添加到条目映射
+    Object.keys(translations).forEach((msgid) => {
+      const translation = translations[msgid]
+
+      if (translation.msgstr) {
+        stats.translated++
+      }
+      else {
+        stats.untranslated++
+      }
+      stats.total++
+
+      const entry = entriesMap.get(msgid)
+      if (entry) {
+        if (!translation.msgstr && poFile.locale !== config.sourceLanguage) {
+          entry.hasUntranslated = true
+        }
+        // 已有此条目，添加此语言的翻译
+        entry.locales[poFile.locale] = translation.msgstr
+        entriesMap.set(msgid, entry)
+      }
+      else {
+        // 创建新条目
+        entriesMap.set(msgid, {
+          id: msgid,
+          msgctxt: translation.msgctxt,
+          locales: { [poFile.locale]: translation.msgstr },
+          references: translation.references,
+          hasUntranslated: !translation.msgstr,
+        })
+      }
+    })
+
+    localeStatistics.set(poFile.locale, stats)
   }
 
   const { setTranslationTree, setLocaleStatistics } = useTranslationsState()

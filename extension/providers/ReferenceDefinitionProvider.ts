@@ -1,5 +1,5 @@
 import * as vscode from 'vscode'
-import { logger } from '../utils'
+import { logger } from '../utils/logger'
 
 // 文件引用定义提供者类
 export class ReferenceDefinitionProvider implements vscode.DefinitionProvider {

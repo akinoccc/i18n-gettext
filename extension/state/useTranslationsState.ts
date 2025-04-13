@@ -1,5 +1,5 @@
 import { computed, ref } from 'reactive-vscode'
-import { logger } from '../utils'
+import { logger } from '../utils/logger'
 
 // 翻译条目类型
 export interface TranslationEntry {

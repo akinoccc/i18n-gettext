@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { TranslationEntry } from '../extension/state'
 import { computed, ref } from 'vue'
+import { useLocale } from '../extension/composables'
 import { vscodeApi } from './utils'
 
 const translationEntry = ref<TranslationEntry>()
 const description = ref<string>('')
-const showTranslationPanel = ref(true)
 const showReferences = ref(false)
 
 // 根据预览图片中的语言列表
@@ -13,34 +13,31 @@ const locales = computed(() => {
   if (!translationEntry.value?.locales)
     return []
 
-  // 构建本地化语言列表，确保显示顺序与图片一致
-  const localesMap = [
-    { code: 'zh_CN', flag: '🇨🇳', name: '中文(简体)' },
-    { code: 'en', flag: '🇺🇸', name: '英文' },
-    { code: 'zh_HK', flag: '🇭🇰', name: '中文(香港)' },
-    { code: 'zh_TW', flag: '🇹🇼', name: '中文(台湾)' },
-  ]
+  // 获取所有可用的本地化代码
+  const availableCodes = Object.keys(translationEntry.value!.locales)
 
-  return localesMap.filter(locale =>
-    Object.keys(translationEntry.value!.locales).includes(locale.code),
-  )
+  // 筛选出存在于当前翻译条目中的语言
+  return availableCodes.map((code) => {
+    const { locale: localeIdentifier } = useLocale(code)
+    return {
+      ...localeIdentifier!,
+      originalCode: code,
+    }
+  })
 })
 
 // 保存翻译内容
-async function saveTranslation(localeCode: string, value: string) {
+async function saveTranslation(localeObjIdentifier: { code: string, originalCode: string }) {
   if (!translationEntry.value)
     return
-
-  // 更新本地数据
-  translationEntry.value.locales[localeCode] = value
 
   // 发送更新到VSCode扩展
   vscodeApi.postMessage({
     type: 'i18n-gettext.updateTranslation',
     data: {
       entry: JSON.stringify(translationEntry.value),
-      locale: localeCode,
-      value,
+      locale: localeObjIdentifier.originalCode,
+      value: translationEntry.value.locales[localeObjIdentifier.code],
     },
   })
 }
@@ -112,10 +109,10 @@ vscodeApi.on('i18n-gettext.selectEntry', (entry: TranslationEntry) => {
 
         <div class="translation-content">
           <input
-            v-model="translationEntry.locales[locale.code]"
+            v-model="translationEntry.locales[locale.originalCode]"
             class="translation-input"
             :placeholder="`${locale.name}翻译...`"
-            @blur="saveTranslation(locale.code, translationEntry.locales[locale.code])"
+            @blur="saveTranslation(locale)"
           >
         </div>
 

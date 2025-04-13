@@ -2,7 +2,7 @@ import type { TranslationEntry } from '../state/useTranslationsState'
 import * as vscode from 'vscode'
 import { useTranslationsState } from '../state'
 import { saveTranslation } from '../translator'
-import { logger } from '../utils'
+import { logger } from '../utils/logger'
 import { WebviewHelper } from '../WebviewHelper'
 
 // 当前选中的条目

@@ -13,7 +13,7 @@ import {
 } from 'vscode'
 import { loadTranslations } from '../scanner'
 import { useTranslationsState } from '../state'
-import { logger } from '../utils'
+import { logger } from '../utils/logger'
 
 const {
   setSelectedEntry,

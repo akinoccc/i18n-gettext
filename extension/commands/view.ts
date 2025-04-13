@@ -3,7 +3,7 @@ import type { TranslationEntry } from '../state'
 import { useCommands } from 'reactive-vscode'
 import { TranslationEditorProvider } from '../providers/EditorProvider'
 import { useTranslationsState } from '../state'
-import { logger } from '../utils'
+import { logger } from '../utils/logger'
 
 export function registerViewCommands(context: ExtensionContext) {
   const { setSelectedEntry } = useTranslationsState()

@@ -8,7 +8,7 @@ import { registerCustomCommands, registerViewCommands } from './commands'
 import { EntryListProvider, FileTranslationProvider, ProgressProvider, ReferenceDefinitionProvider } from './providers'
 import { loadTranslations } from './scanner'
 import { useTranslationsState } from './state'
-import { logger } from './utils'
+import { logger } from './utils/logger'
 
 const { setTranslationTree }
   = useTranslationsState()

@@ -18,6 +18,22 @@
     "onStartupFinished"
   ],
   "contributes": {
+    "configuration": {
+      "title": "i18n Gettext",
+      "properties": {
+        "i18n-gettext.localesConfig": {
+          "type": "object",
+          "default": {
+            "type": "nested",
+            "basePath": "src/language",
+            "pattern": "${locale}/${domain}.po",
+            "defaultDomain": "app",
+            "sourceLanguage": "en-US"
+          },
+          "description": "Locales config"
+        }
+      }
+    },
     "commands": [
       {
         "command": "i18n-gettext.refreshView",
@@ -121,17 +137,7 @@
         ],
         "priority": "default"
       }
-    ],
-    "configuration": {
-      "title": "i18n Gettext",
-      "properties": {
-        "i18n-gettext.localesPath": {
-          "type": "string",
-          "default": "src/language",
-          "description": "Locales path"
-        }
-      }
-    }
+    ]
   },
   "scripts": {
     "build": "vite build",
