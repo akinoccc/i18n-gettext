@@ -1,4 +1,5 @@
 import { computed, ref } from 'reactive-vscode'
+import { ConfigService } from '../services'
 import { logger } from '../utils/logger'
 
 // 翻译条目类型
@@ -87,6 +88,16 @@ export function useTranslationsState() {
     localeStatistics.value = newLocaleStatistics
   }
 
+  const updateTranslation = (newEntry: TranslationEntry) => {
+    newEntry.hasUntranslated = Object.keys(newEntry.locales).some((key) => {
+      return !newEntry.locales[key] && key !== ConfigService.sourceLanguage
+    })
+    const index = translationTree.value?.entries.findIndex(e => e.id === newEntry.id)
+    if (index !== undefined) {
+      translationTree.value!.entries[index] = newEntry
+    }
+  }
+
   return {
     statistics,
     selectedEntry,
@@ -94,5 +105,6 @@ export function useTranslationsState() {
     setSelectedEntry,
     setTranslationTree,
     setLocaleStatistics,
+    updateTranslation,
   }
 }

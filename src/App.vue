@@ -7,7 +7,7 @@ import { vscodeApi } from './utils'
 const translationEntry = ref<TranslationEntry>()
 const description = ref<string>('')
 const showReferences = ref(false)
-
+const sourceLanguage = ref('')
 // 根据预览图片中的语言列表
 const locales = computed(() => {
   if (!translationEntry.value?.locales)
@@ -37,7 +37,7 @@ async function saveTranslation(localeObjIdentifier: { code: string, originalCode
     data: {
       entry: JSON.stringify(translationEntry.value),
       locale: localeObjIdentifier.originalCode,
-      value: translationEntry.value.locales[localeObjIdentifier.code],
+      value: translationEntry.value.locales[localeObjIdentifier.originalCode],
     },
   })
 }
@@ -57,10 +57,35 @@ function goToReference(reference: string) {
   })
 }
 
+function isSourceLanguage(locale: string) {
+  return locale === sourceLanguage.value
+}
+
+function getTranslationValue(locale: string) {
+  const msgstr = translationEntry.value?.locales[locale]
+
+  if (isSourceLanguage(locale) && !msgstr)
+    return translationEntry.value?.id
+
+  return msgstr
+}
+
+function translateByMachine(locale: { originalCode: string, code: string }) {
+  vscodeApi.postMessage({
+    type: 'i18n-gettext.translateByMachine',
+    data: {
+      entry: JSON.stringify(translationEntry.value),
+      originalCode: locale.originalCode,
+      targetCode: locale.code,
+    },
+  })
+}
+
 // 监听VSCode消息
-vscodeApi.on('i18n-gettext.selectEntry', (entry: TranslationEntry) => {
+vscodeApi.on('i18n-gettext.selectEntry', (entry: TranslationEntry & { sourceLanguage: string }) => {
   translationEntry.value = entry
   description.value = entry.msgctxt || ''
+  sourceLanguage.value = entry.sourceLanguage
 })
 </script>
 
@@ -109,16 +134,20 @@ vscodeApi.on('i18n-gettext.selectEntry', (entry: TranslationEntry) => {
 
         <div class="translation-content">
           <input
-            v-model="translationEntry.locales[locale.originalCode]"
+            :value="getTranslationValue(locale.originalCode)"
             class="translation-input"
             :placeholder="`${locale.name}翻译...`"
             @blur="saveTranslation(locale)"
+            @change="e => translationEntry!.locales[locale.originalCode] = (e.target as HTMLInputElement).value"
           >
         </div>
 
         <div class="translation-actions">
-          <button class="action-btn translate-btn">
-            <span>机器翻译</span>
+          <div v-if="isSourceLanguage(locale.originalCode)" class="source-language-badge">
+            source
+          </div>
+          <button v-if="!isSourceLanguage(locale.originalCode)" class="action-btn translate-btn" @click="translateByMachine(locale)">
+            <span>机翻</span>
           </button>
         </div>
       </div>
@@ -284,9 +313,22 @@ vscodeApi.on('i18n-gettext.selectEntry', (entry: TranslationEntry) => {
   font-size: 12px;
 }
 
+.source-language-badge {
+  padding: 6px 12px;
+  border-radius: 4px;
+  background-color: rgba(240, 240, 240, 0.4);
+  color: #666;
+}
+
 .translate-btn {
   background-color: #f0f0f0;
   color: #333;
+  transition: background-color 0.2s;
+}
+
+.translate-btn:hover {
+  color: #fff;
+  background-color: #3e6fd3;
 }
 
 .empty-state {

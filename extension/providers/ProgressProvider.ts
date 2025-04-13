@@ -1,6 +1,7 @@
 import { watchEffect } from 'reactive-vscode'
 import * as vscode from 'vscode'
-import { loadTranslations } from '../scanner'
+import { ScannerService } from '../services'
+import { localesConfig } from '../services/configService'
 import { useTranslationsState } from '../state'
 import { logger } from '../utils/logger'
 
@@ -31,7 +32,7 @@ implements vscode.TreeDataProvider<ProgressItem> {
 
   private async initializeData() {
     try {
-      const translationTree = await loadTranslations()
+      const translationTree = await ScannerService.loadTranslations()
       setTranslationTree(translationTree)
     }
     catch (error) {
@@ -64,17 +65,13 @@ implements vscode.TreeDataProvider<ProgressItem> {
 
     return Promise.resolve(
       translationTree.value.locales.map((data) => {
+        const translated = statistics.value?.locales?.[data].translated ?? 0
+        const total = statistics.value?.locales?.[data].total ?? 0
         const treeItem = new ProgressItem(
-          `${data} (${statistics.value?.locales?.[data].translated ?? 0}/${statistics.value?.locales?.[data].total ?? 0})`,
-          vscode.l10n.t(
-            '{0} 完成',
-            `${Math.round(
-              ((statistics.value?.locales?.[data].translated ?? 0)
-                / (statistics.value?.locales?.[data].total ?? 0))
-              * 100,
-            )}%`,
-          ),
+          `${data} (${translated}/${total})`,
+          ((translated / total) * 100).toFixed(2),
           vscode.TreeItemCollapsibleState.None,
+          localesConfig.value.sourceLanguage === data,
         )
 
         // // 添加命令以便点击选择该语言
@@ -96,8 +93,9 @@ class ProgressItem extends vscode.TreeItem {
     public readonly label: string,
     public readonly description: string,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
+    public readonly isSource?: boolean,
   ) {
     super(label, collapsibleState)
-    this.description = description
+    this.description = `${description} ${isSource ? 'source' : ''}`
   }
 }

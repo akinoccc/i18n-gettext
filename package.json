@@ -31,6 +31,12 @@
             "sourceLanguage": "en-US"
           },
           "description": "Locales config"
+        },
+        "i18n-gettext.translator.engines": {
+          "type": "array",
+          "default": [
+            "google"
+          ]
         }
       }
     },
@@ -151,7 +157,10 @@
   },
   "dependencies": {
     "@tomjs/vscode-webview": "^2.0.2",
+    "@types/node-fetch": "^2.6.12",
+    "@vitalets/google-translate-api": "^9.2.1",
     "gettext-parser": "^8.0.0",
+    "node-fetch": "^3.3.2",
     "vue": "^3.5.13"
   },
   "devDependencies": {

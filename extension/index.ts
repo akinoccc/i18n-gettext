@@ -6,7 +6,7 @@ import {
 import * as vscode from 'vscode'
 import { registerCustomCommands, registerViewCommands } from './commands'
 import { EntryListProvider, FileTranslationProvider, ProgressProvider, ReferenceDefinitionProvider } from './providers'
-import { loadTranslations } from './scanner'
+import { ScannerService } from './services'
 import { useTranslationsState } from './state'
 import { logger } from './utils/logger'
 
@@ -51,19 +51,6 @@ const { activate, deactivate } = defineExtension(async (context) => {
       ),
     )
     logger.info('成功注册引用定义提供者')
-
-    // // 注册自定义编辑器
-    // context.subscriptions.push(
-    //   vscode.window.registerCustomEditorProvider(
-    //     'i18n-gettext.translationEditor',
-    //     new TranslationEditorProvider(context),
-    //     {
-    //       webviewOptions: { retainContextWhenHidden: true },
-    //       supportsMultipleEditorsPerDocument: false,
-    //     },
-    //   ),
-    // )
-    // logger.info('成功注册翻译编辑器')
   }
   catch (error) {
     logger.error('注册视图时发生错误:', error)
@@ -76,7 +63,7 @@ const { activate, deactivate } = defineExtension(async (context) => {
   registerCustomCommands(context)
 
   // 初始加载翻译数据
-  await refreshTranslations()
+  // await refreshTranslations()
 
   // 监听主题变化
   const isDark = useIsDarkTheme()
@@ -89,19 +76,5 @@ const { activate, deactivate } = defineExtension(async (context) => {
     )
   })
 })
-
-// 刷新翻译
-async function refreshTranslations(): Promise<void> {
-  try {
-    // 加载翻译数据
-    const translationTree = await loadTranslations()
-    setTranslationTree(translationTree)
-    logger.info(vscode.l10n.t('翻译数据已刷新'))
-  }
-  catch (error) {
-    logger.error(vscode.l10n.t('刷新翻译时发生错误'), error)
-    vscode.window.showErrorMessage(vscode.l10n.t('刷新翻译时发生错误'))
-  }
-}
 
 export { activate, deactivate }

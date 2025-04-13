@@ -1,7 +1,9 @@
 import type { TranslationEntry } from '../state/useTranslationsState'
 import { watchEffect } from 'reactive-vscode'
 import * as vscode from 'vscode'
-import { loadTranslations } from '../scanner'
+import { window } from 'vscode'
+import { CommandType } from '../constants'
+import { ScannerService } from '../services'
 import { useTranslationsState } from '../state'
 import { logger } from '../utils/logger'
 
@@ -20,23 +22,25 @@ export class EntryListProvider implements vscode.TreeDataProvider<EntryItem> {
 
   constructor() {
     this.initializeData()
+  }
 
-    // 使用 watchEffect 监听状态变化并刷新树视图
+  private async initializeData() {
+    try {
+      // 读取翻译树
+      const translationTree = await ScannerService.loadTranslations()
+      setTranslationTree(translationTree)
+    }
+    catch (error) {
+      logger.error('初始化翻译条目列表失败:', error)
+      window.showErrorMessage('初始化翻译条目列表失败')
+    }
+
+    // 监听翻译树变化
     watchEffect(() => {
       if (translationTree.value) {
         this.refresh()
       }
     })
-  }
-
-  private async initializeData() {
-    try {
-      const translationTree = await loadTranslations()
-      setTranslationTree(translationTree)
-    }
-    catch (error) {
-      logger.error('初始化翻译数据时发生错误:', error)
-    }
   }
 
   refresh(): void {
@@ -86,7 +90,7 @@ export class EntryListProvider implements vscode.TreeDataProvider<EntryItem> {
 
         // 添加命令以便点击打开编辑器
         treeItem.command = {
-          command: 'i18n-gettext.selectEntry',
+          command: CommandType.SELECT_ENTRY,
           title: vscode.l10n.t('打开翻译编辑器'),
           arguments: [entry],
         }
