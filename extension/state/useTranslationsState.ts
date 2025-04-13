@@ -15,7 +15,6 @@ export interface TranslationEntry {
 export interface TranslationTree {
   entries: TranslationEntry[]
   locales: string[] // 可用的语言列表
-  timestamp: number
 }
 
 // PO数据类型定义

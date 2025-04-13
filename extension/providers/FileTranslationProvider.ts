@@ -1,5 +1,6 @@
-import { watchEffect } from 'reactive-vscode'
+import { computed, useActiveTextEditor, watchEffect } from 'reactive-vscode'
 import * as vscode from 'vscode'
+import { useTranslationEntries } from '../composables/useTranslationEntries'
 import { useTranslationsState } from '../state'
 
 // 当前文件翻译条目Provider
@@ -12,28 +13,37 @@ export class FileTranslationProvider implements vscode.TreeDataProvider<FileEntr
     FileEntryItem | undefined | null | void
   > = this._onDidChangeTreeData.event
 
-  // 当前活动编辑器
-  private currentEditor: vscode.TextEditor | undefined
+  // 使用响应式API获取活动编辑器
+  private activeEditor = useActiveTextEditor()
+
+  // 使用翻译条目组合式函数
+  private translationEntries = useTranslationEntries()
+
+  // 计算当前文件中的翻译条目
+  private currentFileEntries = computed(() => {
+    if (!this.activeEditor.value) {
+      return []
+    }
+
+    const document = this.activeEditor.value.document
+    const text = document.getText()
+    const filePath = this.getRelativePath(document.uri.fsPath)
+
+    return this.translationEntries.fileEntries(filePath, text)
+  })
 
   constructor() {
-    // 注册编辑器变更事件
-    vscode.window.onDidChangeActiveTextEditor((editor) => {
-      if (!editor?.document.uri.path) {
-        return
-      }
-      this.currentEditor = editor
+    // 使用响应式API监听编辑器和文档变化
+    watchEffect(() => {
       this.refresh()
     })
 
-    // 注册文档变更事件
+    // 监听文档变更事件 - 仍需保留此事件监听，因为内容变化不会触发编辑器变化
     vscode.workspace.onDidChangeTextDocument((event) => {
-      if (this.currentEditor && event.document === this.currentEditor.document) {
+      if (this.activeEditor.value && event.document === this.activeEditor.value.document) {
         this.refresh()
       }
     })
-
-    // 初始化当前编辑器
-    this.currentEditor = vscode.window.activeTextEditor
 
     // 监听翻译树变化
     const { translationTree } = useTranslationsState()
@@ -57,7 +67,7 @@ export class FileTranslationProvider implements vscode.TreeDataProvider<FileEntr
       return Promise.resolve([])
     }
 
-    if (!this.currentEditor) {
+    if (!this.activeEditor.value) {
       return Promise.resolve([
         new FileEntryItem(
           vscode.l10n.t('无活动文件'),
@@ -78,24 +88,7 @@ export class FileTranslationProvider implements vscode.TreeDataProvider<FileEntr
       ])
     }
 
-    // 获取当前文件的内容
-    const document = this.currentEditor.document
-    const text = document.getText()
-    const filePath = this.getRelativePath(document.uri.fsPath)
-
-    // 查找当前文件中引用的翻译条目
-    const fileEntries = translationTree.value.entries.filter((entry) => {
-      // 检查是否在引用列表中
-      if (entry.references.some(ref => ref.startsWith(filePath))) {
-        return true
-      }
-
-      // 在文件内容中查找字符串ID
-      // 这是一个简单的检查，可能需要更复杂的正则表达式来匹配gettext调用
-      const escaped = this.escapeRegExp(entry.id)
-      const pattern = new RegExp(`['"\`](${escaped})['"\`]`, 'g')
-      return pattern.test(text)
-    })
+    const fileEntries = this.currentFileEntries.value
 
     if (fileEntries.length === 0) {
       return Promise.resolve([
@@ -145,11 +138,6 @@ export class FileTranslationProvider implements vscode.TreeDataProvider<FileEntr
     const rootPath = vscode.workspace.workspaceFolders[0].uri.fsPath
     // 移除根路径，保留相对路径
     return absolutePath.replace(rootPath, '').replace(/^[/\\]/, '')
-  }
-
-  // 转义正则表达式特殊字符
-  private escapeRegExp(string: string): string {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   }
 }
 

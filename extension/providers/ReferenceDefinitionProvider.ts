@@ -1,14 +1,16 @@
+import { useWorkspaceFolders } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { logger } from '../utils/logger'
 
 // 文件引用定义提供者类
 export class ReferenceDefinitionProvider implements vscode.DefinitionProvider {
+  // 使用响应式API获取工作区文件夹
+  private workspaceFolders = useWorkspaceFolders()
+
   provideDefinition(
     document: vscode.TextDocument,
     position: vscode.Position,
-    token: vscode.CancellationToken,
   ): vscode.ProviderResult<vscode.Definition> {
-    const line = document.lineAt(position).text
     const range = document.getWordRangeAtPosition(position, /['"]([^'"]*?):(\d+)['"]/g)
 
     if (!range)
@@ -21,7 +23,7 @@ export class ReferenceDefinitionProvider implements vscode.DefinitionProvider {
       return null
 
     // 从匹配的文本中提取文件路径和行号
-    const refMatch = text.match(/['"]([^'"]*?):(\d+)['"]/)?.[0]?.match(/['"](.+?):(\d+)['"]/)?.[0]
+    const refMatch = text.match(/['"]([^'"]*?):(\d+)['"]/g)?.[0]?.match(/['"](.+?):(\d+)['"]/)?.[0]
 
     if (!refMatch)
       return null
@@ -33,8 +35,13 @@ export class ReferenceDefinitionProvider implements vscode.DefinitionProvider {
     const [, filePath, lineStr] = innerMatch
     const lineNumber = Number.parseInt(lineStr, 10)
 
+    // 使用响应式API获取的工作区文件夹
+    const folders = this.workspaceFolders.value || []
+    if (folders.length === 0)
+      return null
+
     // 遍历工作区文件夹，查找匹配的文件
-    return vscode.workspace.workspaceFolders?.map((folder) => {
+    return folders.map((folder) => {
       try {
         const fullPath = vscode.Uri.joinPath(folder.uri, filePath)
         return new vscode.Location(

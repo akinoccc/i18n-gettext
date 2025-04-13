@@ -1,20 +1,26 @@
 import {
+  computed,
   defineExtension,
   useIsDarkTheme,
+  useWorkspaceFolders,
   watchEffect,
 } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { registerCustomCommands, registerViewCommands } from './commands'
 import { EntryListProvider, FileTranslationProvider, ProgressProvider, ReferenceDefinitionProvider } from './providers'
-import { ScannerService } from './services'
-import { useTranslationsState } from './state'
-import { logger } from './utils/logger'
+import { logger } from './utils'
 
-const { setTranslationTree }
-  = useTranslationsState()
-
-const { activate, deactivate } = defineExtension(async (context) => {
+export const { activate, deactivate } = defineExtension(async (context) => {
   logger.info('i18n-gettext 插件已激活')
+
+  // 获取工作区文件夹
+  const workspaceFolders = useWorkspaceFolders()
+
+  // 创建视图提供者实例
+  const fileTranslationProvider = new FileTranslationProvider()
+  const progressProvider = new ProgressProvider()
+  const entryListProvider = new EntryListProvider()
+  const definitionProvider = new ReferenceDefinitionProvider()
 
   // 注册视图
   try {
@@ -22,14 +28,14 @@ const { activate, deactivate } = defineExtension(async (context) => {
     context.subscriptions.push(
       vscode.window.registerTreeDataProvider(
         'i18n-gettext.fileTranslation',
-        new FileTranslationProvider(),
+        fileTranslationProvider,
       ),
     )
     // 注册状态视图
     context.subscriptions.push(
       vscode.window.registerTreeDataProvider(
         'i18n-gettext.progress',
-        new ProgressProvider(),
+        progressProvider,
       ),
     )
     logger.info('成功注册翻译进度视图')
@@ -38,7 +44,7 @@ const { activate, deactivate } = defineExtension(async (context) => {
     context.subscriptions.push(
       vscode.window.registerTreeDataProvider(
         'i18n-gettext.entries',
-        new EntryListProvider(),
+        entryListProvider,
       ),
     )
     logger.info('成功注册翻译条目视图')
@@ -47,7 +53,7 @@ const { activate, deactivate } = defineExtension(async (context) => {
     context.subscriptions.push(
       vscode.languages.registerDefinitionProvider(
         ['typescript', 'javascript', 'typescriptreact', 'javascriptreact'],
-        new ReferenceDefinitionProvider(),
+        definitionProvider,
       ),
     )
     logger.info('成功注册引用定义提供者')
@@ -62,8 +68,21 @@ const { activate, deactivate } = defineExtension(async (context) => {
   // 注册自定义命令
   registerCustomCommands(context)
 
-  // 初始加载翻译数据
-  // await refreshTranslations()
+  // 计算工作区状态
+  const workspaceState = computed(() => {
+    const folders = workspaceFolders.value || []
+    return {
+      hasWorkspace: folders.length > 0,
+      rootPath: folders[0]?.uri.fsPath || '',
+    }
+  })
+
+  // 监听工作区变化
+  watchEffect(() => {
+    if (workspaceState.value.hasWorkspace) {
+      logger.info(`工作区根目录: ${workspaceState.value.rootPath}`)
+    }
+  })
 
   // 监听主题变化
   const isDark = useIsDarkTheme()
@@ -76,5 +95,3 @@ const { activate, deactivate } = defineExtension(async (context) => {
     )
   })
 })
-
-export { activate, deactivate }

@@ -1,4 +1,4 @@
-import type { Disposable, ExtensionContext, Webview } from 'vscode'
+import type { Disposable, Webview } from 'vscode'
 import type { TranslateByMachineData, UpdateTranslationData, WebViewMessage } from '../constants/message'
 
 import type { TranslationEntry } from '../state'
@@ -32,7 +32,6 @@ export class MessageService {
   /**
    * 处理WebView消息
    * @param message 消息对象
-   * @param panel Webview面板
    */
   public static async handleMessage(message: WebViewMessage): Promise<void> {
     logger.info('处理WebView消息:', message.type)

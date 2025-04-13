@@ -1,4 +1,4 @@
-import { watchEffect } from 'reactive-vscode'
+import { computed, watchEffect } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { ScannerService } from '../services'
 import { localesConfig } from '../services/configService'
@@ -19,12 +19,36 @@ implements vscode.TreeDataProvider<ProgressItem> {
     ProgressItem | undefined | null | void
   > = this._onDidChangeTreeData.event
 
+  // 使用计算属性获取进度项目
+  private progressItems = computed(() => {
+    if (!translationTree.value) {
+      return [
+        new ProgressItem(
+          vscode.l10n.t('尚无翻译数据'),
+          '',
+          vscode.TreeItemCollapsibleState.None,
+        ),
+      ]
+    }
+
+    return translationTree.value.locales.map((data) => {
+      const translated = statistics.value?.locales?.[data].translated ?? 0
+      const total = statistics.value?.locales?.[data].total ?? 0
+      return new ProgressItem(
+        `${data} (${translated}/${total})`,
+        ((translated / total) * 100).toFixed(2),
+        vscode.TreeItemCollapsibleState.None,
+        localesConfig.value.sourceLanguage === data,
+      )
+    })
+  })
+
   constructor() {
     this.initializeData()
 
     // 使用 watchEffect 监听状态变化并刷新树视图
     watchEffect(() => {
-      if (translationTree.value) {
+      if (translationTree.value || statistics.value) {
         this.refresh()
       }
     })
@@ -53,37 +77,7 @@ implements vscode.TreeDataProvider<ProgressItem> {
       return Promise.resolve([])
     }
 
-    if (!translationTree.value) {
-      return Promise.resolve([
-        new ProgressItem(
-          vscode.l10n.t('尚无翻译数据'),
-          '',
-          vscode.TreeItemCollapsibleState.None,
-        ),
-      ])
-    }
-
-    return Promise.resolve(
-      translationTree.value.locales.map((data) => {
-        const translated = statistics.value?.locales?.[data].translated ?? 0
-        const total = statistics.value?.locales?.[data].total ?? 0
-        const treeItem = new ProgressItem(
-          `${data} (${translated}/${total})`,
-          ((translated / total) * 100).toFixed(2),
-          vscode.TreeItemCollapsibleState.None,
-          localesConfig.value.sourceLanguage === data,
-        )
-
-        // // 添加命令以便点击选择该语言
-        // treeItem.command = {
-        //   command: 'i18n-gettext.selectLanguage',
-        //   title: vscode.l10n.t('选择语言: {0}', data),
-        //   arguments: [data],
-        // }
-
-        return treeItem
-      }),
-    )
+    return Promise.resolve(this.progressItems.value)
   }
 }
 

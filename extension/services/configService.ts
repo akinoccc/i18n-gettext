@@ -1,5 +1,5 @@
 import { defineConfigs } from 'reactive-vscode'
-import * as vscode from 'vscode'
+// import * as vscode from 'vscode'
 
 /**
  * 区域设置模式
@@ -159,15 +159,15 @@ export class ConfigService {
     return result
   }
 
-  /**
-   * 获取API密钥的辅助函数
-   * @param service 服务名称
-   * @returns API密钥
-   */
-  public static getApiKey(service: string): string | undefined {
-    const config = vscode.workspace.getConfiguration('i18n-gettext.translator')
-    return config.get<string>(`${service}ApiKey`)
-  }
+  //   /**
+  //    * 获取API密钥的辅助函数
+  //    * @param service 服务名称
+  //    * @returns API密钥
+  //    */
+  //   public static getApiKey(service: string): string | undefined {
+  //     const config = localesConfig.value.
+  //     return config.get<string>(`${service}ApiKey`)
+  //   }
 
   public static get sourceLanguage() {
     return localesConfig.value.sourceLanguage

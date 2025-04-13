@@ -1,14 +1,9 @@
 import type { TranslationEntry } from '../state/useTranslationsState'
 import { watchEffect } from 'reactive-vscode'
 import * as vscode from 'vscode'
-import { window } from 'vscode'
+import { useTranslationEntries } from '../composables/useTranslationEntries'
 import { CommandType } from '../constants'
-import { ScannerService } from '../services'
 import { useTranslationsState } from '../state'
-import { logger } from '../utils/logger'
-
-const { setTranslationTree, translationTree }
-  = useTranslationsState()
 
 // 翻译条目
 export class EntryListProvider implements vscode.TreeDataProvider<EntryItem> {
@@ -20,27 +15,38 @@ export class EntryListProvider implements vscode.TreeDataProvider<EntryItem> {
       EntryItem | undefined | null | void
   > = this._onDidChangeTreeData.event
 
+  // 使用翻译条目组合式函数
+  private translationEntries = useTranslationEntries()
+
   constructor() {
     this.initializeData()
   }
 
   private async initializeData() {
-    try {
-      // 读取翻译树
-      const translationTree = await ScannerService.loadTranslations()
-      setTranslationTree(translationTree)
-    }
-    catch (error) {
-      logger.error('初始化翻译条目列表失败:', error)
-      window.showErrorMessage('初始化翻译条目列表失败')
-    }
+    // 监听翻译条目的状态变化
+    watchEffect(() => {
+      if (this.translationEntries.searchText.value || this.translationEntries.filterType.value !== 'all') {
+        this.refresh()
+      }
+    })
 
     // 监听翻译树变化
+    const { translationTree } = useTranslationsState()
     watchEffect(() => {
       if (translationTree.value) {
         this.refresh()
       }
     })
+  }
+
+  // 设置搜索文本
+  setSearchText(text: string) {
+    this.translationEntries.setSearchText(text)
+  }
+
+  // 设置过滤类型
+  setFilterType(type: 'all' | 'untranslated' | 'translated') {
+    this.translationEntries.setFilterType(type)
   }
 
   refresh(): void {
@@ -56,32 +62,21 @@ export class EntryListProvider implements vscode.TreeDataProvider<EntryItem> {
       return Promise.resolve([])
     }
 
-    // const tree = translatorState.translationTree.value;
-    // if (!tree || tree.entries.length === 0) {
-    //   return Promise.resolve([
-    //     new EntryItem(
-    //       vscode.l10n.t("尚无翻译条目"),
-    //       "",
-    //       vscode.TreeItemCollapsibleState.None
-    //     ),
-    //   ]);
-    // }
+    // 使用组合式函数获取过滤后的条目
+    const entries = this.translationEntries.filteredEntries.value
 
-    // 获取搜索文本
-    // const searchText = translatorState.searchText.value || "";
-
-    // 过滤条目
-    // const filteredEntries = searchText
-    //   ? tree.entries.filter(
-    //       (entry: TranslationEntry) =>
-    //         entry.id.toLowerCase().includes(searchText.toLowerCase()) ||
-    //         (entry.msgctxt &&
-    //           entry.msgctxt.toLowerCase().includes(searchText.toLowerCase()))
-    //     )
-    //   : tree.entries;
+    if (entries.length === 0) {
+      return Promise.resolve([
+        new EntryItem(
+          vscode.l10n.t('尚无翻译条目'),
+          '',
+          vscode.TreeItemCollapsibleState.None,
+        ),
+      ])
+    }
 
     return Promise.resolve(
-      translationTree.value?.entries.map((entry: TranslationEntry) => {
+      entries.map((entry: TranslationEntry) => {
         const treeItem = new EntryItem(
           entry.id,
           entry.msgctxt || '',
