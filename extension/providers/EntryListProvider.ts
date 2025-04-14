@@ -53,7 +53,10 @@ export const useEntryListTreeView = createSingletonComposable(() => {
   const view = useTreeView('i18n-gettext.entries', treeData, {
     title: () => {
       const total = translationEntries.filteredEntries.value.length
-      return vscode.l10n.t('Translation Entries({total})', { total })
+      const searchText = translationEntries.searchText.value
+      return searchText
+        ? vscode.l10n.t('Translation Entries({total}) - Search: {query}', { total, query: searchText })
+        : vscode.l10n.t('Translation Entries({total})', { total })
     },
   })
 

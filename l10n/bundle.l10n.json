@@ -9,6 +9,7 @@
   "No translation entries in this file": "No translation entries in this file",
   "Open translation editor": "Open translation editor",
   "Current File": "Current File",
+  "Translation Entries({total}) - Search: {query}": "Translation Entries({total}) - Search: {query}",
   "Translation Entries({total})": "Translation Entries({total})",
   "Translation saved": "Translation saved",
   "Failed to save translation": "Failed to save translation",

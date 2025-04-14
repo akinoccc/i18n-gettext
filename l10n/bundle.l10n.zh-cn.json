@@ -10,6 +10,7 @@
   "Open translation editor": "打开翻译编辑器",
   "Current File": "当前文件",
   "Translation Entries({total})": "翻译条目({total})",
+  "Translation Entries({total}) - Search: {query}": "翻译条目({total}) - 搜索: {query}",
   "Translation saved": "翻译已保存",
   "Failed to save translation": "保存翻译失败",
   "Machine translation failed": "机器翻译失败",
