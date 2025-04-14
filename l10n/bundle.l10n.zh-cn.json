@@ -1,0 +1,20 @@
+{
+  "Theme changed: {mode}": "主题已变更: {mode}",
+  "dark": "深色",
+  "light": "浅色",
+  "No translation data yet": "尚无翻译数据",
+  "Translation Progress": "翻译进度",
+  "No active file": "无活动文件",
+  "No translation entries yet": "尚无翻译条目",
+  "No translation entries in this file": "本文件尚无翻译条目",
+  "Open translation editor": "打开翻译编辑器",
+  "Current File": "当前文件",
+  "Translation Entries({total})": "翻译条目({total})",
+  "Translation saved": "翻译已保存",
+  "Failed to save translation": "保存翻译失败",
+  "Machine translation failed": "机器翻译失败",
+  "Enter keywords to search translation entries": "输入要搜索的翻译条目关键词",
+  "Search in translation entries": "在翻译条目中搜索",
+  "Search translation entries: {query}": "搜索翻译条目: {query}",
+  "Search criteria cleared": "已清除搜索条件"
+}

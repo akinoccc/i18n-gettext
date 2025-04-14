@@ -1,10 +1,9 @@
 import type { TreeViewNode } from 'reactive-vscode'
 import type { TranslationEntry } from '../state/useTranslationsState'
-import { computed, createSingletonComposable, useTreeView, watchEffect } from 'reactive-vscode'
+import { computed, createSingletonComposable, useTreeView } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { useTranslationEntries } from '../composables/useTranslationEntries'
 import { CommandType } from '../constants'
-import { useTranslationsState } from '../state'
 
 /**
  * 翻译条目树视图组合式函数
@@ -12,7 +11,6 @@ import { useTranslationsState } from '../state'
 export const useEntryListTreeView = createSingletonComposable(() => {
   // 使用翻译条目组合式函数
   const translationEntries = useTranslationEntries()
-  const { translationTree } = useTranslationsState()
 
   // 创建树节点数据
   const treeData = computed<TreeViewNode[]>(() => {
@@ -21,7 +19,7 @@ export const useEntryListTreeView = createSingletonComposable(() => {
     if (entries.length === 0) {
       return [{
         treeItem: {
-          label: vscode.l10n.t('尚无翻译条目'),
+          label: vscode.l10n.t('No translation entries yet'),
           collapsibleState: vscode.TreeItemCollapsibleState.None,
         },
       }]
@@ -36,7 +34,7 @@ export const useEntryListTreeView = createSingletonComposable(() => {
         contextValue: 'translationEntry',
         command: {
           command: CommandType.SELECT_ENTRY,
-          title: vscode.l10n.t('打开翻译编辑器'),
+          title: vscode.l10n.t('Open translation editor'),
           arguments: [entry],
         },
         iconPath: new vscode.ThemeIcon(
@@ -54,8 +52,8 @@ export const useEntryListTreeView = createSingletonComposable(() => {
   // 创建树视图
   const view = useTreeView('i18n-gettext.entries', treeData, {
     title: () => {
-      const count = translationEntries.filteredEntries.value.length
-      return `翻译条目 (${count})`
+      const total = translationEntries.filteredEntries.value.length
+      return vscode.l10n.t('Translation Entries({total})', { total })
     },
   })
 
@@ -72,13 +70,6 @@ export const useEntryListTreeView = createSingletonComposable(() => {
   function setFilterType(type: 'all' | 'untranslated' | 'translated') {
     translationEntries.setFilterType(type)
   }
-
-  // 监听翻译树和搜索过滤条件变化
-  watchEffect(() => {
-    if (translationTree.value) {
-      // 当翻译树更新时，视图会自动刷新
-    }
-  })
 
   // 返回公开的API
   return {

@@ -76,7 +76,7 @@ export const useFileTranslationTreeView = createSingletonComposable(() => {
     if (!activeEditor.value && lastValidFileEntries.value.length === 0) {
       return [{
         treeItem: {
-          label: useL10nText('无活动文件').value,
+          label: vscode.l10n.t('No active file'),
           collapsibleState: vscode.TreeItemCollapsibleState.None,
         },
       }]
@@ -85,7 +85,7 @@ export const useFileTranslationTreeView = createSingletonComposable(() => {
     if (!translationTree.value || translationTree.value.entries.length === 0) {
       return [{
         treeItem: {
-          label: useL10nText('尚无翻译条目').value,
+          label: vscode.l10n.t('No translation entries yet'),
           collapsibleState: vscode.TreeItemCollapsibleState.None,
         },
       }]
@@ -96,7 +96,7 @@ export const useFileTranslationTreeView = createSingletonComposable(() => {
     if (fileEntries.length === 0) {
       return [{
         treeItem: {
-          label: useL10nText('本文件未使用翻译条目').value,
+          label: vscode.l10n.t('No translation entries in this file'),
           collapsibleState: vscode.TreeItemCollapsibleState.None,
         },
       }]
@@ -108,10 +108,10 @@ export const useFileTranslationTreeView = createSingletonComposable(() => {
         description: entry.msgctxt || '',
         tooltip: `${entry.id}\n${entry.msgctxt || ''}`,
         collapsibleState: vscode.TreeItemCollapsibleState.None,
-        contextValue: 'fileTranslationEntry',
+        contextValue: 'translationEntry',
         command: {
           command: CommandType.SELECT_ENTRY,
-          title: useL10nText('打开翻译编辑器').value,
+          title: vscode.l10n.t('Open translation editor'),
           arguments: [entry],
         },
         iconPath: new vscode.ThemeIcon(
@@ -130,9 +130,8 @@ export const useFileTranslationTreeView = createSingletonComposable(() => {
   const view = useTreeView('i18n-gettext.fileTranslation', treeData, {
     title: () => {
       const count = currentFileEntries.value.length
-      const isCurrentFileProject = activeEditor.value && isProjectFile(activeEditor.value.document.uri.fsPath)
-      const titlePrefix = isCurrentFileProject ? useL10nText('当前文件').value : useL10nText('上一个项目文件').value
-      return `${titlePrefix} (${count}条)`
+      const titlePrefix = vscode.l10n.t('Current File')
+      return `${titlePrefix} (${count})`
     },
   })
 

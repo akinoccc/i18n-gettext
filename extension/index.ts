@@ -11,10 +11,10 @@ import { ReferenceDefinitionProvider, useEntryListTreeView, useFileTranslationTr
 import { logger } from './utils'
 
 export const { activate, deactivate } = defineExtension(async (context) => {
-  logger.info('i18n-gettext 插件已激活')
+  logger.info('i18n-gettext extension activated')
 
   // 获取工作区文件夹
-  const workspaceFolders = useWorkspaceFolders()
+  // const workspaceFolders = useWorkspaceFolders()
 
   // 初始化翻译视图 - 使用组合式函数
   useEntryListTreeView()
@@ -42,29 +42,29 @@ export const { activate, deactivate } = defineExtension(async (context) => {
   // 注册所有命令
   registerCommands(context)
 
-  // 计算工作区状态
-  const workspaceState = computed(() => {
-    const folders = workspaceFolders.value || []
-    return {
-      hasWorkspace: folders.length > 0,
-      rootPath: folders[0]?.uri.fsPath || '',
-    }
-  })
+  // // 计算工作区状态
+  // const workspaceState = computed(() => {
+  //   const folders = workspaceFolders.value || []
+  //   return {
+  //     hasWorkspace: folders.length > 0,
+  //     rootPath: folders[0]?.uri.fsPath || '',
+  //   }
+  // })
 
-  // 监听工作区变化
-  watchEffect(() => {
-    if (workspaceState.value.hasWorkspace) {
-      logger.info(`工作区根目录: ${workspaceState.value.rootPath}`)
-    }
-  })
+  // // 监听工作区变化
+  // watchEffect(() => {
+  //   if (workspaceState.value.hasWorkspace) {
+  //     logger.info(`工作区根目录: ${workspaceState.value.rootPath}`)
+  //   }
+  // })
 
   // 监听主题变化
   const isDark = useIsDarkTheme()
   watchEffect(() => {
     logger.info(
       vscode.l10n.t(
-        '主题已变更: {0}',
-        isDark.value ? vscode.l10n.t('深色') : vscode.l10n.t('浅色'),
+        'Theme changed: {mode}',
+        { mode: isDark.value ? vscode.l10n.t('dark') : vscode.l10n.t('light') },
       ),
     )
   })

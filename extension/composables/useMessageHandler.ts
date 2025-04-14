@@ -127,10 +127,10 @@ export const useMessageHandler = createSingletonComposable(() => {
     try {
       const { entry, locale, value } = data
       await translator.saveTranslation(JSON.parse(entry), locale, value)
-      vscode.window.showInformationMessage(vscode.l10n.t('翻译已保存'))
+      vscode.window.showInformationMessage(vscode.l10n.t('Translation saved'))
     }
     catch (error) {
-      vscode.window.showErrorMessage(vscode.l10n.t('保存翻译失败'))
+      vscode.window.showErrorMessage(vscode.l10n.t('Failed to save translation'))
       logger.error('保存翻译失败:', error)
     }
   }
@@ -154,7 +154,7 @@ export const useMessageHandler = createSingletonComposable(() => {
     }
     catch (error) {
       logger.error('机器翻译失败:', error)
-      vscode.window.showErrorMessage(vscode.l10n.t('机器翻译失败'))
+      vscode.window.showErrorMessage(vscode.l10n.t('Machine translation failed'))
     }
   }
 

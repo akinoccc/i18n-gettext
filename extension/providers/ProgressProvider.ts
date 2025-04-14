@@ -1,5 +1,5 @@
 import type { TreeViewNode } from 'reactive-vscode'
-import { computed, createSingletonComposable, useTreeView, watchEffect } from 'reactive-vscode'
+import { computed, createSingletonComposable, useL10nText, useTreeView, watchEffect } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { useScanner } from '../composables'
 import { localesConfig } from '../composables/useConfig'
@@ -29,7 +29,7 @@ export const useProgressTreeView = createSingletonComposable(() => {
     if (!translationTree.value) {
       return [{
         treeItem: {
-          label: vscode.l10n.t('尚无翻译数据'),
+          label: vscode.l10n.t('No translation data yet'),
           collapsibleState: vscode.TreeItemCollapsibleState.None,
         },
       }]
@@ -44,7 +44,7 @@ export const useProgressTreeView = createSingletonComposable(() => {
         label: `${locale} (${translated}/${total})`,
         description: `${percentage}%${localesConfig.value.sourceLanguage === locale ? ' source' : ''}`,
         collapsibleState: vscode.TreeItemCollapsibleState.None,
-        tooltip: `${locale}\n翻译进度: ${percentage}%\n已翻译: ${translated}\n总条目: ${total}`,
+        tooltip: `${locale}\nTranslation progress: ${percentage}%\nTranslated: ${translated}\nTotal entries: ${total}`,
         contextValue: 'localeProgress',
       }
 
@@ -55,22 +55,12 @@ export const useProgressTreeView = createSingletonComposable(() => {
   // 创建树视图
   const view = useTreeView('i18n-gettext.progress', treeData, {
     title: () => {
-      const total = statistics.value?.totalEntries ?? 0
-      const translated = statistics.value?.translatedEntries ?? 0
-      const percentage = total > 0 ? ((translated / total) * 100).toFixed(2) : '0.00'
-      return `翻译进度 (${percentage}%)`
+      return vscode.l10n.t('Translation Progress')
     },
   })
 
   // 初始化数据
   initializeData()
-
-  // 监听状态变化
-  watchEffect(() => {
-    if (translationTree.value || statistics.value) {
-      // 视图会自动更新，无需手动刷新
-    }
-  })
 
   return {
     view,

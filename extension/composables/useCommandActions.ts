@@ -1,10 +1,9 @@
 import type { ExtensionContext } from 'vscode'
 
 import type { TranslationEntry } from '../state'
-import { createSingletonComposable, extensionContext, useL10nText } from 'reactive-vscode'
+import { createSingletonComposable } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { TranslationEditorProvider, useEntryListTreeView } from '../providers'
-import { useTranslationsState } from '../state'
 import { logger } from '../utils/logger'
 
 /**
@@ -18,13 +17,13 @@ export const useCommandActions = createSingletonComposable(() => {
    */
   async function searchEntries(): Promise<void> {
     const searchQuery = await vscode.window.showInputBox({
-      placeHolder: useL10nText('输入要搜索的翻译条目关键词').value,
-      prompt: useL10nText('在翻译条目中搜索').value,
+      placeHolder: vscode.l10n.t('Enter keywords to search translation entries'),
+      prompt: vscode.l10n.t('Search in translation entries'),
     })
 
     if (searchQuery) {
       entryListTreeView.setSearchText(searchQuery)
-      logger.info(vscode.l10n.t('搜索翻译条目: {0}', searchQuery))
+      logger.info(vscode.l10n.t('Search translation entries: {query}', { query: searchQuery }))
     }
   }
 
@@ -33,7 +32,7 @@ export const useCommandActions = createSingletonComposable(() => {
    */
   function clearSearch(): void {
     entryListTreeView.setSearchText('')
-    logger.info(useL10nText('已清除搜索条件').value)
+    logger.info(vscode.l10n.t('Search criteria cleared'))
   }
 
   /**
