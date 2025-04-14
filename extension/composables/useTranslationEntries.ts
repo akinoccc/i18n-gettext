@@ -1,5 +1,5 @@
 import type { TranslationEntry } from '../state'
-import { computed, ref, watchEffect } from 'reactive-vscode'
+import { computed, ref } from 'reactive-vscode'
 import { useTranslationsState } from '../state'
 import { logger } from '../utils/logger'
 

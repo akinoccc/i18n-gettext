@@ -2,9 +2,9 @@ import type { PoData, TranslationEntry, TranslationStatisticsObject, Translation
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { computed, ref, useWorkspaceFolders, watch } from 'reactive-vscode'
-import { localesConfig } from '../services/configService'
 import { useTranslationsState } from '../state'
 import { logger } from '../utils/logger'
+import { localesConfig } from './useConfig'
 
 /**
  * 翻译加载组合式函数
@@ -145,9 +145,9 @@ export function useTranslationLoader() {
 
     // 如果配置和路径没有变化，且缓存存在，直接返回缓存
     if (
-      currentConfigHash === lastConfigHash && 
-      currentRootPath === lastRootPath && 
-      cachedTranslationTree.value
+      currentConfigHash === lastConfigHash
+      && currentRootPath === lastRootPath
+      && cachedTranslationTree.value
     ) {
       logger.info('配置未变化，使用缓存的翻译')
       return cachedTranslationTree.value
@@ -180,13 +180,13 @@ export function useTranslationLoader() {
       entriesCount: result.entries.length,
       localesCount: result.locales.length,
     })
-    const cacheHash = cachedTranslationTree.value 
+    const cacheHash = cachedTranslationTree.value
       ? JSON.stringify({
           entriesCount: cachedTranslationTree.value.entries.length,
           localesCount: cachedTranslationTree.value.locales.length,
         })
-      : '';
-    
+      : ''
+
     if (resultHash !== cacheHash) {
       // 更新缓存
       cachedTranslationTree.value = result
@@ -197,10 +197,11 @@ export function useTranslationLoader() {
       logger.info(
         `Loaded ${result.entries.length} translation entries from ${result.locales.length} locales`,
       )
-    } else {
+    }
+    else {
       logger.info('翻译内容未变化，跳过更新')
     }
-    
+
     return result
   }
 
@@ -444,14 +445,14 @@ export function useTranslationLoader() {
     [localesConfig, rootPath],
     ([newConfig, newRootPath], [oldConfig, oldRootPath]) => {
       // 只有当配置或路径真正变化时才执行刷新
-        logger.info('配置或工作区路径变化，刷新翻译')
-        logger.info('localesConfig', JSON.stringify(newConfig))
-        logger.info('rootPath', newRootPath)
-        if (newConfig && newRootPath) {
-          refreshTranslations()
-        }
+      logger.info('配置或工作区路径变化，刷新翻译')
+      logger.info('localesConfig', JSON.stringify(newConfig))
+      logger.info('rootPath', newRootPath)
+      if (newConfig && newRootPath) {
+        refreshTranslations()
+      }
     },
-    { immediate: true }
+    { immediate: true },
   )
 
   return {

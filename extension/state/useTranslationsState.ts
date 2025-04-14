@@ -1,5 +1,5 @@
-import { computed, ref } from 'reactive-vscode'
-import { ConfigService } from '../services'
+import { computed, createSingletonComposable, ref } from 'reactive-vscode'
+import { localesConfig } from '../composables'
 import { logger } from '../utils/logger'
 
 // 翻译条目类型
@@ -74,7 +74,8 @@ const statistics = computed(() => {
     locales: localeStatistics.value,
   }
 })
-export function useTranslationsState() {
+
+export const useTranslationsState = createSingletonComposable(() => {
   const setSelectedEntry = (newSelectedEntry: TranslationEntry) => {
     selectedEntry.value = newSelectedEntry
   }
@@ -89,7 +90,7 @@ export function useTranslationsState() {
 
   const updateTranslation = (newEntry: TranslationEntry) => {
     newEntry.hasUntranslated = Object.keys(newEntry.locales).some((key) => {
-      return !newEntry.locales[key] && key !== ConfigService.sourceLanguage
+      return !newEntry.locales[key] && key !== localesConfig.value.sourceLanguage
     })
     const index = translationTree.value?.entries.findIndex(e => e.id === newEntry.id)
     if (index !== undefined) {
@@ -106,4 +107,4 @@ export function useTranslationsState() {
     setLocaleStatistics,
     updateTranslation,
   }
-}
+})

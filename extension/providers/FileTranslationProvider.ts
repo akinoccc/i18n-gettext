@@ -1,156 +1,140 @@
-import { computed, useActiveTextEditor, watch, watchEffect } from 'reactive-vscode'
+import type { TreeViewNode } from 'reactive-vscode'
+import type { TranslationEntry } from '../state'
+import { computed, createSingletonComposable, ref, useActiveTextEditor, useL10nText, useTreeView, useWorkspaceFolders } from 'reactive-vscode'
 import * as vscode from 'vscode'
-import { useTranslationEntries } from '../composables/useTranslationEntries'
+import { useTranslationEntries } from '../composables'
+import { CommandType } from '../constants'
 import { useTranslationsState } from '../state'
 
-// 当前文件翻译条目Provider
-export class FileTranslationProvider implements vscode.TreeDataProvider<FileEntryItem> {
-  private _onDidChangeTreeData: vscode.EventEmitter<
-    FileEntryItem | undefined | null | void
-  > = new vscode.EventEmitter<FileEntryItem | undefined | null | void>()
-
-  readonly onDidChangeTreeData: vscode.Event<
-    FileEntryItem | undefined | null | void
-  > = this._onDidChangeTreeData.event
-
+/**
+ * 当前文件翻译条目视图组合式函数
+ */
+export const useFileTranslationTreeView = createSingletonComposable(() => {
   // 使用响应式API获取活动编辑器
-  private activeEditor = useActiveTextEditor()
+  const activeEditor = useActiveTextEditor()
+
+  // 保存最后一个有效的项目文件路径和翻译条目
+  const lastValidFilePath = ref<string | null>(null)
+  const lastValidFileEntries = ref<TranslationEntry[]>([])
 
   // 使用翻译条目组合式函数
-  private translationEntries = useTranslationEntries()
+  const translationEntries = useTranslationEntries()
 
-  // 计算当前文件中的翻译条目
-  private currentFileEntries = computed(() => {
-    if (!this.activeEditor.value) {
-      return []
-    }
-
-    const document = this.activeEditor.value.document
-    const text = document.getText()
-    const filePath = this.getRelativePath(document.uri.fsPath)
-
-    return this.translationEntries.fileEntries(filePath, text)
-  })
-
-  constructor() {
-    // 使用响应式API监听编辑器和文档变化
-    watch(this.activeEditor, () => {
-      this.refresh()
-    })
-
-    // 监听文档变更事件 - 仍需保留此事件监听，因为内容变化不会触发编辑器变化
-    vscode.workspace.onDidChangeTextDocument((event) => {
-      if (this.activeEditor.value && event.document === this.activeEditor.value.document) {
-        this.refresh()
-      }
-    })
-
-    // 监听翻译树变化
-    const { translationTree } = useTranslationsState()
-    watchEffect(() => {
-      if (translationTree.value) {
-        this.refresh()
-      }
-    })
-  }
-
-  refresh(): void {
-    this._onDidChangeTreeData.fire()
-  }
-
-  getTreeItem(element: FileEntryItem): vscode.TreeItem {
-    return element
-  }
-
-  getChildren(element?: FileEntryItem): Promise<FileEntryItem[]> {
-    if (element) {
-      return Promise.resolve([])
-    }
-
-    if (!this.activeEditor.value) {
-      return Promise.resolve([
-        new FileEntryItem(
-          vscode.l10n.t('无活动文件'),
-          '',
-          vscode.TreeItemCollapsibleState.None,
-        ),
-      ])
-    }
-
-    const { translationTree } = useTranslationsState()
-    if (!translationTree.value || translationTree.value.entries.length === 0) {
-      return Promise.resolve([
-        new FileEntryItem(
-          vscode.l10n.t('尚无翻译条目'),
-          '',
-          vscode.TreeItemCollapsibleState.None,
-        ),
-      ])
-    }
-
-    const fileEntries = this.currentFileEntries.value
-
-    if (fileEntries.length === 0) {
-      return Promise.resolve([
-        new FileEntryItem(
-          vscode.l10n.t('本文件未使用翻译条目'),
-          '',
-          vscode.TreeItemCollapsibleState.None,
-        ),
-      ])
-    }
-
-    return Promise.resolve(
-      fileEntries.map((entry) => {
-        const treeItem = new FileEntryItem(
-          entry.id,
-          entry.msgctxt || '',
-          vscode.TreeItemCollapsibleState.None,
-        )
-
-        // 添加命令以便点击打开编辑器
-        treeItem.command = {
-          command: 'i18n-gettext.selectEntry',
-          title: vscode.l10n.t('打开翻译编辑器'),
-          arguments: [entry],
-        }
-
-        // 添加图标
-        const hasUntranslated = entry.hasUntranslated
-        treeItem.iconPath = new vscode.ThemeIcon(
-          hasUntranslated ? 'warning' : 'check',
-          hasUntranslated
-            ? new vscode.ThemeColor('notificationsWarningIcon.foreground')
-            : new vscode.ThemeColor('charts.green'),
-        )
-
-        return treeItem
-      }),
-    )
-  }
+  // 使用翻译状态
+  const { translationTree } = useTranslationsState()
 
   // 获取相对路径
-  private getRelativePath(absolutePath: string): string {
-    if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
+  function getRelativePath(absolutePath: string): string {
+    const folders = useWorkspaceFolders()
+    if (!folders.value || folders.value.length === 0) {
       return absolutePath
     }
 
-    const rootPath = vscode.workspace.workspaceFolders[0].uri.fsPath
+    const rootPath = folders.value[0].uri.fsPath
     // 移除根路径，保留相对路径
     return absolutePath.replace(rootPath, '').replace(/^[/\\]/, '')
   }
-}
 
-// 文件条目项目类
-class FileEntryItem extends vscode.TreeItem {
-  constructor(
-    public readonly label: string,
-    public readonly description: string,
-    public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-  ) {
-    super(label, collapsibleState)
-    this.description = description
-    this.tooltip = `${label}\n${description}`
-    this.contextValue = 'fileTranslationEntry'
+  // 检查文件是否为项目内文件
+  function isProjectFile(filePath: string): boolean {
+    const folders = useWorkspaceFolders()
+    if (!folders.value || folders.value.length === 0) {
+      return false
+    }
+
+    const rootPath = folders.value[0].uri.fsPath
+    return filePath.startsWith(rootPath)
   }
-}
+
+  // 计算当前文件中的翻译条目
+  const currentFileEntries = computed(() => {
+    if (!activeEditor.value) {
+      return lastValidFileEntries.value
+    }
+
+    const document = activeEditor.value.document
+    const absoluteFilePath = document.uri.fsPath
+
+    // 如果不是项目文件，则返回最后一个有效文件的条目
+    if (!isProjectFile(absoluteFilePath)) {
+      return lastValidFileEntries.value
+    }
+
+    const text = document.getText()
+    const filePath = getRelativePath(absoluteFilePath)
+
+    // 更新最后一个有效的文件路径和条目
+    const entries = translationEntries.fileEntries(filePath, text)
+    lastValidFilePath.value = absoluteFilePath
+    lastValidFileEntries.value = entries
+
+    return entries
+  })
+
+  // 创建树节点数据
+  const treeData = computed<TreeViewNode[]>(() => {
+    if (!activeEditor.value && lastValidFileEntries.value.length === 0) {
+      return [{
+        treeItem: {
+          label: useL10nText('无活动文件').value,
+          collapsibleState: vscode.TreeItemCollapsibleState.None,
+        },
+      }]
+    }
+
+    if (!translationTree.value || translationTree.value.entries.length === 0) {
+      return [{
+        treeItem: {
+          label: useL10nText('尚无翻译条目').value,
+          collapsibleState: vscode.TreeItemCollapsibleState.None,
+        },
+      }]
+    }
+
+    const fileEntries = currentFileEntries.value
+
+    if (fileEntries.length === 0) {
+      return [{
+        treeItem: {
+          label: useL10nText('本文件未使用翻译条目').value,
+          collapsibleState: vscode.TreeItemCollapsibleState.None,
+        },
+      }]
+    }
+
+    return fileEntries.map((entry: TranslationEntry) => {
+      const treeItem: vscode.TreeItem = {
+        label: entry.id,
+        description: entry.msgctxt || '',
+        tooltip: `${entry.id}\n${entry.msgctxt || ''}`,
+        collapsibleState: vscode.TreeItemCollapsibleState.None,
+        contextValue: 'fileTranslationEntry',
+        command: {
+          command: CommandType.SELECT_ENTRY,
+          title: useL10nText('打开翻译编辑器').value,
+          arguments: [entry],
+        },
+        iconPath: new vscode.ThemeIcon(
+          entry.hasUntranslated ? 'warning' : 'check',
+          entry.hasUntranslated
+            ? new vscode.ThemeColor('notificationsWarningIcon.foreground')
+            : new vscode.ThemeColor('charts.green'),
+        ),
+      }
+
+      return { treeItem }
+    })
+  })
+
+  // 创建树视图
+  const view = useTreeView('i18n-gettext.fileTranslation', treeData, {
+    title: () => {
+      const count = currentFileEntries.value.length
+      const isCurrentFileProject = activeEditor.value && isProjectFile(activeEditor.value.document.uri.fsPath)
+      const titlePrefix = isCurrentFileProject ? useL10nText('当前文件').value : useL10nText('上一个项目文件').value
+      return `${titlePrefix} (${count}条)`
+    },
+  })
+
+  return { view }
+})

@@ -1,15 +1,10 @@
 import type { TranslationEntry } from '../state/useTranslationsState'
-import * as vscode from 'vscode'
-import { EditorType } from '../constants'
-import { MessageService, WebViewService } from '../services'
-import { useTranslationsState } from '../state'
-import { logger } from '../utils/logger'
 import { watch } from 'reactive-vscode'
+import * as vscode from 'vscode'
+import { useMessageHandler, useWebviewHandler } from '../composables'
+import { EditorType } from '../constants'
+import { useTranslationsState } from '../state'
 
-// 当前选中的条目
-const { selectedEntry, setSelectedEntry } = useTranslationsState()
-
-// 自定义编辑器提供程序类
 export class TranslationEditorProvider {
   public static currentPanel: TranslationEditorProvider | undefined
   private readonly _panel: vscode.WebviewPanel
@@ -17,14 +12,17 @@ export class TranslationEditorProvider {
 
   private constructor(panel: vscode.WebviewPanel, context: vscode.ExtensionContext) {
     this._panel = panel
+    const { selectedEntry } = useTranslationsState()
+    const messageHandler = useMessageHandler()
+    const webviewHandler = useWebviewHandler()
 
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables)
-    this._panel.webview.html = WebViewService.setupHtml(this._panel.webview, context)
+    this._panel.webview.html = webviewHandler.setupHtml(this._panel.webview, context)
 
-    WebViewService.setupWebviewHooks(this._panel.webview, this._disposables)
+    webviewHandler.setupWebviewHooks(this._panel.webview, this._disposables)
 
     watch(selectedEntry, (newEntry) => {
-      MessageService.sendSelectEntryMessage(this._panel.webview, newEntry)
+      messageHandler.sendSelectEntryMessage(this._panel.webview, newEntry)
     })
   }
 
@@ -36,7 +34,7 @@ export class TranslationEditorProvider {
       const panel = vscode.window.createWebviewPanel(
         EditorType.TRANSLATION_EDITOR,
         'i18n 翻译编辑器',
-        vscode.ViewColumn.One,
+        vscode.ViewColumn.Beside,
         {
           enableScripts: true,
           retainContextWhenHidden: true,
@@ -67,15 +65,14 @@ export class TranslationEditorProvider {
 
   // 处理选择条目
   public static handleSelectEntry(context: vscode.ExtensionContext, entry: TranslationEntry) {
-    logger.info('handleSelectEntry:', JSON.stringify(entry))
-    setSelectedEntry(entry)
+    useTranslationsState().setSelectedEntry(entry)
 
     // 渲染编辑器
     TranslationEditorProvider.render(context)
 
     // 发送选择条目消息
     if (TranslationEditorProvider.currentPanel) {
-      MessageService.sendSelectEntryMessage(
+      useMessageHandler().sendSelectEntryMessage(
         TranslationEditorProvider.currentPanel._panel.webview,
         entry,
       )

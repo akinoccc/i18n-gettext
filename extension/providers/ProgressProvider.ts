@@ -1,95 +1,79 @@
-import { computed, watchEffect } from 'reactive-vscode'
+import type { TreeViewNode } from 'reactive-vscode'
+import { computed, createSingletonComposable, useTreeView, watchEffect } from 'reactive-vscode'
 import * as vscode from 'vscode'
-import { ScannerService } from '../services'
-import { localesConfig } from '../services/configService'
+import { useScanner } from '../composables'
+import { localesConfig } from '../composables/useConfig'
 import { useTranslationsState } from '../state'
 import { logger } from '../utils/logger'
 
-const { setTranslationTree, statistics, translationTree }
-    = useTranslationsState()
+/**
+ * 翻译进度树视图组合式函数
+ */
+export const useProgressTreeView = createSingletonComposable(() => {
+  const { setTranslationTree, statistics, translationTree } = useTranslationsState()
+  const scanner = useScanner()
 
-// 翻译状态
-export class ProgressProvider
-implements vscode.TreeDataProvider<ProgressItem> {
-  private _onDidChangeTreeData: vscode.EventEmitter<
-    ProgressItem | undefined | null | void
-  > = new vscode.EventEmitter<ProgressItem | undefined | null | void>()
-
-  readonly onDidChangeTreeData: vscode.Event<
-    ProgressItem | undefined | null | void
-  > = this._onDidChangeTreeData.event
-
-  // 使用计算属性获取进度项目
-  private progressItems = computed(() => {
-    if (!translationTree.value) {
-      return [
-        new ProgressItem(
-          vscode.l10n.t('尚无翻译数据'),
-          '',
-          vscode.TreeItemCollapsibleState.None,
-        ),
-      ]
-    }
-
-    return translationTree.value.locales.map((data) => {
-      const translated = statistics.value?.locales?.[data].translated ?? 0
-      const total = statistics.value?.locales?.[data].total ?? 0
-      return new ProgressItem(
-        `${data} (${translated}/${total})`,
-        ((translated / total) * 100).toFixed(2),
-        vscode.TreeItemCollapsibleState.None,
-        localesConfig.value.sourceLanguage === data,
-      )
-    })
-  })
-
-  constructor() {
-    this.initializeData()
-
-    // 使用 watchEffect 监听状态变化并刷新树视图
-    watchEffect(() => {
-      if (translationTree.value || statistics.value) {
-        this.refresh()
-      }
-    })
-  }
-
-  private async initializeData() {
+  // 初始化数据
+  async function initializeData() {
     try {
-      const translationTree = await ScannerService.loadTranslations()
-      setTranslationTree(translationTree)
+      const tree = await scanner.loadTranslations()
+      setTranslationTree(tree)
     }
     catch (error) {
       logger.error('初始化翻译数据时发生错误:', error)
     }
   }
 
-  refresh(): void {
-    this._onDidChangeTreeData.fire()
-  }
-
-  getTreeItem(element: ProgressItem): vscode.TreeItem {
-    return element
-  }
-
-  getChildren(element?: ProgressItem): Thenable<ProgressItem[]> {
-    if (element) {
-      return Promise.resolve([])
+  // 创建树节点数据
+  const treeData = computed<TreeViewNode[]>(() => {
+    if (!translationTree.value) {
+      return [{
+        treeItem: {
+          label: vscode.l10n.t('尚无翻译数据'),
+          collapsibleState: vscode.TreeItemCollapsibleState.None,
+        },
+      }]
     }
 
-    return Promise.resolve(this.progressItems.value)
-  }
-}
+    return translationTree.value.locales.map((locale) => {
+      const translated = statistics.value?.locales?.[locale].translated ?? 0
+      const total = statistics.value?.locales?.[locale].total ?? 0
+      const percentage = ((translated / total) * 100).toFixed(2)
 
-// 进度项目类
-class ProgressItem extends vscode.TreeItem {
-  constructor(
-    public readonly label: string,
-    public readonly description: string,
-    public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-    public readonly isSource?: boolean,
-  ) {
-    super(label, collapsibleState)
-    this.description = `${description} ${isSource ? 'source' : ''}`
+      const treeItem: vscode.TreeItem = {
+        label: `${locale} (${translated}/${total})`,
+        description: `${percentage}%${localesConfig.value.sourceLanguage === locale ? ' source' : ''}`,
+        collapsibleState: vscode.TreeItemCollapsibleState.None,
+        tooltip: `${locale}\n翻译进度: ${percentage}%\n已翻译: ${translated}\n总条目: ${total}`,
+        contextValue: 'localeProgress',
+      }
+
+      return { treeItem }
+    })
+  })
+
+  // 创建树视图
+  const view = useTreeView('i18n-gettext.progress', treeData, {
+    title: () => {
+      const total = statistics.value?.totalEntries ?? 0
+      const translated = statistics.value?.translatedEntries ?? 0
+      const percentage = total > 0 ? ((translated / total) * 100).toFixed(2) : '0.00'
+      return `翻译进度 (${percentage}%)`
+    },
+  })
+
+  // 初始化数据
+  initializeData()
+
+  // 监听状态变化
+  watchEffect(() => {
+    if (translationTree.value || statistics.value) {
+      // 视图会自动更新，无需手动刷新
+    }
+  })
+
+  return {
+    view,
+    refreshData: initializeData,
   }
-}
+})

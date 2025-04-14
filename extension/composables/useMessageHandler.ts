@@ -1,27 +1,29 @@
 import type { Disposable, Webview } from 'vscode'
-import type { TranslateByMachineData, UpdateTranslationData, WebViewMessage } from '../constants/message'
-
+import type { TranslateByMachineData, UpdateTranslationData, WebViewMessage } from '../constants'
 import type { TranslationEntry } from '../state'
+
+import { createSingletonComposable } from 'reactive-vscode'
 import * as vscode from 'vscode'
-import { WebViewMessageType } from '../constants/message'
+import { WebViewMessageType } from '../constants'
 import { useTranslationsState } from '../state'
 import { logger } from '../utils/logger'
-import { localesConfig } from './configService'
-import { TranslatorService } from './translatorService'
-
-const { setSelectedEntry } = useTranslationsState()
+import { localesConfig } from './useConfig'
+import { useTranslator } from './useTranslator'
 
 /**
- * 消息处理服务
+ * 消息处理组合式函数
  */
-export class MessageService {
+export const useMessageHandler = createSingletonComposable(() => {
+  const { setSelectedEntry } = useTranslationsState()
+  const translator = useTranslator()
+
   /**
    * 设置Webview钩子
    * @param webview Webview实例
    * @param callback 消息回调
    * @param disposables 可释放资源列表
    */
-  public static setupWebviewHooks(webview: Webview, callback: (message: WebViewMessage) => void, disposables: Disposable[]): void {
+  function setupWebviewHooks(webview: Webview, callback: (message: WebViewMessage) => void, disposables: Disposable[]): void {
     webview.onDidReceiveMessage(
       callback,
       undefined,
@@ -33,20 +35,20 @@ export class MessageService {
    * 处理WebView消息
    * @param message 消息对象
    */
-  public static async handleMessage(message: WebViewMessage): Promise<void> {
+  async function handleMessage(message: WebViewMessage): Promise<void> {
     logger.info('处理WebView消息:', message.type)
 
     switch (message.type) {
       case WebViewMessageType.GO_TO_REFERENCE:
-        await MessageService.handleGoToReference(message.data.reference)
+        await handleGoToReference(message.data.reference)
         break
 
       case WebViewMessageType.UPDATE_TRANSLATION:
-        await MessageService.handleUpdateTranslation(message.data as UpdateTranslationData)
+        await handleUpdateTranslation(message.data as UpdateTranslationData)
         break
 
       case WebViewMessageType.TRANSLATE_BY_MACHINE:
-        await MessageService.handleTranslateByMachine(message.data as TranslateByMachineData)
+        await handleTranslateByMachine(message.data as TranslateByMachineData)
         break
     }
   }
@@ -55,7 +57,7 @@ export class MessageService {
    * 处理转到引用消息
    * @param filePath 文件路径
    */
-  private static async handleGoToReference(filePath: string): Promise<boolean> {
+  async function handleGoToReference(filePath: string): Promise<boolean> {
     try {
       // 提取文件路径和行号
       const match = filePath.match(/(.*):(\d+)/)
@@ -121,10 +123,10 @@ export class MessageService {
    * 处理更新翻译消息
    * @param data 更新翻译数据
    */
-  private static async handleUpdateTranslation(data: UpdateTranslationData): Promise<void> {
+  async function handleUpdateTranslation(data: UpdateTranslationData): Promise<void> {
     try {
       const { entry, locale, value } = data
-      await TranslatorService.saveTranslation(JSON.parse(entry), locale, value)
+      await translator.saveTranslation(JSON.parse(entry), locale, value)
       vscode.window.showInformationMessage(vscode.l10n.t('翻译已保存'))
     }
     catch (error) {
@@ -137,15 +139,15 @@ export class MessageService {
    * 处理机器翻译消息
    * @param data 机器翻译数据
    */
-  private static async handleTranslateByMachine(data: TranslateByMachineData): Promise<void> {
+  async function handleTranslateByMachine(data: TranslateByMachineData): Promise<void> {
     try {
       const { entry, originalCode, targetCode } = data
       const entryObj = JSON.parse(entry) as TranslationEntry
 
-      const result = await TranslatorService.translateByGoogle(entryObj.id, targetCode)
+      const result = await translator.translateByGoogle(entryObj.id, targetCode)
       logger.info('机器翻译结果:', result)
 
-      await TranslatorService.saveTranslation(entryObj, originalCode, result)
+      await translator.saveTranslation(entryObj, originalCode, result)
 
       entryObj.locales[originalCode] = result
       setSelectedEntry(entryObj)
@@ -161,7 +163,7 @@ export class MessageService {
    * @param webview Webview实例
    * @param entry 翻译条目
    */
-  public static sendSelectEntryMessage(webview: Webview, entry?: TranslationEntry): Thenable<boolean> {
+  function sendSelectEntryMessage(webview: Webview, entry?: TranslationEntry): Thenable<boolean> {
     return webview.postMessage({
       type: WebViewMessageType.SELECT_ENTRY,
       data: {
@@ -170,4 +172,13 @@ export class MessageService {
       },
     })
   }
-}
+
+  return {
+    setupWebviewHooks,
+    handleMessage,
+    handleGoToReference,
+    handleUpdateTranslation,
+    handleTranslateByMachine,
+    sendSelectEntryMessage,
+  }
+})

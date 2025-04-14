@@ -1,14 +1,14 @@
 import type { TranslationEntry } from '../state'
-// import * as crypto from 'node:crypto'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 
 import { translate } from '@vitalets/google-translate-api'
 
+import { createSingletonComposable } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { useTranslationsState } from '../state'
 import { logger } from '../utils'
-import { ConfigService, localesConfig } from './configService'
+import { localesConfig, useConfig } from './useConfig'
 
 /**
  * 语言代码映射类型
@@ -16,14 +16,17 @@ import { ConfigService, localesConfig } from './configService'
 type LanguageMappings = Record<string, Record<string, string>>
 
 /**
- * 翻译服务类，提供翻译相关功能
+ * 翻译组合式函数
  */
-export class TranslatorService {
+export const useTranslator = createSingletonComposable(() => {
+  const config = useConfig()
+  const { updateTranslation } = useTranslationsState()
+
   /**
    * 翻译服务的语言代码映射
    * 不同翻译服务对语言代码的要求不同，需要进行映射
    */
-  private static readonly LANGUAGE_MAPPINGS: LanguageMappings = {
+  const LANGUAGE_MAPPINGS: LanguageMappings = {
     google: {
       'zh-CN': 'zh-CN',
       'zh-TW': 'zh-TW',
@@ -83,7 +86,7 @@ export class TranslatorService {
    * @param domain 可选的域名
    * @returns 是否保存成功
    */
-  public static async saveTranslation(
+  async function saveTranslation(
     entry: TranslationEntry,
     locale: string,
     value: string,
@@ -99,10 +102,10 @@ export class TranslatorService {
       }
 
       const rootPath = workspaceFolders[0].uri.fsPath
-      const config = localesConfig.value
+      const configValue = localesConfig.value
       // 使用配置服务获取PO文件相对路径
-      const poFileRelativePath = ConfigService.getPoFilePath(locale, domain || config.defaultDomain)
-      const poFilePath = path.join(rootPath, config.basePath, poFileRelativePath)
+      const poFileRelativePath = config.getPoFilePath(locale, domain || configValue.defaultDomain)
+      const poFilePath = path.join(rootPath, configValue.basePath, poFileRelativePath)
 
       // 确保目录存在
       const poFileDir = path.dirname(poFilePath)
@@ -163,7 +166,6 @@ export class TranslatorService {
       await fs.promises.writeFile(poFilePath, buffer)
 
       // 刷新翻译数据
-      const { updateTranslation } = useTranslationsState()
       updateTranslation(entry)
 
       logger.info(`成功保存翻译: ${entry.id} [${locale}]`)
@@ -181,8 +183,8 @@ export class TranslatorService {
    * @param service 翻译服务名称
    * @returns 目标语言代码
    */
-  private static getTargetLanguage(locale: string, service: string): string {
-    const mappings = this.LANGUAGE_MAPPINGS[service]
+  function getTargetLanguage(locale: string, service: string): string {
+    const mappings = LANGUAGE_MAPPINGS[service]
     if (!mappings) {
       return locale
     }
@@ -198,45 +200,21 @@ export class TranslatorService {
    * @param targetLocale 目标语言
    * @returns 翻译结果
    */
-  public static async translateByGoogle(text: string, targetLocale: string): Promise<string> {
+  async function translateByGoogle(text: string, targetLocale: string): Promise<string> {
     try {
-      logger.info('translateByGoogle:', text, targetLocale)
-
-      const result = await translate(text, { to: targetLocale })
-      logger.info('translateByGoogle result:', JSON.stringify(result.raw))
-      return result.text
+      const targetLang = getTargetLanguage(targetLocale, 'google')
+      const result = await translate(text, { to: targetLang })
+      return result.text || text
     }
-    catch (error: any) {
+    catch (error) {
       logger.error('Google翻译失败:', error)
-      // 如果是请求过多错误，给出使用代理的提示
-      if (error.name === 'TooManyRequestsError') {
-        throw new Error('谷歌翻译请求过多，请稍后再试或考虑配置代理')
-      }
       throw error
     }
   }
 
-  // 以下为其他翻译服务的实现 (已注释掉，需要时可以取消注释并实现)
-  /*
-  public static async translateByDeepL(text: string, targetLocale: string): Promise<string> {
-    const apiKey = ConfigService.getApiKey('deepl')
-    if (!apiKey) {
-      throw new Error('未配置DeepL翻译API密钥')
-    }
-
-    const targetLang = this.getTargetLanguage(targetLocale, 'deepl')
-    // 实现DeepL翻译逻辑...
+  return {
+    saveTranslation,
+    getTargetLanguage,
+    translateByGoogle,
   }
-
-  public static async translateByYoudao(text: string, targetLocale: string): Promise<string> {
-    const apiKey = ConfigService.getApiKey('youdao')
-    const apiSecret = ConfigService.getApiKey('youdaoSecret')
-    if (!apiKey || !apiSecret) {
-      throw new Error('未配置有道翻译API密钥')
-    }
-
-    const targetLang = this.getTargetLanguage(targetLocale, 'youdao')
-    // 实现有道翻译逻辑...
-  }
-  */
-}
+})

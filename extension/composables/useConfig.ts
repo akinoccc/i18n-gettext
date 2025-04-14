@@ -1,5 +1,4 @@
-import { defineConfigs } from 'reactive-vscode'
-// import * as vscode from 'vscode'
+import { createSingletonComposable, defineConfigs } from 'reactive-vscode'
 
 /**
  * 区域设置模式
@@ -36,13 +35,13 @@ export const { localesConfig } = defineConfigs('i18n-gettext', {
 })
 
 /**
- * 配置服务类，提供配置相关功能
+ * 配置组合式函数
  */
-export class ConfigService {
+export const useConfig = createSingletonComposable(() => {
   /**
    * 获取区域设置路径
    */
-  public static get localesPath(): string {
+  function getLocalesPath(): string {
     return localesConfig.value.basePath
   }
 
@@ -52,7 +51,7 @@ export class ConfigService {
    * @param domain 域名(可选)，默认使用配置中的defaultDomain
    * @returns 相对于basePath的文件路径
    */
-  public static getPoFilePath(
+  function getPoFilePath(
     locale: string,
     domain: string = localesConfig.value.defaultDomain || 'app',
   ): string {
@@ -70,7 +69,7 @@ export class ConfigService {
    * @param locale 语言代码
    * @returns 语言对应的目录路径
    */
-  public static getLocaleDirPath(locale: string): string {
+  function getLocaleDirPath(locale: string): string {
     const config = localesConfig.value
     let dirPath: string
 
@@ -103,7 +102,7 @@ export class ConfigService {
    * @param filePath PO文件的完整路径
    * @returns 解析出的语言和域信息，如果无法解析则返回null
    */
-  public static parsePoFilePath(filePath: string): { locale: string, domain: string } | null {
+  function parsePoFilePath(filePath: string): { locale: string, domain: string } | null {
     const config = localesConfig.value
     const basePath = config.basePath
 
@@ -159,17 +158,18 @@ export class ConfigService {
     return result
   }
 
-  //   /**
-  //    * 获取API密钥的辅助函数
-  //    * @param service 服务名称
-  //    * @returns API密钥
-  //    */
-  //   public static getApiKey(service: string): string | undefined {
-  //     const config = localesConfig.value.
-  //     return config.get<string>(`${service}ApiKey`)
-  //   }
-
-  public static get sourceLanguage() {
+  /**
+   * 获取源语言
+   */
+  function getSourceLanguage(): string | undefined {
     return localesConfig.value.sourceLanguage
   }
-}
+
+  return {
+    getLocalesPath,
+    getPoFilePath,
+    getLocaleDirPath,
+    parsePoFilePath,
+    getSourceLanguage,
+  }
+})
