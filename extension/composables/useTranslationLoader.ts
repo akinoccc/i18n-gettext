@@ -2,10 +2,10 @@ import type { PoData, TranslationEntry, TranslationStatisticsObject, Translation
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { computed, ref, useWorkspaceFolders, watch } from 'reactive-vscode'
+import * as vscode from 'vscode'
 import { useTranslationsState } from '../state'
 import { logger } from '../utils/logger'
 import { localesConfig } from './useConfig'
-
 /**
  * 翻译加载组合式函数
  * 提供处理翻译文件加载相关的响应式功能
@@ -52,7 +52,7 @@ export function useTranslationLoader() {
       return parser.po.parse(content)
     }
     catch (error) {
-      logger.error(`Failed to read PO file ${filePath}:`, error)
+      logger.error(vscode.l10n.t('Failed to read PO file {filePath}:', { filePath }))
       return null
     }
   }
@@ -119,7 +119,7 @@ export function useTranslationLoader() {
     }
     catch (error) {
       isLoading.value = false
-      logger.error('Failed to refresh translations:', error)
+      logger.error(vscode.l10n.t('Failed to refresh translations: {error}', { error }))
       return cachedTranslationTree.value || { entries: [], locales: [] }
     }
   }
@@ -132,10 +132,10 @@ export function useTranslationLoader() {
    * 加载所有翻译
    */
   async function loadTranslations(): Promise<TranslationTree> {
-    logger.info('Loading PO files from locales directory')
+    logger.info(vscode.l10n.t('Loading PO files from locales directory'))
 
     if (!rootPath.value) {
-      logger.warn('No workspace folder found')
+      logger.warn(vscode.l10n.t('No workspace folder found'))
       return { entries: [], locales: [] }
     }
 
@@ -149,7 +149,6 @@ export function useTranslationLoader() {
       && currentRootPath === lastRootPath
       && cachedTranslationTree.value
     ) {
-      logger.info('配置未变化，使用缓存的翻译')
       return cachedTranslationTree.value
     }
 
@@ -158,7 +157,6 @@ export function useTranslationLoader() {
     lastRootPath = currentRootPath
 
     const config = localesConfig.value
-    logger.info('config', JSON.stringify(config))
     const localesDirPath = path.join(rootPath.value, config.basePath)
 
     try {
@@ -166,7 +164,7 @@ export function useTranslationLoader() {
       await fs.promises.access(localesDirPath)
     }
     catch (error) {
-      logger.error(`Locales directory not found: ${localesDirPath}`)
+      logger.error(vscode.l10n.t('Locales directory not found: {localesDirPath}', { localesDirPath }))
       return { entries: [], locales: [] }
     }
 
@@ -197,9 +195,6 @@ export function useTranslationLoader() {
       logger.info(
         `Loaded ${result.entries.length} translation entries from ${result.locales.length} locales`,
       )
-    }
-    else {
-      logger.info('翻译内容未变化，跳过更新')
     }
 
     return result
@@ -298,7 +293,7 @@ export function useTranslationLoader() {
       await fs.promises.access(localeDir)
     }
     catch (error) {
-      logger.error(`Locale directory not found: ${localeDir}`)
+      logger.error(vscode.l10n.t('Locale directory not found: {localeDir}', { localeDir }))
       return
     }
 
@@ -322,7 +317,7 @@ export function useTranslationLoader() {
         }
       }
       catch (error) {
-        logger.error(`LC_MESSAGES directory not found: ${lcMessagesDir}`)
+        logger.error(vscode.l10n.t('LC_MESSAGES directory not found: {lcMessagesDir}', { lcMessagesDir }))
       }
     }
     else {
@@ -343,7 +338,7 @@ export function useTranslationLoader() {
         }
       }
       catch (error) {
-        logger.error(`Failed to read locale directory: ${localeDir}`, error)
+        logger.error(vscode.l10n.t('Failed to read locale directory: {localeDir}', { localeDir }))
       }
     }
   }
@@ -437,17 +432,17 @@ export function useTranslationLoader() {
    */
   function clearTranslationCache(): void {
     cachedTranslationTree.value = null
-    logger.info('Translation cache cleared')
+    logger.info(vscode.l10n.t('Translation cache cleared'))
   }
 
   // 监听配置变化，自动刷新翻译
   watch(
     [localesConfig, rootPath],
-    ([newConfig, newRootPath], [oldConfig, oldRootPath]) => {
+    ([newConfig, newRootPath]) => {
       // 只有当配置或路径真正变化时才执行刷新
-      logger.info('配置或工作区路径变化，刷新翻译')
-      logger.info('localesConfig', JSON.stringify(newConfig))
-      logger.info('rootPath', newRootPath)
+      logger.info(vscode.l10n.t('Configuration or workspace path changed, refreshing translations'))
+      logger.info(vscode.l10n.t('localesConfig: {config}', { config: JSON.stringify(newConfig) }))
+      logger.info(vscode.l10n.t('rootPath: {path}', { path: newRootPath }))
       if (newConfig && newRootPath) {
         refreshTranslations()
       }

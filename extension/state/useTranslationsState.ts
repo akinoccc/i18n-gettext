@@ -57,7 +57,6 @@ const selectedEntry = ref<TranslationEntry>()
 const translationTree = ref<TranslationTree>()
 const localeStatistics = ref<Record<string, TranslationStatisticsObject>>()
 const statistics = computed(() => {
-  logger.info('test', JSON.stringify(localeStatistics.value))
   if (!translationTree.value)
     return
 

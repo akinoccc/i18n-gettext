@@ -65,7 +65,7 @@ export const useScanner = createSingletonComposable(() => {
       return parser.po.parse(content)
     }
     catch (error) {
-      logger.error(`Failed to read PO file ${filePath}:`, error)
+      logger.error(vscode.l10n.t('Failed to read PO file {filePath}:', { filePath }))
       return null
     }
   }

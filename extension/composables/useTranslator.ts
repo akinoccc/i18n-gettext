@@ -97,7 +97,7 @@ export const useTranslator = createSingletonComposable(() => {
       // 获取根路径
       const workspaceFolders = vscode.workspace.workspaceFolders
       if (!workspaceFolders || workspaceFolders.length === 0) {
-        logger.warn('No workspace folder found')
+        logger.warn(vscode.l10n.t('No workspace folder found'))
         return false
       }
 
@@ -113,7 +113,7 @@ export const useTranslator = createSingletonComposable(() => {
         await fs.promises.mkdir(poFileDir, { recursive: true })
       }
       catch (error) {
-        logger.error(`创建目录失败: ${poFileDir}`, error)
+        logger.error(vscode.l10n.t('Failed to create directory: {poFileDir}', { poFileDir }))
         throw error
       }
 
@@ -125,7 +125,7 @@ export const useTranslator = createSingletonComposable(() => {
       }
       catch (error) {
         // 如果文件不存在，则创建新的PO数据结构
-        logger.info(`创建新的PO文件: ${poFilePath}`)
+        logger.info(vscode.l10n.t('Creating new PO file: {poFilePath}', { poFilePath }))
         poData = {
           charset: 'utf-8',
           headers: {
@@ -168,11 +168,11 @@ export const useTranslator = createSingletonComposable(() => {
       // 刷新翻译数据
       updateTranslation(entry)
 
-      logger.info(`成功保存翻译: ${entry.id} [${locale}]`)
+      logger.info(vscode.l10n.t('Translation saved: {entryId} [${locale}]', { entryId: entry.id }))
       return true
     }
     catch (error) {
-      logger.error('保存翻译失败:', error)
+      logger.error(vscode.l10n.t('Failed to save translation: {error}', { error }))
       throw error
     }
   }
@@ -207,7 +207,7 @@ export const useTranslator = createSingletonComposable(() => {
       return result.text || text
     }
     catch (error) {
-      logger.error('Google翻译失败:', error)
+      logger.error(vscode.l10n.t('Google translation failed: {error}', { error }))
       throw error
     }
   }

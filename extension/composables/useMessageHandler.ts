@@ -36,8 +36,6 @@ export const useMessageHandler = createSingletonComposable(() => {
    * @param message 消息对象
    */
   async function handleMessage(message: WebViewMessage): Promise<void> {
-    logger.info('处理WebView消息:', message.type)
-
     switch (message.type) {
       case WebViewMessageType.GO_TO_REFERENCE:
         await handleGoToReference(message.data.reference)
@@ -62,7 +60,7 @@ export const useMessageHandler = createSingletonComposable(() => {
       // 提取文件路径和行号
       const match = filePath.match(/(.*):(\d+)/)
       if (!match || match.length < 3) {
-        logger.warn('引用格式不正确:', filePath)
+        logger.warn(vscode.l10n.t('Invalid reference format: {filePath}', { filePath }))
         return false
       }
 
@@ -71,7 +69,7 @@ export const useMessageHandler = createSingletonComposable(() => {
 
       // 在所有工作区中查找文件
       if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
-        logger.warn('未找到工作区文件夹')
+        logger.warn(vscode.l10n.t('No workspace folders found'))
         return false
       }
 
@@ -113,8 +111,8 @@ export const useMessageHandler = createSingletonComposable(() => {
       return false
     }
     catch (error) {
-      logger.error('打开引用文件时发生错误:', error)
-      vscode.window.showErrorMessage('打开引用文件时发生错误')
+      logger.error(vscode.l10n.t('Failed to open reference file: {error}', { error }))
+      vscode.window.showErrorMessage(vscode.l10n.t('Failed to open reference file'))
       return false
     }
   }
@@ -131,7 +129,7 @@ export const useMessageHandler = createSingletonComposable(() => {
     }
     catch (error) {
       vscode.window.showErrorMessage(vscode.l10n.t('Failed to save translation'))
-      logger.error('保存翻译失败:', error)
+      logger.error(vscode.l10n.t('Failed to save translation: {error}', { error }))
     }
   }
 
@@ -145,7 +143,7 @@ export const useMessageHandler = createSingletonComposable(() => {
       const entryObj = JSON.parse(entry) as TranslationEntry
 
       const result = await translator.translateByGoogle(entryObj.id, targetCode)
-      logger.info('机器翻译结果:', result)
+      logger.info(vscode.l10n.t('Machine translation result: {result}', { result }))
 
       await translator.saveTranslation(entryObj, originalCode, result)
 
@@ -153,7 +151,7 @@ export const useMessageHandler = createSingletonComposable(() => {
       setSelectedEntry(entryObj)
     }
     catch (error) {
-      logger.error('机器翻译失败:', error)
+      logger.error(vscode.l10n.t('Machine translation failed: {error}', { error }))
       vscode.window.showErrorMessage(vscode.l10n.t('Machine translation failed'))
     }
   }

@@ -11,7 +11,7 @@ import { ReferenceDefinitionProvider, useEntryListTreeView, useFileTranslationTr
 import { logger } from './utils'
 
 export const { activate, deactivate } = defineExtension(async (context) => {
-  logger.info('i18n-gettext extension activated')
+  logger.info(vscode.l10n.t('i18n gettext extension activated'))
 
   // 获取工作区文件夹
   // const workspaceFolders = useWorkspaceFolders()
@@ -33,10 +33,10 @@ export const { activate, deactivate } = defineExtension(async (context) => {
         definitionProvider,
       ),
     )
-    logger.info('成功注册引用定义提供者')
+    logger.info(vscode.l10n.t('Successfully registered reference definition provider'))
   }
   catch (error) {
-    logger.error('注册视图时发生错误:', error)
+    logger.error(vscode.l10n.t('Error registering view: {error}', { error }))
   }
 
   // 注册所有命令
@@ -54,7 +54,7 @@ export const { activate, deactivate } = defineExtension(async (context) => {
   // // 监听工作区变化
   // watchEffect(() => {
   //   if (workspaceState.value.hasWorkspace) {
-  //     logger.info(`工作区根目录: ${workspaceState.value.rootPath}`)
+  //     logger.info(vscode.l10n.t('Workspace root directory: {rootPath}', { rootPath: workspaceState.value.rootPath }))
   //   }
   // })
 

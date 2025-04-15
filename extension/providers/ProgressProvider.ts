@@ -20,7 +20,7 @@ export const useProgressTreeView = createSingletonComposable(() => {
       setTranslationTree(tree)
     }
     catch (error) {
-      logger.error('初始化翻译数据时发生错误:', error)
+      logger.error(vscode.l10n.t('Failed to initialize translation data: {error}', { error }))
     }
   }
 

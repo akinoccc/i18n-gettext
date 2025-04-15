@@ -50,7 +50,7 @@ export class ReferenceDefinitionProvider implements vscode.DefinitionProvider {
         )
       }
       catch (error) {
-        logger.error('解析引用路径时发生错误:', error)
+        logger.error(vscode.l10n.t('Failed to parse reference path: {error}', { error }))
         return null
       }
     }).filter(Boolean) as vscode.Location[] || null

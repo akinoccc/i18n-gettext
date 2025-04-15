@@ -1,7 +1,8 @@
 import type { TranslationEntry } from '../state'
 import { computed, ref } from 'reactive-vscode'
+import * as vscode from 'vscode'
 import { useTranslationsState } from '../state'
-import { logger } from '../utils/logger'
+import { logger } from '../utils'
 
 /**
  * 翻译条目组合式函数
@@ -93,7 +94,7 @@ export function useTranslationEntries() {
    * 选择条目进行编辑
    */
   function selectEntry(entry: TranslationEntry) {
-    logger.info(`Selecting entry: ${entry.id}`)
+    logger.info(vscode.l10n.t('Selecting entry: {entryId}', { entryId: entry.id }))
     setSelectedEntry(entry)
   }
 

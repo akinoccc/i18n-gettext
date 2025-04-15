@@ -23,7 +23,6 @@ export const useCommandActions = createSingletonComposable(() => {
 
     if (searchQuery) {
       entryListTreeView.setSearchText(searchQuery)
-      logger.info(vscode.l10n.t('Search translation entries: {query}', { query: searchQuery }))
     }
   }
 
@@ -32,7 +31,6 @@ export const useCommandActions = createSingletonComposable(() => {
    */
   function clearSearch(): void {
     entryListTreeView.setSearchText('')
-    logger.info(vscode.l10n.t('Search criteria cleared'))
   }
 
   /**
