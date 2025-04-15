@@ -1,5 +1,5 @@
 import type { Disposable, Webview } from 'vscode'
-import type { TranslateByMachineData, UpdateTranslationData, WebViewMessage } from '../constants'
+import type { AIBatchTranslateData, AITranslateData, LogData, TranslateByMachineData, UpdateTranslationData, WebViewMessage } from '../constants'
 import type { TranslationEntry } from '../state'
 
 import { createSingletonComposable } from 'reactive-vscode'
@@ -7,6 +7,7 @@ import * as vscode from 'vscode'
 import { WebViewMessageType } from '../constants'
 import { useTranslationsState } from '../state'
 import { logger } from '../utils/logger'
+import { useAITranslator } from './useAITranslator'
 import { localesConfig } from './useConfig'
 import { useTranslator } from './useTranslator'
 
@@ -16,6 +17,7 @@ import { useTranslator } from './useTranslator'
 export const useMessageHandler = createSingletonComposable(() => {
   const { setSelectedEntry } = useTranslationsState()
   const translator = useTranslator()
+  const aiTranslator = useAITranslator()
 
   /**
    * 设置Webview钩子
@@ -35,7 +37,8 @@ export const useMessageHandler = createSingletonComposable(() => {
    * 处理WebView消息
    * @param message 消息对象
    */
-  async function handleMessage(message: WebViewMessage): Promise<void> {
+  async function handleMessage(message: WebViewMessage, webview: Webview): Promise<void> {
+    logger.info(message.type)
     switch (message.type) {
       case WebViewMessageType.GO_TO_REFERENCE:
         await handleGoToReference(message.data.reference)
@@ -47,6 +50,18 @@ export const useMessageHandler = createSingletonComposable(() => {
 
       case WebViewMessageType.TRANSLATE_BY_MACHINE:
         await handleTranslateByMachine(message.data as TranslateByMachineData)
+        break
+
+      case WebViewMessageType.LOG:
+        handleLogMessage(message.data as LogData)
+        break
+
+      case WebViewMessageType.AI_TRANSLATE:
+        await handleAITranslate(message.data as AITranslateData, webview)
+        break
+
+      case WebViewMessageType.AI_BATCH_TRANSLATE:
+        await handleAIBatchTranslate(message.data as AIBatchTranslateData, webview)
         break
     }
   }
@@ -157,6 +172,42 @@ export const useMessageHandler = createSingletonComposable(() => {
   }
 
   /**
+   * 处理AI翻译消息
+   * @param data AI翻译数据
+   */
+  async function handleAITranslate(data: AITranslateData, webview: Webview): Promise<void> {
+    try {
+      data.entry = JSON.parse(data.entry as unknown as string) as TranslationEntry
+      data.model = JSON.parse(data.model as unknown as string) as any
+      await aiTranslator.handleAITranslate(data, webview)
+
+      logger.info(vscode.l10n.t('AI translation completed'))
+    }
+    catch (error) {
+      logger.error(vscode.l10n.t('AI translation failed: {error}', { error }))
+      vscode.window.showErrorMessage(vscode.l10n.t('AI translation failed'))
+    }
+  }
+
+  /**
+   * 处理AI批量翻译消息
+   * @param data AI批量翻译数据
+   */
+  async function handleAIBatchTranslate(data: AIBatchTranslateData, webview: Webview): Promise<void> {
+    try {
+      data.entry = JSON.parse(data.entry as unknown as string) as TranslationEntry
+      data.model = JSON.parse(data.model as unknown as string) as any
+      await aiTranslator.handleAIBatchTranslate(data, webview)
+
+      logger.info(vscode.l10n.t('AI batch translation completed'))
+    }
+    catch (error) {
+      logger.error(vscode.l10n.t('AI batch translation failed: {error}', { error }))
+      vscode.window.showErrorMessage(vscode.l10n.t('AI batch translation failed'))
+    }
+  }
+
+  /**
    * 发送选择条目消息到WebView
    * @param webview Webview实例
    * @param entry 翻译条目
@@ -171,12 +222,23 @@ export const useMessageHandler = createSingletonComposable(() => {
     })
   }
 
+  /**
+   * 接收日志消息
+   * @param message 日志消息
+   */
+  function handleLogMessage(data: LogData): void {
+    logger.info(data.message)
+  }
+
   return {
     setupWebviewHooks,
     handleMessage,
     handleGoToReference,
     handleUpdateTranslation,
     handleTranslateByMachine,
+    handleAITranslate,
+    handleAIBatchTranslate,
     sendSelectEntryMessage,
+    handleLogMessage,
   }
 })

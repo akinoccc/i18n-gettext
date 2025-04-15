@@ -2,6 +2,7 @@
   "publisher": "akino",
   "name": "i18n-gettext",
   "displayName": "i18n Gettext",
+  "type": "commonjs",
   "version": "0.1.0",
   "private": true,
   "description": "VSCode extension for extracting, compiling and managing gettext-based translation strings",
@@ -137,11 +138,25 @@
     "l10n:sync": "tsx scripts/sync-l10n.ts"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^1.2.10",
+    "@ai-sdk/deepseek": "^0.2.11",
+    "@ai-sdk/google": "^1.2.11",
+    "@ai-sdk/openai": "^1.3.12",
+    "@tailwindcss/vite": "^4.1.4",
     "@tomjs/vscode-webview": "^2.0.2",
     "@types/node-fetch": "^2.6.12",
     "@vitalets/google-translate-api": "^9.2.1",
+    "@vueuse/core": "^13.1.0",
+    "ai": "^4.3.6",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "gettext-parser": "^8.0.0",
+    "lucide-vue-next": "^0.488.0",
     "node-fetch": "^3.3.2",
+    "reka-ui": "^2.2.0",
+    "tailwind-merge": "^3.2.0",
+    "tailwindcss": "^4.1.4",
+    "unconfig": "^7.3.1",
     "vue": "^3.5.13"
   },
   "devDependencies": {
@@ -156,6 +171,7 @@
     "reactive-vscode": "^0.2.14",
     "tsup": "^8.0.2",
     "tsx": "^4.19.3",
+    "tw-animate-css": "^1.2.5",
     "typescript": "^5.4.5",
     "vite": "^6.2.6",
     "vite-plugin-vue-devtools": "^7.7.2"

@@ -9,6 +9,7 @@ import * as vscode from 'vscode'
 import { registerCommands } from './commands'
 import { ReferenceDefinitionProvider, useEntryListTreeView, useFileTranslationTreeView, useProgressTreeView } from './providers'
 import { logger } from './utils'
+import { useAITranslator } from './composables'
 
 export const { activate, deactivate } = defineExtension(async (context) => {
   logger.info(vscode.l10n.t('i18n gettext extension activated'))
@@ -57,6 +58,8 @@ export const { activate, deactivate } = defineExtension(async (context) => {
   //     logger.info(vscode.l10n.t('Workspace root directory: {rootPath}', { rootPath: workspaceState.value.rootPath }))
   //   }
   // })
+
+  useAITranslator().getAvailableModels()
 
   // 监听主题变化
   const isDark = useIsDarkTheme()

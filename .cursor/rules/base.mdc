@@ -5,3 +5,5 @@ alwaysApply: true
 ---
 
 使用英文注释，英文commit msg
+
+这是一个 vscode 扩展开发项目
