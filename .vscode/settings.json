@@ -43,5 +43,12 @@
     "scss",
     "pcss",
     "postcss"
-  ]
+  ],
+
+  "i18n-ally.localesPaths": ["l10n"],
+  "i18n-ally.pathMatcher": "bundle.l10n.{locale}.json",
+  "i18n-ally.displayLanguage": "zh-cn", // 显示用的文字
+  "i18n-ally.editor.preferEditor": true,
+  "i18n-ally.keystyle": "auto",
+  "i18n-ally.sourceLanguage": "zh-cn" // 翻译源语言
 }

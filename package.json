@@ -133,7 +133,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "vscode:prepublish": "pnpm run build",
-    "l10n:export": "npx @vscode/l10n-dev export --outDir ./l10n ./extension"
+    "l10n:export": "npx @vscode/l10n-dev export --outDir ./l10n ./extension",
+    "l10n:sync": "tsx scripts/sync-l10n.ts"
   },
   "dependencies": {
     "@tomjs/vscode-webview": "^2.0.2",
@@ -154,6 +155,7 @@
     "eslint": "^9.24.0",
     "reactive-vscode": "^0.2.14",
     "tsup": "^8.0.2",
+    "tsx": "^4.19.3",
     "typescript": "^5.4.5",
     "vite": "^6.2.6",
     "vite-plugin-vue-devtools": "^7.7.2"
