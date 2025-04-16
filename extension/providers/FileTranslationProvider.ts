@@ -3,7 +3,7 @@ import type { TranslationEntry } from '../state'
 import { computed, createSingletonComposable, ref, useActiveTextEditor, useL10nText, useTreeView, useWorkspaceFolders } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { useTranslationEntries } from '../composables'
-import { CommandType } from '../constants'
+import { CommandType } from '../../constants'
 import { useTranslationsState } from '../state'
 
 /**

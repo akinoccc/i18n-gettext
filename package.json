@@ -145,6 +145,7 @@
     "@tailwindcss/vite": "^4.1.4",
     "@tomjs/vscode-webview": "^2.0.2",
     "@types/node-fetch": "^2.6.12",
+    "@unocss/reset": "66.1.0-beta.11",
     "@vitalets/google-translate-api": "^9.2.1",
     "@vueuse/core": "^13.1.0",
     "ai": "^4.3.6",
@@ -163,6 +164,7 @@
     "@antfu/eslint-config": "^4.12.0",
     "@tomjs/tsconfig": "^1.7.1",
     "@tomjs/vite-plugin-vscode": "^4.0.0",
+    "@types/gettext-parser": "^8.0.0",
     "@types/node": "18.x",
     "@types/vscode": "^1.89.0",
     "@vitejs/plugin-vue": "^5.2.3",
@@ -173,6 +175,7 @@
     "tsx": "^4.19.3",
     "tw-animate-css": "^1.2.5",
     "typescript": "^5.4.5",
+    "unocss": "66.1.0-beta.11",
     "vite": "^6.2.6",
     "vite-plugin-vue-devtools": "^7.7.2"
   },

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import type { AIModelConfig } from '../../types'
+import type { ModelInfo } from 'types'
+import { ref, watchEffect } from 'vue'
 import Button from '../base/Button.vue'
 
 interface Props {
-  aiModels: AIModelConfig[]
+  aiModels: ModelInfo[]
   isTranslating: boolean
 }
 
@@ -13,10 +13,13 @@ const emit = defineEmits(['translateAll', 'translateAllAI', 'updateSelectedModel
 
 const selectedModel = ref('')
 
-// 初始化选择的模型
-if (props.aiModels.length > 0 && !selectedModel.value) {
-  selectedModel.value = props.aiModels[0].id
-}
+watchEffect(() => {
+  // 初始化选择的模型
+  if (props.aiModels.length > 0 && !selectedModel.value) {
+    selectedModel.value = `${props.aiModels[0].provider}:${props.aiModels[0].modelId}`
+    emit('updateSelectedModel', selectedModel.value)
+  }
+})
 
 function handleModelChange(e: Event) {
   const target = e.target as HTMLSelectElement
@@ -34,25 +37,25 @@ function handleAITranslate() {
 </script>
 
 <template>
-  <div class="flex p-2 gap-2 items-end">
+  <div class="flex p-2 gap-2 items-center justify-end">
     <div v-if="props.aiModels.length" class="relative">
       <select
         v-model="selectedModel"
         class="bg-gray-100 text-gray-600 px-2 py-1 rounded cursor-pointer"
         @change="handleModelChange"
       >
-        <option v-for="model in props.aiModels" :key="model.id" :value="model.id">
-          {{ model.label }}
+        <option v-for="model in props.aiModels" :key="`${model.provider}:${model.modelId}`">
+          {{ model.provider }}:{{ model.modelId }}
         </option>
       </select>
     </div>
 
-    <Button size="sm" @click="handleMachineTranslate">
+    <Button @click="handleMachineTranslate">
       机器翻译
     </Button>
 
     <Button
-      size="sm"
+      v-if="selectedModel"
       :loading="props.isTranslating"
       :disabled="props.isTranslating"
       @click="handleAITranslate"
@@ -61,5 +64,3 @@ function handleAITranslate() {
     </Button>
   </div>
 </template>
-
-

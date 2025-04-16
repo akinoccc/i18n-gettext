@@ -2,7 +2,7 @@ import type { ExtensionContext } from 'vscode'
 import type { TranslationEntry } from '../state'
 import { useCommands as useVscodeCommands } from 'reactive-vscode'
 import { useCommandActions } from '../composables'
-import { CommandType } from '../constants'
+import { CommandType } from '../../constants'
 /**
  * 注册所有命令
  */

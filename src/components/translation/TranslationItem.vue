@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { LocaleIdentifier } from '../../types'
-import LanguageTag from './LanguageTag.vue'
+import type { LocaleIdentifier } from 'types'
 import Button from '../base/Button.vue'
+import LanguageTag from './LanguageTag.vue'
 
 interface Props {
   locale: LocaleIdentifier & { originalCode: string }
@@ -13,7 +13,7 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits<{
   'update:value': [value: string]
-  translateMachine: [locale: LocaleIdentifier & { originalCode: string }]
+  'translateMachine': [locale: LocaleIdentifier & { originalCode: string }]
 }>()
 
 function handleChange(e: Event) {
@@ -27,17 +27,16 @@ function handleMachineTranslate() {
 </script>
 
 <template>
-  <div class="flex items-center pb-0.5 border border-solid border-gray-200 rounded overflow-hidden">
+  <div class="flex items-center h-12 border border-solid border-gray-200 rounded overflow-hidden">
     <LanguageTag
       :code="props.locale.code"
       :flag="props.locale.flag"
-      :is-source="props.isSource"
     />
 
-    <div class="flex-1 pr-6">
+    <div class="flex-1 pr-6 h-full">
       <input
         :value="props.value"
-        class="w-full"
+        class="w-full focus:outline-none! h-full"
         :placeholder="props.placeholder"
         @blur="(e) => emit('update:value', (e.target as HTMLInputElement).value)"
         @change="handleChange"
@@ -48,15 +47,17 @@ function handleMachineTranslate() {
       <div v-if="props.isSource" class="bg-gray-100 text-gray-600 px-2 py-1 rounded">
         source
       </div>
-      <Button
-        v-if="!props.isSource"
-        size="sm"
-        @click="handleMachineTranslate"
-      >
-        机翻
-      </Button>
+      <div v-else class="flex gap-2">
+        <Button
+          size="sm"
+          @click="handleMachineTranslate"
+        >
+          机翻
+        </Button>
+        <Button size="sm">
+          AI
+        </Button>
+      </div>
     </div>
   </div>
 </template>
-
-

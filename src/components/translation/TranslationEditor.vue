@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AIModelConfig, LocaleIdentifier, TranslationEntry } from '../../types'
+import type { LocaleIdentifier, ModelInfo, TranslationEntry } from 'types'
 import { computed } from 'vue'
 import AITranslatePanel from './AITranslatePanel.vue'
 import ReferencesList from './ReferencesList.vue'
@@ -7,7 +7,7 @@ import TranslationItem from './TranslationItem.vue'
 
 interface Props {
   translationEntry: TranslationEntry
-  aiModels: AIModelConfig[]
+  aiModels: ModelInfo[]
   sourceLanguage: string
   isTranslating: boolean
 }
@@ -70,7 +70,7 @@ function handleReferenceClick(reference: string) {
     <!-- 引用列表 -->
     <ReferencesList
       :references="props.translationEntry.references"
-      @clickReference="handleReferenceClick"
+      @click-reference="handleReferenceClick"
     />
 
     <!-- 翻译条目 -->
@@ -79,24 +79,22 @@ function handleReferenceClick(reference: string) {
       :key="locale.code"
       :locale="locale"
       :value="getTranslationValue(locale.originalCode)"
-      :placeholder="`${locale.name}翻译...`"
+      placeholder="待翻译..."
       :is-source="isSourceLanguage(locale.originalCode)"
       @update:value="(value) => handleSaveTranslation(locale.originalCode, value)"
-      @translateMachine="emit('translateByMachine', $event)"
+      @translate-machine="emit('translateByMachine', $event)"
     />
 
     <!-- AI翻译面板 -->
     <AITranslatePanel
       :ai-models="props.aiModels"
       :is-translating="props.isTranslating"
-      @translateAll="emit('translateAllByMachine')"
-      @translateAllAI="emit('translateAllByAI')"
-      @updateSelectedModel="emit('updateSelectedModel', $event)"
+      @translate-all="emit('translateAllByMachine')"
+      @translate-all-a-i="emit('translateAllByAI')"
+      @update-selected-model="emit('updateSelectedModel', $event)"
     />
   </div>
   <div v-else class="flex justify-center items-center h-50 bg-gray-50 rounded text-gray-600">
     <p>请选择一个翻译条目</p>
   </div>
 </template>
-
-

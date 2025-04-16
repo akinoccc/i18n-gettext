@@ -2,53 +2,42 @@
 import type { LanguageModelV1 } from 'ai'
 import type { Webview } from 'vscode'
 
-import type { AIBatchTranslateData, AITranslateData, ModelConfigData } from '../constants'
-import type { TranslationEntry } from '../state'
+import type { AIBatchTranslateData, AITranslateData, ModelConfig } from '../../types'
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
 import { anthropic, createAnthropic } from '@ai-sdk/anthropic'
 import { createDeepSeek, deepseek } from '@ai-sdk/deepseek'
+
 import { createOpenAI, openai } from '@ai-sdk/openai'
 import { generateText } from 'ai'
-import { createSingletonComposable } from 'reactive-vscode'
-
+import { createSingletonComposable, useWorkspaceFolders } from 'reactive-vscode'
 import * as vscode from 'vscode'
-import { WebViewMessageType } from '../constants'
+import { WebViewMessageType } from '../../constants'
+import { useTranslationsState } from '../state'
 import { logger } from '../utils/logger'
 import { useModelConfig } from './useModelConfig'
 import { useTranslator } from './useTranslator'
 
 /**
- * AI模型接口
- */
-export interface AIModel {
-  provider: string
-  modelId: string
-  label: string
-}
-
-/**
  * 翻译选项接口
  */
 export interface TranslationOptions {
+  entryId: string
   sourceText: string
   sourceLanguage: string
   targetLanguage: string
-  model: AIModel
-  references?: string[]
-  msgctxt?: string
-  entry: TranslationEntry
+  model: Omit<ModelConfig, 'apiKey'>
 }
 
 /**
  * 批量翻译选项接口
  */
 export interface BatchTranslationOptions {
+  entryId: string
   sourceText: string
   sourceLanguage: string
   targetLanguages: string[]
-  model: AIModel
-  references?: string[]
-  msgctxt?: string
-  entry: TranslationEntry
+  model: Omit<ModelConfig, 'apiKey'>
 }
 
 /**
@@ -56,19 +45,22 @@ export interface BatchTranslationOptions {
  */
 export const useAITranslator = createSingletonComposable(() => {
   const translator = useTranslator()
-
+  const { getEntryById } = useTranslationsState()
   // 默认 AI 模型列表
-  const AI_MODELS: AIModel[] = []
+  const AI_MODELS: Omit<ModelConfig, 'apiKey'>[] = []
 
   // API 密钥映射
   const API_KEYS: Record<string, string> = {}
+
+  function buildModelKey(provider: string, modelId: string): string {
+    return `${provider}:${modelId}`
+  }
 
   /**
    * 更新 AI 模型和 API 密钥
    * @param models AI模型配置
    */
-  function updateAIModels(models: ModelConfigData['models']): void {
-    logger.info('updateAIModels', JSON.stringify(models))
+  function updateAIModels(models: ModelConfig[]): void {
     if (!models || !Array.isArray(models) || models.length === 0)
       return
 
@@ -79,15 +71,13 @@ export const useAITranslator = createSingletonComposable(() => {
     models.forEach((model) => {
       // 保存 API 密钥
       if (model.provider && model.apiKey) {
-        API_KEYS[model.provider] = model.apiKey
+        API_KEYS[buildModelKey(model.provider, model.modelId)] = model.apiKey
       }
 
       // 添加到模型列表
       AI_MODELS.push({
         provider: model.provider,
-        modelId: model.model,
-        // 为模型创建友好名称
-        label: `${model.provider[0].toUpperCase() + model.provider.slice(1)} ${model.model}`,
+        modelId: model.modelId,
       })
     })
   }
@@ -96,10 +86,9 @@ export const useAITranslator = createSingletonComposable(() => {
    * 获取可用的AI模型列表
    * @returns AI模型列表
    */
-  async function getAvailableModels(): Promise<AIModel[]> {
+  async function getAvailableModels(): Promise<Omit<ModelConfig, 'apiKey'>[]> {
     const modelConfig = await useModelConfig()
     const models = await modelConfig.readModelConfig()
-    logger.info(JSON.stringify(models))
     updateAIModels(models)
     return [...AI_MODELS]
   }
@@ -111,8 +100,7 @@ export const useAITranslator = createSingletonComposable(() => {
    * @returns 语言模型实例
    */
   function getModelInstance(provider: string, modelId: string): LanguageModelV1 {
-    logger.info(provider, modelId,JSON.stringify(API_KEYS))
-    const apiKey = API_KEYS[provider]
+    const apiKey = API_KEYS[buildModelKey(provider, modelId)]
 
     if (!apiKey) {
       logger.warn(vscode.l10n.t('No API key found for {provider}', { provider }))
@@ -129,6 +117,25 @@ export const useAITranslator = createSingletonComposable(() => {
         })(modelId)
       default:
         throw new Error(vscode.l10n.t('Unsupported provider: {provider}', { provider }))
+    }
+  }
+
+  function getEntryInfo(entryId: string): {
+    references: string[]
+    msgctxt: string
+  } {
+    const entry = getEntryById(entryId)
+    // 读取 references 文件
+    const references: string[] = []
+    for (const ref of entry?.references || []) {
+      const folder = useWorkspaceFolders().value?.[0]
+      const refPath = ref.includes(':') ? ref.slice(0, ref.lastIndexOf(':')) : ref
+      const content = readFileSync(path.join(folder?.uri.fsPath || '', refPath), 'utf-8')
+      references.push(content)
+    }
+    return {
+      references,
+      msgctxt: entry?.msgctxt || '',
     }
   }
 
@@ -234,13 +241,18 @@ export const useAITranslator = createSingletonComposable(() => {
     sourceLanguage,
     targetLanguage,
     model,
-    references,
-    msgctxt,
-    entry,
+    entryId,
   }: TranslationOptions): Promise<string> {
     try {
       const modelInstance = getModelInstance(model.provider, model.modelId)
-      const prompt = buildTranslationPrompt(sourceText, sourceLanguage, targetLanguage, references, msgctxt)
+      const { references, msgctxt } = getEntryInfo(entryId)
+      const prompt = buildTranslationPrompt(
+        sourceText,
+        sourceLanguage,
+        targetLanguage,
+        references,
+        msgctxt,
+      )
 
       const { text } = await generateText({
         model: modelInstance,
@@ -268,11 +280,10 @@ export const useAITranslator = createSingletonComposable(() => {
     sourceLanguage,
     targetLanguages,
     model,
-    references,
-    msgctxt,
-    entry,
+    entryId,
   }: BatchTranslationOptions): Promise<Record<string, string>> {
     try {
+      const { references, msgctxt } = getEntryInfo(entryId)
       const modelInstance = getModelInstance(model.provider, model.modelId)
       const prompt = buildBatchTranslationPrompt(sourceText, sourceLanguage, targetLanguages, references, msgctxt)
 
@@ -313,22 +324,23 @@ export const useAITranslator = createSingletonComposable(() => {
         sourceText: data.sourceText,
         sourceLanguage: data.sourceLanguage,
         targetLanguage: data.targetLanguage,
-        model: data.model,
-        references: data.references,
-        msgctxt: data.msgctxt,
-        entry: data.entry,
+        model: {
+          provider: data.provider,
+          modelId: data.modelId,
+        },
+        entryId: data.entryId,
       })
 
-      webview.postMessage({
+      await webview.postMessage({
         type: WebViewMessageType.AI_TRANSLATE_RESULT,
         data: {
           result,
-          entry: JSON.stringify(data.entry),
+          entryId: data.entryId,
           targetLanguage: data.targetLanguage,
         },
       })
 
-      translator.saveTranslation(data.entry, data.targetLanguage, result)
+      translator.saveTranslation(data.entryId, data.targetLanguage, result)
 
       return result
     }
@@ -339,7 +351,7 @@ export const useAITranslator = createSingletonComposable(() => {
         type: WebViewMessageType.AI_TRANSLATE_RESULT,
         data: {
           result: '',
-          entry: JSON.stringify(data.entry),
+          entryId: data.entryId,
           targetLanguage: data.targetLanguage,
           error: error?.message || 'Unknown error',
         },
@@ -360,22 +372,23 @@ export const useAITranslator = createSingletonComposable(() => {
         sourceText: data.sourceText,
         sourceLanguage: data.sourceLanguage,
         targetLanguages: data.targetLanguages,
-        model: data.model,
-        references: data.references,
-        msgctxt: data.msgctxt,
-        entry: data.entry,
+        model: {
+          provider: data.provider,
+          modelId: data.modelId,
+        },
+        entryId: data.entryId,
       })
 
-        webview.postMessage({
-          type: WebViewMessageType.AI_BATCH_TRANSLATE_RESULT,
-          data: {
-            results,
-            entry: JSON.stringify(data.entry),
-          },
-        })
+      webview.postMessage({
+        type: WebViewMessageType.AI_BATCH_TRANSLATE_RESULT,
+        data: {
+          results,
+          entryId: data.entryId,
+        },
+      })
 
       data.targetLanguages.forEach((targetLanguage) => {
-        translator.saveTranslation(data.entry, targetLanguage, results[targetLanguage])
+        translator.saveTranslation(data.entryId, targetLanguage, results[targetLanguage])
       })
 
       return results
@@ -389,7 +402,7 @@ export const useAITranslator = createSingletonComposable(() => {
           type: WebViewMessageType.AI_BATCH_TRANSLATE_RESULT,
           data: {
             results: {},
-            entry: JSON.stringify(data.entry),
+            entryId: data.entryId,
             error: error?.message || 'Unknown error',
           },
         })

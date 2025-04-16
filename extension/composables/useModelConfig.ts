@@ -1,9 +1,9 @@
 import type { Webview } from 'vscode'
-import type { ModelConfigData } from '../constants'
+import type { ModelConfig } from '../../types'
 
 import { createSingletonComposable } from 'reactive-vscode'
 import * as vscode from 'vscode'
-import { WebViewMessageType } from '../constants'
+import { WebViewMessageType } from '../../constants'
 import { logger } from '../utils/logger'
 
 /**
@@ -15,7 +15,7 @@ export const useModelConfig = createSingletonComposable(async () => {
    * 读取模型配置信息
    * @returns 返回配置信息，如果读取失败则返回空数组
    */
-  async function readModelConfig(): Promise<ModelConfigData['models']> {
+  async function readModelConfig(): Promise<ModelConfig[]> {
     try {
       // 获取工作区文件夹
       const workspaceFolders = vscode.workspace.workspaceFolders
@@ -28,7 +28,7 @@ export const useModelConfig = createSingletonComposable(async () => {
       const rootPath = workspaceFolders[0].uri.fsPath
 
       // 使用 unconfig 加载配置
-      const { config } = await loadConfig<{ ai: ModelConfigData['models'] }>({
+      const { config } = await loadConfig<{ ai: ModelConfig[] }>({
         cwd: rootPath,
         sources: [
           // 尝试加载 .vscode/.i18n-gettext.secret 配置
@@ -74,14 +74,16 @@ export const useModelConfig = createSingletonComposable(async () => {
     try {
       const models = await readModelConfig()
 
-      logger.info(vscode.l10n.t('Models: {models}', JSON.stringify(models)))
+      logger.info('Models: ', JSON.stringify(models))
 
-      return webview.postMessage({
+      const result = await webview.postMessage({
         type: WebViewMessageType.SEND_MODEL_CONFIG,
         data: {
           models: JSON.stringify(models),
         },
       })
+
+      return result
     }
     catch (error) {
       logger.error(vscode.l10n.t('Failed to send model config to webview: {error}', { error }))

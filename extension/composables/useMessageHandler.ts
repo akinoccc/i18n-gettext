@@ -1,10 +1,9 @@
 import type { Disposable, Webview } from 'vscode'
-import type { AIBatchTranslateData, AITranslateData, LogData, TranslateByMachineData, UpdateTranslationData, WebViewMessage } from '../constants'
-import type { TranslationEntry } from '../state'
+import type { AIBatchTranslateData, AITranslateData, LogData, TranslateByMachineData, TranslationEntry, UpdateTranslationData, WebViewMessage } from '../../types'
 
 import { createSingletonComposable } from 'reactive-vscode'
 import * as vscode from 'vscode'
-import { WebViewMessageType } from '../constants'
+import { WebViewMessageType } from '../../constants'
 import { useTranslationsState } from '../state'
 import { logger } from '../utils/logger'
 import { useAITranslator } from './useAITranslator'
@@ -38,7 +37,7 @@ export const useMessageHandler = createSingletonComposable(() => {
    * @param message 消息对象
    */
   async function handleMessage(message: WebViewMessage, webview: Webview): Promise<void> {
-    logger.info(message.type)
+    logger.info(message.type, JSON.stringify(message.data))
     switch (message.type) {
       case WebViewMessageType.GO_TO_REFERENCE:
         await handleGoToReference(message.data.reference)
@@ -139,7 +138,7 @@ export const useMessageHandler = createSingletonComposable(() => {
   async function handleUpdateTranslation(data: UpdateTranslationData): Promise<void> {
     try {
       const { entry, locale, value } = data
-      await translator.saveTranslation(JSON.parse(entry), locale, value)
+      await translator.saveTranslation(JSON.parse(entry).id, locale, value)
       vscode.window.showInformationMessage(vscode.l10n.t('Translation saved'))
     }
     catch (error) {
@@ -160,7 +159,7 @@ export const useMessageHandler = createSingletonComposable(() => {
       const result = await translator.translateByGoogle(entryObj.id, targetCode)
       logger.info(vscode.l10n.t('Machine translation result: {result}', { result }))
 
-      await translator.saveTranslation(entryObj, originalCode, result)
+      await translator.saveTranslation(entryObj.id, originalCode, result)
 
       entryObj.locales[originalCode] = result
       setSelectedEntry(entryObj)
@@ -177,8 +176,6 @@ export const useMessageHandler = createSingletonComposable(() => {
    */
   async function handleAITranslate(data: AITranslateData, webview: Webview): Promise<void> {
     try {
-      data.entry = JSON.parse(data.entry as unknown as string) as TranslationEntry
-      data.model = JSON.parse(data.model as unknown as string) as any
       await aiTranslator.handleAITranslate(data, webview)
 
       logger.info(vscode.l10n.t('AI translation completed'))
@@ -195,8 +192,6 @@ export const useMessageHandler = createSingletonComposable(() => {
    */
   async function handleAIBatchTranslate(data: AIBatchTranslateData, webview: Webview): Promise<void> {
     try {
-      data.entry = JSON.parse(data.entry as unknown as string) as TranslationEntry
-      data.model = JSON.parse(data.model as unknown as string) as any
       await aiTranslator.handleAIBatchTranslate(data, webview)
 
       logger.info(vscode.l10n.t('AI batch translation completed'))

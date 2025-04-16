@@ -3,7 +3,7 @@ import type { TranslationEntry } from '../state/useTranslationsState'
 import { computed, createSingletonComposable, useTreeView } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { useTranslationEntries } from '../composables/useTranslationEntries'
-import { CommandType } from '../constants'
+import { CommandType } from '../../constants'
 
 /**
  * 翻译条目树视图组合式函数

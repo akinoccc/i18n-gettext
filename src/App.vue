@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
+import TranslationEditor from './components/translation/TranslationEditor.vue'
 import { useAITranslation } from './composables/useAITranslation'
 import { useTranslationEntry } from './composables/useTranslationEntry'
-import TranslationEditor from './components/translation/TranslationEditor.vue'
 
 // 使用组合式函数
 const {
@@ -15,10 +15,8 @@ const {
 
 const {
   aiModels,
-  selectedAIModel,
   isTranslating,
   error,
-  initAIModelOptions,
   updateSelectedModel,
   translateByMachine,
   translateAllByMachine,
@@ -30,23 +28,20 @@ const {
 onMounted(() => {
   // 设置消息监听
   setupTranslationListeners()
-  setupAIListeners(translationEntry.value)
-  
-  // 初始化AI模型
-  initAIModelOptions()
+  setupAIListeners()
 })
 
 // 翻译相关处理
 function handleTranslateByMachine(locale: { originalCode: string, code: string }) {
-  translateByMachine(translationEntry.value, locale)
+  translateByMachine(locale)
 }
 
 function handleTranslateAllByMachine() {
-  translateAllByMachine(translationEntry.value, sourceLanguage.value)
+  translateAllByMachine(sourceLanguage.value)
 }
 
 function handleTranslateAllByAI() {
-  translateAllByAI(translationEntry.value, sourceLanguage.value)
+  translateAllByAI(sourceLanguage.value)
 }
 </script>
 
@@ -81,5 +76,3 @@ function handleTranslateAllByAI() {
     />
   </main>
 </template>
-
-

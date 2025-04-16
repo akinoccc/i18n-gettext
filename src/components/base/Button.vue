@@ -26,5 +26,3 @@ const props = withDefaults(defineProps<Props>(), {
     <slot v-else />
   </button>
 </template>
-
-

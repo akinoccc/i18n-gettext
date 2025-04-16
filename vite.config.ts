@@ -7,13 +7,13 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => {
-  const { default: tailwindcss } = await import('@tailwindcss/vite')
+  const { default: unocss } = await import('unocss/vite')
   return {
     plugins: [
       vue(),
       vueDevTools(),
-      tailwindcss(),
-      vscode({
+      unocss(),
+      vscode({ 
         webview: {
           csp: '<meta http-equiv="Content-Security-Policy" />',
         },

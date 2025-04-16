@@ -1,5 +1,5 @@
 import type { Disposable, ExtensionContext, Webview } from 'vscode'
-import type { WebViewMessage } from '../constants/message'
+import type { WebViewMessage } from '../../types'
 import { createSingletonComposable } from 'reactive-vscode'
 import { useMessageHandler } from './useMessageHandler'
 import { useModelConfig } from './useModelConfig'
@@ -29,7 +29,6 @@ export const useWebviewHandler = createSingletonComposable(() => {
    */
   async function setupWebviewHooks(webview: Webview, disposables: Disposable[]) {
     const handler = useMessageHandler()
-    const modelConfig = await useModelConfig()
 
     // 设置消息处理钩子
     handler.setupWebviewHooks(
@@ -37,9 +36,6 @@ export const useWebviewHandler = createSingletonComposable(() => {
       (message: WebViewMessage) => handler.handleMessage(message, webview),
       disposables,
     )
-
-    // 发送模型配置到 WebView
-    modelConfig.sendModelConfigToWebview(webview)
   }
 
   return {

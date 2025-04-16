@@ -1,13 +1,13 @@
-import type { TranslationEntry } from '../state/useTranslationsState'
+import type { TranslationEntry } from '../../types'
 import { watch } from 'reactive-vscode'
 import * as vscode from 'vscode'
+import { EditorType } from '../../constants'
 import { useMessageHandler, useWebviewHandler } from '../composables'
-import { EditorType } from '../constants'
 import { useTranslationsState } from '../state'
 
 export class TranslationEditorProvider {
   public static currentPanel: TranslationEditorProvider | undefined
-  private readonly _panel: vscode.WebviewPanel
+  public readonly _panel: vscode.WebviewPanel
   private _disposables: vscode.Disposable[] = []
 
   private constructor(panel: vscode.WebviewPanel, context: vscode.ExtensionContext) {
@@ -60,22 +60,6 @@ export class TranslationEditorProvider {
       if (disposable) {
         disposable.dispose()
       }
-    }
-  }
-
-  // 处理选择条目
-  public static handleSelectEntry(context: vscode.ExtensionContext, entry: TranslationEntry) {
-    useTranslationsState().setSelectedEntry(entry)
-
-    // 渲染编辑器
-    TranslationEditorProvider.render(context)
-
-    // 发送选择条目消息
-    if (TranslationEditorProvider.currentPanel) {
-      useMessageHandler().sendSelectEntryMessage(
-        TranslationEditorProvider.currentPanel._panel.webview,
-        entry,
-      )
     }
   }
 }

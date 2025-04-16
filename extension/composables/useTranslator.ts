@@ -1,4 +1,3 @@
-import type { TranslationEntry } from '../state'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 
@@ -20,7 +19,7 @@ type LanguageMappings = Record<string, Record<string, string>>
  */
 export const useTranslator = createSingletonComposable(() => {
   const config = useConfig()
-  const { updateTranslation } = useTranslationsState()
+  const { updateTranslation, getEntryById } = useTranslationsState()
 
   /**
    * 翻译服务的语言代码映射
@@ -87,11 +86,17 @@ export const useTranslator = createSingletonComposable(() => {
    * @returns 是否保存成功
    */
   async function saveTranslation(
-    entry: TranslationEntry,
+    entryId: string,
     locale: string,
     value: string,
     domain?: string,
   ): Promise<boolean> {
+    const entry = getEntryById(entryId)
+    if (!entry) {
+      logger.error(vscode.l10n.t('Entry not found: {entryId}', { entryId }))
+      return false
+    }
+
     try {
       const gettextParser = await import('gettext-parser')
       // 获取根路径
@@ -133,7 +138,7 @@ export const useTranslator = createSingletonComposable(() => {
             'Report-Msgid-Bugs-To': '',
             'POT-Creation-Date': new Date().toISOString(),
             'PO-Revision-Date': new Date().toISOString(),
-            'Last-Translator': 'FULL NAME <EMAIL@ADDRESS>',
+            'Last-Translator': 'I18n Gettext Extension',
             'Language-Team': locale,
             'Language': locale,
             'MIME-Version': '1.0',

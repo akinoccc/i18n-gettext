@@ -1,19 +1,21 @@
+import type { TranslationEntry } from 'types'
 import { ref } from 'vue'
-import type { TranslationEntry } from '../types'
+import { WebViewMessageType } from '../../constants'
 import { useVscodeApi } from './useVscodeApi'
+
+const translationEntry = ref<TranslationEntry>({
+  id: 'this is a test',
+  references: [],
+  msgctxt: '',
+  locales: {
+    en: 'this is a test',
+    zh: '',
+  },
+  hasUntranslated: false,
+})
 
 export function useTranslationEntry() {
   const vscodeApi = useVscodeApi()
-  const translationEntry = ref<TranslationEntry>({
-    id: 'this is a test',
-    references: [],
-    msgctxt: '',
-    locales: {
-      en: 'this is a test',
-      zh: '',
-    },
-    hasUntranslated: false,
-  })
   const sourceLanguage = ref('')
 
   // 保存翻译内容
@@ -26,7 +28,7 @@ export function useTranslationEntry() {
 
     // 发送更新到VSCode扩展
     vscodeApi.postMessage({
-      type: 'i18n-gettext.updateTranslation',
+      type: WebViewMessageType.UPDATE_TRANSLATION,
       data: {
         entry: JSON.stringify(translationEntry.value),
         locale,
@@ -38,17 +40,24 @@ export function useTranslationEntry() {
   // 跳转到引用位置
   function goToReference(reference: string) {
     vscodeApi.postMessage({
-      type: 'i18n-gettext.goToReference',
+      type: WebViewMessageType.GO_TO_REFERENCE,
       data: {
         reference,
       },
     })
   }
 
+  function updateTranslationEntry(langCode: string, value: string) {
+    if (!translationEntry.value)
+      return
+
+    translationEntry.value.locales[langCode] = value
+  }
+
   // 设置消息监听
   function setupMessageListeners() {
     // 监听翻译条目选择
-    vscodeApi.on('i18n-gettext.selectEntry', (entry: TranslationEntry & { sourceLanguage: string }) => {
+    vscodeApi.on(WebViewMessageType.SELECT_ENTRY, (entry: TranslationEntry & { sourceLanguage: string }) => {
       translationEntry.value = entry
       sourceLanguage.value = entry.sourceLanguage
     })
@@ -60,5 +69,6 @@ export function useTranslationEntry() {
     saveTranslation,
     goToReference,
     setupMessageListeners,
+    updateTranslationEntry,
   }
-} 
+}
