@@ -11,7 +11,7 @@ import { localesConfig } from './useConfig'
 import { useTranslator } from './useTranslator'
 
 /**
- * 消息处理组合式函数
+ * Message handler composable function
  */
 export const useMessageHandler = createSingletonComposable(() => {
   const { setSelectedEntry } = useTranslationsState()
@@ -19,10 +19,10 @@ export const useMessageHandler = createSingletonComposable(() => {
   const aiTranslator = useAITranslator()
 
   /**
-   * 设置Webview钩子
-   * @param webview Webview实例
-   * @param callback 消息回调
-   * @param disposables 可释放资源列表
+   * Set up Webview hooks
+   * @param webview Webview instance
+   * @param callback Message callback
+   * @param disposables Disposable resources list
    */
   function setupWebviewHooks(webview: Webview, callback: (message: WebViewMessage) => void, disposables: Disposable[]): void {
     webview.onDidReceiveMessage(
@@ -33,8 +33,8 @@ export const useMessageHandler = createSingletonComposable(() => {
   }
 
   /**
-   * 处理WebView消息
-   * @param message 消息对象
+   * Handle WebView message
+   * @param message Message object
    */
   async function handleMessage(message: WebViewMessage, webview: Webview): Promise<void> {
     logger.info(message.type, JSON.stringify(message.data))
@@ -66,12 +66,12 @@ export const useMessageHandler = createSingletonComposable(() => {
   }
 
   /**
-   * 处理转到引用消息
-   * @param filePath 文件路径
+   * Handle go to reference message
+   * @param filePath File path
    */
   async function handleGoToReference(filePath: string): Promise<boolean> {
     try {
-      // 提取文件路径和行号
+      // Extract file path and line number
       const match = filePath.match(/(.*):(\d+)/)
       if (!match || match.length < 3) {
         logger.warn(vscode.l10n.t('Invalid reference format: {filePath}', { filePath }))
@@ -81,23 +81,23 @@ export const useMessageHandler = createSingletonComposable(() => {
       const [, path, line] = match
       const lineNumber = Number.parseInt(line, 10)
 
-      // 在所有工作区中查找文件
+      // Find file in all workspaces
       if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
         logger.warn(vscode.l10n.t('No workspace folders found'))
         return false
       }
 
-      // 尝试在每个工作区中找到文件
+      // Try to find file in each workspace
       for (const folder of vscode.workspace.workspaceFolders) {
         try {
           const fullPath = vscode.Uri.joinPath(folder.uri, path)
 
-          // 检查文件是否存在
+          // Check if file exists
           try {
             await vscode.workspace.fs.stat(fullPath)
           }
           catch {
-            // 文件不存在，尝试下一个工作区
+            // File doesn't exist, try next workspace
             continue
           }
 
@@ -105,23 +105,23 @@ export const useMessageHandler = createSingletonComposable(() => {
           const editor = await vscode.window.showTextDocument(doc)
           const position = new vscode.Position(lineNumber - 1, 0)
 
-          // 设置选择范围并将视图滚动到该位置
+          // Set selection range and scroll view to position
           editor.selection = new vscode.Selection(position, position)
           editor.revealRange(
             new vscode.Range(position, position),
             vscode.TextEditorRevealType.InCenter,
           )
 
-          return true // 文件已找到并打开
+          return true // File found and opened
         }
         catch (error) {
-          // 继续尝试下一个工作区
+          // Continue trying next workspace
           continue
         }
       }
 
-      // 所有工作区都尝试过，但未找到文件
-      vscode.window.showWarningMessage(`未找到文件: ${path}`)
+      // All workspaces tried, but file not found
+      vscode.window.showWarningMessage(`File not found: ${path}`)
       return false
     }
     catch (error) {
@@ -132,8 +132,8 @@ export const useMessageHandler = createSingletonComposable(() => {
   }
 
   /**
-   * 处理更新翻译消息
-   * @param data 更新翻译数据
+   * Handle update translation message
+   * @param data Update translation data
    */
   async function handleUpdateTranslation(data: UpdateTranslationData): Promise<void> {
     try {
@@ -148,8 +148,8 @@ export const useMessageHandler = createSingletonComposable(() => {
   }
 
   /**
-   * 处理机器翻译消息
-   * @param data 机器翻译数据
+   * Handle machine translation message
+   * @param data Machine translation data
    */
   async function handleTranslateByMachine(data: TranslateByMachineData): Promise<void> {
     try {
@@ -171,8 +171,8 @@ export const useMessageHandler = createSingletonComposable(() => {
   }
 
   /**
-   * 处理AI翻译消息
-   * @param data AI翻译数据
+   * Handle AI translation message
+   * @param data AI translation data
    */
   async function handleAITranslate(data: AITranslateData, webview: Webview): Promise<void> {
     try {
@@ -187,8 +187,8 @@ export const useMessageHandler = createSingletonComposable(() => {
   }
 
   /**
-   * 处理AI批量翻译消息
-   * @param data AI批量翻译数据
+   * Handle AI batch translation message
+   * @param data AI batch translation data
    */
   async function handleAIBatchTranslate(data: AIBatchTranslateData, webview: Webview): Promise<void> {
     try {
@@ -203,9 +203,9 @@ export const useMessageHandler = createSingletonComposable(() => {
   }
 
   /**
-   * 发送选择条目消息到WebView
-   * @param webview Webview实例
-   * @param entry 翻译条目
+   * Send select entry message to WebView
+   * @param webview Webview instance
+   * @param entry Translation entry
    */
   function sendSelectEntryMessage(webview: Webview, entry?: TranslationEntry): Thenable<boolean> {
     return webview.postMessage({
@@ -218,8 +218,8 @@ export const useMessageHandler = createSingletonComposable(() => {
   }
 
   /**
-   * 接收日志消息
-   * @param message 日志消息
+   * Handle log message
+   * @param message Log message
    */
   function handleLogMessage(data: LogData): void {
     logger.info(data.message)

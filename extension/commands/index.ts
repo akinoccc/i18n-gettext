@@ -1,16 +1,16 @@
 import type { ExtensionContext } from 'vscode'
-import type { TranslationEntry } from '../state'
+import type { TranslationEntry } from '../../types'
 import { useCommands as useVscodeCommands } from 'reactive-vscode'
-import { useCommandActions } from '../composables'
 import { CommandType } from '../../constants'
+import { useCommandActions } from '../composables'
 /**
- * 注册所有命令
+ * Register all commands
  */
 export function registerCommands(context: ExtensionContext): void {
-  // 初始化命令操作
+  // Initialize command actions
   const commandActions = useCommandActions()
 
-  // 注册公开命令
+  // Register public commands
   useVscodeCommands({
     [CommandType.SELECT_ENTRY]: (entry: TranslationEntry) => commandActions.handleSelectEntry(context, entry),
     [CommandType.SEARCH_ENTRIES]: commandActions.searchEntries,

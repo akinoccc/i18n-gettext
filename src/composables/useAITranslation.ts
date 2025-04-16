@@ -13,18 +13,18 @@ export function useAITranslation() {
 
   const { translationEntry, updateTranslationEntry } = useTranslationEntry()
 
-  // 解析模型 ID 字符串
+  // Parse model ID string
   function parseModelId(model: string): { provider: string, modelId: string } {
     const [provider, id] = model.split(':')
     return { provider, modelId: id }
   }
 
-  // 更新选择的AI模型
+  // Update selected AI model
   function updateSelectedModel(model: string) {
     selectedAIModel.value = model
   }
 
-  // 单个条目机器翻译
+  // Translate single entry by machine
   function translateByMachine(
     locale: { originalCode: string, code: string },
   ) {
@@ -39,9 +39,9 @@ export function useAITranslation() {
     })
   }
 
-  // 一键机器翻译所有未翻译的语言
+  // Translate all untranslated languages by machine
   function translateAllByMachine(sourceLanguage: string) {
-    // 获取非源语言的所有语言
+    // Get all non-source languages
     if (!translationEntry.value.locales)
       return
 
@@ -50,15 +50,15 @@ export function useAITranslation() {
       .filter(code => code !== sourceLanguage && !translationEntry.value.locales[code])
       .map(code => ({ originalCode: code, code }))
 
-    // 对每种语言进行机器翻译
+    // Translate each language by machine
     toTranslateLocales.forEach((locale) => {
       translateByMachine(locale)
     })
   }
 
-  // 一键AI翻译所有未翻译的语言
+  // Translate all untranslated languages by AI
   function translateAllByAI(sourceLanguage: string) {
-    // 获取非源语言的所有语言
+    // Get all non-source languages
     const availableCodes = Object.keys(translationEntry.value.locales)
     const toTranslateLocales = availableCodes
       .filter(code => code !== sourceLanguage && !translationEntry.value.locales[code])
@@ -67,23 +67,23 @@ export function useAITranslation() {
     if (toTranslateLocales.length === 0)
       return
 
-    // 设置翻译中状态
+    // Set translating status
     isTranslating.value = true
     error.value = ''
 
-    // 获取选中的模型
+    // Get selected model
     const modelIdParts = parseModelId(selectedAIModel.value)
     const modelInfo = {
       provider: modelIdParts.provider,
       modelId: modelIdParts.modelId,
     }
 
-    // 使用批量翻译来减少token消耗
+    // Use batch translation to reduce token consumption
     if (toTranslateLocales.length > 1) {
-      // 收集所有目标语言代码
+      // Collect all target language codes
       const targetLanguages = toTranslateLocales.map(locale => locale.originalCode)
 
-      // 使用批量翻译功能，发送消息到扩展端
+      // Use batch translation to reduce token consumption
       vscodeApi.postMessage({
         type: WebViewMessageType.AI_BATCH_TRANSLATE,
         data: {
@@ -97,10 +97,10 @@ export function useAITranslation() {
       })
     }
     else {
-      // 如果只有一种语言，使用单一翻译功能
+      // If there is only one language, use single translation
       const locale = toTranslateLocales[0]
 
-      // 发送消息到扩展端
+      // Send message to extension
       vscodeApi.postMessage({
         type: WebViewMessageType.AI_TRANSLATE,
         data: {
@@ -115,7 +115,7 @@ export function useAITranslation() {
     }
   }
 
-  // 处理AI翻译结果
+  // Handle AI translation result
   function handleAITranslateResult(
     data: AITranslateResultData,
   ) {
@@ -126,13 +126,13 @@ export function useAITranslation() {
       return
     }
 
-    // 更新翻译条目
+    // Update translation entry
     if (translationEntry.value && data.targetLanguage && data.result) {
       updateTranslationEntry(data.targetLanguage, data.result)
     }
   }
 
-  // 处理AI批量翻译结果
+  // Handle AI batch translation result
   function handleAIBatchTranslateResult(
     data: AIBatchTranslateResultData,
   ) {
@@ -143,7 +143,7 @@ export function useAITranslation() {
       return
     }
 
-    // 更新翻译条目
+    // Update translation entry
     if (translationEntry.value && data.results) {
       Object.entries(data.results).forEach(([langCode, translation]) => {
         updateTranslationEntry(langCode, translation)
@@ -151,31 +151,31 @@ export function useAITranslation() {
     }
   }
 
-  // 设置消息监听
+  // Set up message listeners
   function setupMessageListeners() {
-    // 处理模型配置消息
+    // Handle model configuration message
     vscodeApi.on(WebViewMessageType.SEND_MODEL_CONFIG, (data: { models: string }) => {
       const models = JSON.parse(data.models) as Array<ModelInfo>
       if (models && models.length > 0) {
-        // 更新选项列表
+        // Update option list
         aiModels.value = models.map(model => ({
           provider: model.provider,
           modelId: model.modelId,
         }))
 
-        // 设置默认选择的模型
+        // Set default selected model
         if (aiModels.value.length > 0 && !selectedAIModel.value) {
           selectedAIModel.value = aiModels.value[0].modelId
         }
       }
     })
 
-    // 监听AI翻译结果
+    // Handle AI translation result
     vscodeApi.on(WebViewMessageType.AI_TRANSLATE_RESULT, (data: AITranslateResultData) => {
       handleAITranslateResult(data)
     })
 
-    // 监听AI批量翻译结果
+    // Handle AI batch translation result
     vscodeApi.on(WebViewMessageType.AI_BATCH_TRANSLATE_RESULT, (data: AIBatchTranslateResultData) => {
       handleAIBatchTranslateResult(data)
     })

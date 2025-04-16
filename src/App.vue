@@ -4,7 +4,6 @@ import TranslationEditor from './components/translation/TranslationEditor.vue'
 import { useAITranslation } from './composables/useAITranslation'
 import { useTranslationEntry } from './composables/useTranslationEntry'
 
-// 使用组合式函数
 const {
   translationEntry,
   sourceLanguage,
@@ -24,14 +23,13 @@ const {
   setupMessageListeners: setupAIListeners,
 } = useAITranslation()
 
-// 应用初始化
 onMounted(() => {
-  // 设置消息监听
+  // Set up message listeners
   setupTranslationListeners()
   setupAIListeners()
 })
 
-// 翻译相关处理
+// Translation related processing
 function handleTranslateByMachine(locale: { originalCode: string, code: string }) {
   translateByMachine(locale)
 }

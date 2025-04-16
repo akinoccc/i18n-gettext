@@ -2,7 +2,7 @@ import type { WebViewMessageType } from '../constants'
 import type { ModelConfig } from './config'
 
 /**
- * WebView消息接口
+ * WebView message interface
  */
 export interface WebViewMessage<T = any> {
   type: WebViewMessageType
@@ -10,25 +10,25 @@ export interface WebViewMessage<T = any> {
 }
 
 /**
- * 更新翻译消息数据
+ * Update translation message data
  */
 export interface UpdateTranslationData {
-  entry: string // JSON字符串
+  entry: string // JSON string
   locale: string
   value: string
 }
 
 /**
- * 机器翻译消息数据
+ * Machine translation message data
  */
 export interface TranslateByMachineData {
-  entry: string // JSON字符串
+  entry: string // JSON string
   originalCode: string
   targetCode: string
 }
 
 /**
- * 选择条目消息数据
+ * Select entry message data
  */
 export interface SelectEntryData {
   id: string
@@ -38,14 +38,14 @@ export interface SelectEntryData {
 }
 
 /**
- * 日志消息数据
+ * Log message data
  */
 export interface LogData {
   message: string
 }
 
 /**
- * AI翻译消息数据
+ * AI translation message data
  */
 export interface AITranslateData extends Omit<ModelConfig, 'apiKey'> {
   sourceText: string
@@ -55,7 +55,7 @@ export interface AITranslateData extends Omit<ModelConfig, 'apiKey'> {
 }
 
 /**
- * AI批量翻译消息数据
+ * AI batch translation message data
  */
 export interface AIBatchTranslateData extends Omit<ModelConfig, 'apiKey'> {
   sourceText: string
@@ -65,7 +65,7 @@ export interface AIBatchTranslateData extends Omit<ModelConfig, 'apiKey'> {
 }
 
 /**
- * AI翻译结果消息数据
+ * AI translation result message data
  */
 export interface AITranslateResultData {
   result: string
@@ -75,7 +75,7 @@ export interface AITranslateResultData {
 }
 
 /**
- * AI批量翻译结果消息数据
+ * AI batch translation result message data
  */
 export interface AIBatchTranslateResultData {
   results: Record<string, string>

@@ -9,21 +9,21 @@ interface VscodeApi {
 }
 
 export function useVscodeApi(): VscodeApi {
-  // 获取VSCode API
+  // Get VSCode API
   const vscode = new WebviewApi<string>()
 
   return {
-    // 发送消息到扩展
+    // Send message to extension
     postMessage(message: any) {
       vscode?.postMessage(message)
     },
 
-    // 注册事件处理器
+    // Register event handler
     on<T>(type: string, callback: (data: T) => void) {
       vscode?.on(type, callback)
     },
 
-    // 移除事件处理器
+    // Remove event handler
     // eslint-disable-next-line ts/no-unsafe-function-type
     off(type: string, callback?: Function) {
       vscode?.off(type)

@@ -1,27 +1,25 @@
-import type { TranslationEntry } from '../extension/state'
-
 /**
- * WebView消息类型枚举
+ * WebView message type enumeration
  */
 export enum WebViewMessageType {
-  // 转到引用
+  // Go to reference
   GO_TO_REFERENCE = 'i18n-gettext.goToReference',
-  // 更新翻译
+  // Update translation
   UPDATE_TRANSLATION = 'i18n-gettext.updateTranslation',
-  // 机器翻译
+  // Machine translation
   TRANSLATE_BY_MACHINE = 'i18n-gettext.translateByMachine',
-  // 选择条目
+  // Select entry
   SELECT_ENTRY = 'i18n-gettext.selectEntry',
-  // 发送模型配置
+  // Send model configuration
   SEND_MODEL_CONFIG = 'i18n-gettext.sendModelConfig',
-  // 日志
+  // Log
   LOG = 'i18n-gettext.log',
-  // AI翻译
+  // AI translation
   AI_TRANSLATE = 'i18n-gettext.aiTranslate',
-  // AI批量翻译
+  // AI batch translation
   AI_BATCH_TRANSLATE = 'i18n-gettext.aiBatchTranslate',
-  // AI翻译结果
+  // AI translation result
   AI_TRANSLATE_RESULT = 'i18n-gettext.aiTranslateResult',
-  // AI批量翻译结果
+  // AI batch translation result
   AI_BATCH_TRANSLATE_RESULT = 'i18n-gettext.aiBatchTranslateResult',
 }

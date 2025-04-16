@@ -25,7 +25,7 @@ function handleReferenceClick(reference: string) {
   <div v-if="props.references?.length" class="mt-3 border border-solid border-gray-200 rounded overflow-hidden">
     <div class="py-2.5 px-3 bg-gray-100 flex items-center cursor-pointer select-none" @click="toggleReferences">
       <span class="mr-1 text-xs transition-transform duration-200" :class="{ 'rotate-90': showReferences }">▶</span>
-      <span>引用位置 ({{ props.references.length }})</span>
+      <span>References ({{ props.references.length }})</span>
     </div>
     <div
       class="transition-all duration-200 overflow-hidden"
@@ -43,5 +43,3 @@ function handleReferenceClick(reference: string) {
     </div>
   </div>
 </template>
-
-

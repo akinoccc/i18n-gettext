@@ -18,15 +18,15 @@ export function useTranslationEntry() {
   const vscodeApi = useVscodeApi()
   const sourceLanguage = ref('')
 
-  // 保存翻译内容
+  // Save translation content
   function saveTranslation(locale: string, value: string) {
     if (!translationEntry.value)
       return
 
-    // 更新本地状态
+    // Update local state
     translationEntry.value.locales[locale] = value
 
-    // 发送更新到VSCode扩展
+    // Send update to VSCode extension
     vscodeApi.postMessage({
       type: WebViewMessageType.UPDATE_TRANSLATION,
       data: {
@@ -37,7 +37,7 @@ export function useTranslationEntry() {
     })
   }
 
-  // 跳转到引用位置
+  // Jump to reference location
   function goToReference(reference: string) {
     vscodeApi.postMessage({
       type: WebViewMessageType.GO_TO_REFERENCE,
@@ -54,9 +54,9 @@ export function useTranslationEntry() {
     translationEntry.value.locales[langCode] = value
   }
 
-  // 设置消息监听
+  // Set up message listeners
   function setupMessageListeners() {
-    // 监听翻译条目选择
+    // Listen for translation entry selection
     vscodeApi.on(WebViewMessageType.SELECT_ENTRY, (entry: TranslationEntry & { sourceLanguage: string }) => {
       translationEntry.value = entry
       sourceLanguage.value = entry.sourceLanguage

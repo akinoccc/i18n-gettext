@@ -9,13 +9,13 @@ import { useMessageHandler } from './useMessageHandler'
 import { useModelConfig } from './useModelConfig'
 
 /**
- * 命令操作组合式函数
+ * Command operation composable function
  */
 export const useCommandActions = createSingletonComposable(() => {
   const entryListTreeView = useEntryListTreeView()
 
   /**
-   * 搜索翻译条目
+   * Search translation entries
    */
   async function searchEntries(): Promise<void> {
     const searchQuery = await vscode.window.showInputBox({
@@ -29,20 +29,20 @@ export const useCommandActions = createSingletonComposable(() => {
   }
 
   /**
-   * 清除搜索
+   * Clear search
    */
   function clearSearch(): void {
     entryListTreeView.setSearchText('')
   }
 
   /**
-   * 处理选择条目命令
-   * @param entry 翻译条目
+   * Handle select entry command
+   * @param entry Translation entry
    */
   async function handleSelectEntry(context: ExtensionContext, entry: TranslationEntry) {
     useTranslationsState().setSelectedEntry(entry)
 
-    // 渲染编辑器
+    // Render editor
     TranslationEditorProvider.render(context)
 
     const modelConfig = await useModelConfig()
@@ -52,10 +52,10 @@ export const useCommandActions = createSingletonComposable(() => {
       return
     }
 
-    // 发送模型配置到 WebView
+    // Send model configuration to WebView
     modelConfig.sendModelConfigToWebview(webview)
 
-    // 发送选择条目消息
+    // Send select entry message
     if (TranslationEditorProvider.currentPanel) {
       useMessageHandler().sendSelectEntryMessage(
         TranslationEditorProvider.currentPanel._panel.webview,

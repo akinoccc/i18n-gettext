@@ -1,19 +1,19 @@
-// 翻译条目类型
+// Translation entry type
 export interface TranslationEntry {
-  id: string // 唯一标识
-  references: string[] // 引用位置
-  msgctxt: string // 上下文
-  locales: Record<string, string> // 翻译列表（按语言代码索引）
-  hasUntranslated: boolean // 是否存在未翻译的条目
+  id: string // Unique identifier
+  references: string[] // Reference locations
+  msgctxt: string // Context
+  locales: Record<string, string> // Translation list (indexed by language code)
+  hasUntranslated: boolean // Whether there are untranslated entries
 }
 
-// 翻译树类型
+// Translation tree type
 export interface TranslationTree {
   entries: TranslationEntry[]
-  locales: string[] // 可用的语言列表
+  locales: string[] // Available language list
 }
 
-// PO数据类型定义
+// PO data type definition
 export interface PoTranslation {
   comments: {
     reference: string

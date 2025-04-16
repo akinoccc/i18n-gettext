@@ -14,7 +14,7 @@ const emit = defineEmits(['translateAll', 'translateAllAI', 'updateSelectedModel
 const selectedModel = ref('')
 
 watchEffect(() => {
-  // 初始化选择的模型
+  // Initialize selected model
   if (props.aiModels.length > 0 && !selectedModel.value) {
     selectedModel.value = `${props.aiModels[0].provider}:${props.aiModels[0].modelId}`
     emit('updateSelectedModel', selectedModel.value)
@@ -51,7 +51,7 @@ function handleAITranslate() {
     </div>
 
     <Button @click="handleMachineTranslate">
-      机器翻译
+      Machine Translation
     </Button>
 
     <Button
@@ -60,7 +60,7 @@ function handleAITranslate() {
       :disabled="props.isTranslating"
       @click="handleAITranslate"
     >
-      {{ props.isTranslating ? '翻译中...' : 'AI 翻译' }}
+      {{ props.isTranslating ? 'Translating...' : 'AI Translation' }}
     </Button>
   </div>
 </template>

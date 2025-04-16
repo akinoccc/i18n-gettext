@@ -19,7 +19,7 @@ import { useModelConfig } from './useModelConfig'
 import { useTranslator } from './useTranslator'
 
 /**
- * 翻译选项接口
+ * Translation options interface
  */
 export interface TranslationOptions {
   entryId: string
@@ -30,7 +30,7 @@ export interface TranslationOptions {
 }
 
 /**
- * 批量翻译选项接口
+ * Batch translation options interface
  */
 export interface BatchTranslationOptions {
   entryId: string
@@ -41,15 +41,29 @@ export interface BatchTranslationOptions {
 }
 
 /**
- * AI翻译组合式函数
+ * AI translation composable function
  */
 export const useAITranslator = createSingletonComposable(() => {
   const translator = useTranslator()
   const { getEntryById } = useTranslationsState()
-  // 默认 AI 模型列表
+
+  // Base Prompt
+  const BASE_PROMPT = `
+    User can send the content to be translated,
+    and the assistant will answer the corresponding translation result,
+    ensuring that it conforms to the grammar and habits of the target language,
+    you can adjust the tone and style, and consider the cultural connotations and regional differences of certain words.
+    As a translator, you need to translate the original text into a translation with the standard of "faithfulness", "fluency", and "elegance".
+    "Faithfulness" means that the translation is faithful to the original content and intent;
+    "Fluency" means that the translation should be smooth and easy to understand, and clear;
+    "Elegance" means that the translation should be culturally aesthetic and linguistically graceful.
+    The goal is to create a translation that is both faithful to the original work and culturally aesthetic.
+  `
+
+  // AI model list
   const AI_MODELS: Omit<ModelConfig, 'apiKey'>[] = []
 
-  // API 密钥映射
+  // API key mapping
   const API_KEYS: Record<string, string> = {}
 
   function buildModelKey(provider: string, modelId: string): string {
@@ -57,24 +71,22 @@ export const useAITranslator = createSingletonComposable(() => {
   }
 
   /**
-   * 更新 AI 模型和 API 密钥
-   * @param models AI模型配置
+   * Update AI models and API keys
+   * @param models AI model configuration
    */
   function updateAIModels(models: ModelConfig[]): void {
     if (!models || !Array.isArray(models) || models.length === 0)
       return
 
-    // 清空当前模型列表
+    // Clear the current model list
     AI_MODELS.length = 0
 
-    // 更新 API 密钥映射和模型列表
+    // Update the API key mapping and model list
     models.forEach((model) => {
-      // 保存 API 密钥
       if (model.provider && model.apiKey) {
         API_KEYS[buildModelKey(model.provider, model.modelId)] = model.apiKey
       }
 
-      // 添加到模型列表
       AI_MODELS.push({
         provider: model.provider,
         modelId: model.modelId,
@@ -83,8 +95,8 @@ export const useAITranslator = createSingletonComposable(() => {
   }
 
   /**
-   * 获取可用的AI模型列表
-   * @returns AI模型列表
+   * Get the available AI model list
+   * @returns AI model list
    */
   async function getAvailableModels(): Promise<Omit<ModelConfig, 'apiKey'>[]> {
     const modelConfig = await useModelConfig()
@@ -94,10 +106,10 @@ export const useAITranslator = createSingletonComposable(() => {
   }
 
   /**
-   * 获取特定提供商和模型的实例
-   * @param provider 提供商
-   * @param modelId 模型ID
-   * @returns 语言模型实例
+   * Get an instance of a specific provider and model
+   * @param provider Provider
+   * @param modelId Model ID
+   * @returns Language model instance
    */
   function getModelInstance(provider: string, modelId: string): LanguageModelV1 {
     const apiKey = API_KEYS[buildModelKey(provider, modelId)]
@@ -120,12 +132,17 @@ export const useAITranslator = createSingletonComposable(() => {
     }
   }
 
+  /**
+   * Get the entry information
+   * @param entryId Entry ID
+   * @returns Entry information
+   */
   function getEntryInfo(entryId: string): {
     references: string[]
     msgctxt: string
   } {
     const entry = getEntryById(entryId)
-    // 读取 references 文件
+    // Read the references file
     const references: string[] = []
     for (const ref of entry?.references || []) {
       const folder = useWorkspaceFolders().value?.[0]
@@ -140,13 +157,13 @@ export const useAITranslator = createSingletonComposable(() => {
   }
 
   /**
-   * 构建翻译提示
-   * @param sourceText 源文本
-   * @param sourceLanguage 源语言
-   * @param targetLanguage 目标语言
-   * @param references 引用
-   * @param msgctxt 消息上下文
-   * @returns 提示文本
+   * Build a translation prompt
+   * @param sourceText Source text
+   * @param sourceLanguage Source language
+   * @param targetLanguage Target language
+   * @param references References
+   * @param msgctxt Message context
+   * @returns Prompt text
    */
   function buildTranslationPrompt(
     sourceText: string,
@@ -158,38 +175,32 @@ export const useAITranslator = createSingletonComposable(() => {
     let contextInfo = ''
 
     if (msgctxt) {
-      contextInfo += `\n\n上下文描述: "${msgctxt}"`
+      contextInfo += `\n\nContext description: "${msgctxt}"`
     }
 
     if (references && references.length > 0) {
-      contextInfo += `\n\n引用的代码: ${references.join(', \n')}`
+      contextInfo += `\n\nReferences: ${references.join(', \n')}`
     }
 
     return `
-      你是一个翻译专家，请将以下${sourceLanguage}文本精确翻译成${targetLanguage}，
-      用户可以向助手发送需要翻译的内容，助手会回答相应的翻译结果，并确保符合目标语言的语法和习惯，你可以调整语气和风格，并考虑到某些词语的文化内涵和地区差异。
-      同时作为翻译家，需将原文翻译成具有信达雅标准的译文。
-      "信" 即忠实于原文的内容与意图；
-      "达" 意味着译文应通顺易懂，表达清晰；
-      "雅" 则追求译文的文化审美和语言的优美。
-      目标是创作出既忠于原作精神，又符合目标语言文化和读者审美的翻译
+      You are a translation expert,
+      please translate the following ${sourceLanguage} text exactly into ${targetLanguage},
+      ${BASE_PROMPT}
       ${contextInfo}
-
-      原文：
+      Source Text:
       "${sourceText}"
-
-      仅返回翻译结果，不需要添加任何其他解释或标记。
+      Only return the translation result, do not add any other explanation or mark.
     `
   }
 
   /**
-   * 构建批量翻译提示
-   * @param sourceText 源文本
-   * @param sourceLanguage 源语言
-   * @param targetLanguages 目标语言列表
-   * @param references 引用
-   * @param msgctxt 消息上下文
-   * @returns 提示文本
+   * Build a batch translation prompt
+   * @param sourceText Source text
+   * @param sourceLanguage Source language
+   * @param targetLanguages Target languages
+   * @param references References
+   * @param msgctxt Message context
+   * @returns Prompt text
    */
   function buildBatchTranslationPrompt(
     sourceText: string,
@@ -201,40 +212,37 @@ export const useAITranslator = createSingletonComposable(() => {
     let contextInfo = ''
 
     if (msgctxt) {
-      contextInfo += `\n\n上下文描述: "${msgctxt}"`
+      contextInfo += `\n\nContext description: "${msgctxt}"`
     }
 
     if (references && references.length > 0) {
-      contextInfo += `\n\n引用的代码: ${references.join(', \n')}`
+      contextInfo += `\n\nReferences: ${references.join(', \n')}`
     }
 
     const targetLanguagesStr = targetLanguages.join('、')
 
     return `
-      你是一个多语言翻译专家，请将以下${sourceLanguage}文本同时翻译成${targetLanguagesStr}。
-      用户可以向助手发送需要翻译的内容，助手会回答相应的翻译结果，并确保符合目标语言的语法和习惯，你可以调整语气和风格，并考虑到某些词语的文化内涵和地区差异。
-      同时作为翻译家，需将原文翻译成具有信达雅标准的译文。
-      "信" 即忠实于原文的内容与意图；
-      "达" 意味着译文应通顺易懂，表达清晰；
-      "雅" 则追求译文的文化审美和语言的优美。
-      目标是创作出既忠于原作精神，又符合目标语言文化和读者审美的翻译
+      You are a multi-language translation expert, 
+      please translate the following ${sourceLanguage} text into ${targetLanguagesStr}.
+      ${BASE_PROMPT}
       ${contextInfo}
 
-      原文：
+      Source Text:
       "${sourceText}"
 
-      请按以下格式返回结果，确保每种语言的翻译都用语言代码标记：
-      [targetLanguageCode] 对应的翻译内容
-      ...依此类推
+      Please return the result in the following format, 
+      ensuring that each translation is marked with the language code:
+      [targetLanguageCode] Translation content
+      ...and so on
 
-      仅返回翻译结果，不需要添加任何其他解释或标记。
+      Only return the translation result, do not add any other explanation or mark.
     `
   }
 
   /**
-   * 使用指定的AI模型进行翻译
-   * @param options 翻译选项
-   * @returns 翻译结果
+   * Translate with a specified AI model
+   * @param options Translation options
+   * @returns Translation result
    */
   async function translateWithAI({
     sourceText,
@@ -260,7 +268,7 @@ export const useAITranslator = createSingletonComposable(() => {
         maxTokens: 4000,
       })
 
-      // 清理可能的引号
+      // Clean up possible quotes
       const cleanedText = text.replace(/^["']|["']$/g, '').trim()
       return cleanedText
     }
@@ -271,9 +279,9 @@ export const useAITranslator = createSingletonComposable(() => {
   }
 
   /**
-   * 使用指定的AI模型进行批量翻译
-   * @param options 批量翻译选项
-   * @returns 返回一个对象，键为语言代码，值为翻译结果
+   * Translate with a specified AI model in batch
+   * @param options Batch translation options
+   * @returns Return an object, with the language code as the key and the translation result as the value
    */
   async function batchTranslateWithAI({
     sourceText,
@@ -293,7 +301,7 @@ export const useAITranslator = createSingletonComposable(() => {
         maxTokens: 4000,
       })
 
-      // 解析返回的多语言结果
+      // Parse the multi-language result returned
       const translations: Record<string, string> = {}
       const lines = text.split('\n').filter(line => line.trim() !== '')
 
@@ -314,9 +322,9 @@ export const useAITranslator = createSingletonComposable(() => {
   }
 
   /**
-   * 处理AI翻译请求
-   * @param data 翻译数据
-   * @param webview Webview实例
+   * Handle AI translation request
+   * @param data Translation data
+   * @param webview Webview instance
    */
   async function handleAITranslate(data: AITranslateData, webview: Webview): Promise<string> {
     try {
@@ -362,9 +370,9 @@ export const useAITranslator = createSingletonComposable(() => {
   }
 
   /**
-   * 处理AI批量翻译请求
-   * @param data 批量翻译数据
-   * @param webview Webview实例
+   * Handle AI batch translation request
+   * @param data Batch translation data
+   * @param webview Webview instance
    */
   async function handleAIBatchTranslate(data: AIBatchTranslateData, webview: Webview): Promise<Record<string, string>> {
     try {
@@ -396,7 +404,7 @@ export const useAITranslator = createSingletonComposable(() => {
     catch (error: any) {
       logger.error(vscode.l10n.t('Batch AI translation failed: {error}', { error: error?.message || 'Unknown error' }))
 
-      // 发送错误信息回webview
+      // Send error information back to webview
       if (webview) {
         webview.postMessage({
           type: WebViewMessageType.AI_BATCH_TRANSLATE_RESULT,

@@ -3,20 +3,20 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { translate } from '@vitalets/google-translate-api'
 
-// 定义l10n目录路径
+// Define the l10n directory path
 const L10N_DIR = path.resolve(process.cwd(), 'l10n')
-// 默认语言文件（源文件）
+// Default language file (source file)
 const DEFAULT_BUNDLE = 'bundle.l10n.json'
 
 /**
- * 使用Google翻译API翻译文本
- * @param text 待翻译文本
- * @param targetLang 目标语言代码
- * @returns 翻译后的文本，失败则返回空字符串
+ * Translate text using the Google Translate API
+ * @param text Text to translate
+ * @param targetLang Target language code
+ * @returns Translated text, empty string if failed
  */
 async function translateText(text: string, targetLang: string): Promise<string> {
   try {
-    // 跳过空文本或特殊占位符，避免无效翻译
+    // Skip empty text or special placeholders, avoid无效翻译
     if (!text || text.trim() === '' || text.includes('{') || text.includes('}')) {
       return ''
     }
@@ -25,21 +25,21 @@ async function translateText(text: string, targetLang: string): Promise<string> 
     return result.text
   }
   catch (error) {
-    console.warn(`警告: 翻译文本"${text}"到"${targetLang}"失败:`, error)
+    console.warn(`Warning: Failed to translate text "${text}" to "${targetLang}":`, error)
     return ''
   }
 }
 
 /**
- * 根据文件名获取语言代码
- * @param filename 文件名
- * @returns 语言代码
+ * Get the language code from the filename
+ * @param filename Filename
+ * @returns Language code
  */
 function getLanguageCode(filename: string): string {
   const langCode = filename.replace('bundle.l10n.', '').replace('.json', '')
 
-  // 转换语言代码格式，适配Google翻译API
-  // 例如：zh-cn -> zh-CN
+  // Convert language code format, compatible with Google Translate API
+  // For example: zh-cn -> zh-CN
   if (langCode.includes('-')) {
     const [lang, region] = langCode.split('-')
     return `${lang}-${region.toUpperCase()}`
@@ -49,35 +49,35 @@ function getLanguageCode(filename: string): string {
 }
 
 /**
- * 主函数：执行l10n导出并同步键到其他语言文件
+ * Main function: execute l10n export and synchronize keys to other language files
  */
 async function main() {
   try {
-    // 1. 执行l10n:export命令
-    console.log('执行l10n:export命令...')
+    // 1. Execute the l10n:export command
+    console.log('Executing the l10n:export command...')
     execSync('npx @vscode/l10n-dev export --outDir ./l10n ./extension', { stdio: 'inherit' })
-    console.log('✓ l10n导出完成')
+    console.log('✓ l10n export completed')
 
-    // 2. 获取默认语言文件内容
+    // 2. Get the content of the default language file
     const defaultBundlePath = path.join(L10N_DIR, DEFAULT_BUNDLE)
     const defaultBundle = JSON.parse(fs.readFileSync(defaultBundlePath, 'utf-8'))
-    console.log(`✓ 已加载默认语言文件: ${DEFAULT_BUNDLE}`)
+    console.log(`✓ Default language file loaded: ${DEFAULT_BUNDLE}`)
 
-    // 3. 获取所有l10n文件
+    // 3. Get all l10n files
     const l10nFiles = fs.readdirSync(L10N_DIR)
       .filter(file => file.startsWith('bundle.l10n.') && file !== DEFAULT_BUNDLE)
 
     if (l10nFiles.length === 0) {
-      console.log('未找到需要同步的语言文件')
+      console.log('No language files found to synchronize')
       return
     }
 
-    // 4. 处理每个语言文件
+    // 4. Process each language file
     for (const file of l10nFiles) {
       const filePath = path.join(L10N_DIR, file)
       let langBundle: Record<string, string> = {}
 
-      // 读取现有的语言文件
+      // Read the existing language file
       if (fs.existsSync(filePath)) {
         langBundle = JSON.parse(fs.readFileSync(filePath, 'utf-8'))
       }
@@ -87,40 +87,39 @@ async function main() {
       const updatedBundle: Record<string, string> = {}
       const langCode = getLanguageCode(file)
 
-      // 处理默认语言包中的每个键
+      // Process each key in the default language bundle
       for (const [key, value] of Object.entries(defaultBundle)) {
         if (key in langBundle) {
-          // 保留现有的翻译
+          // Keep the existing translation
           updatedBundle[key] = langBundle[key]
         }
         else {
           newKeysCount++
-          // 对于新键，尝试使用Google翻译
+          // For new keys, try using Google Translate
           const translatedText = await translateText(value as string, langCode)
           if (translatedText) {
             updatedBundle[key] = translatedText
             translatedCount++
           }
           else {
-            // 翻译失败则留空
+            // If translation fails, leave it empty
             updatedBundle[key] = ''
           }
         }
       }
 
-      // 保存更新后的语言文件
+      // Save the updated language file
       fs.writeFileSync(filePath, JSON.stringify(updatedBundle, null, 2), 'utf-8')
 
-      console.log(`✓ 已更新 ${langCode} 语言文件，添加了 ${newKeysCount} 个新键，自动翻译了 ${translatedCount} 个`)
+      console.log(`✓ Updated ${langCode} language file, added ${newKeysCount} new keys, automatically translated ${translatedCount} keys`)
     }
 
-    console.log('✓ 所有语言文件同步完成')
+    console.log('✓ All language files synchronized')
   }
   catch (error) {
-    console.error('❌ 同步过程中出现错误:', error)
+    console.error('❌ An error occurred during synchronization:', error)
     process.exit(1)
   }
 }
 
-// 执行主函数
 main().catch(console.error)

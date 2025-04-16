@@ -1,4 +1,4 @@
-import type { LocaleIdentifier } from '../types'
+import type { LocaleIdentifier } from 'types'
 
 const localesMap: Record<string, LocaleIdentifier> = {
   en: {
@@ -44,12 +44,10 @@ const localesMap: Record<string, LocaleIdentifier> = {
 }
 
 export function useLocale(code: string): { locale: LocaleIdentifier | undefined } {
-  // 获取特定语言代码的本地化信息
+  // Get localized information for a specific language code
   const locale = localesMap[code]
 
   return {
     locale,
   }
 }
-
-

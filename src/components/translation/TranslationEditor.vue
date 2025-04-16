@@ -22,18 +22,18 @@ const emit = defineEmits<{
   updateSelectedModel: [modelId: string]
 }>()
 
-// 计算显示的本地化列表
+// Calculate displayed localization list
 const locales = computed(() => {
   if (!props.translationEntry?.locales)
     return []
 
-  // 获取所有可用的本地化代码
+  // Get all available locale codes
   const availableCodes = Object.keys(props.translationEntry!.locales)
 
-  // 使用本地化工具创建语言标识对象
+  // Create language identifier object using localization tools
   return availableCodes.map((code) => {
-    // 这里假设我们导入了useLocale并用它获取语言信息
-    // 简化起见，直接创建语言标识对象
+    // Here we assume we've imported useLocale and use it to get language info
+    // For simplicity, directly create language identifier object
     return {
       name: code === 'en' ? 'English' : code === 'zh' ? '中文' : code,
       code,
@@ -67,25 +67,25 @@ function handleReferenceClick(reference: string) {
 
 <template>
   <div v-if="props.translationEntry" class="flex flex-col gap-3">
-    <!-- 引用列表 -->
+    <!-- Reference List -->
     <ReferencesList
       :references="props.translationEntry.references"
       @click-reference="handleReferenceClick"
     />
 
-    <!-- 翻译条目 -->
+    <!-- Translation Entry -->
     <TranslationItem
       v-for="locale in locales"
       :key="locale.code"
       :locale="locale"
       :value="getTranslationValue(locale.originalCode)"
-      placeholder="待翻译..."
+      placeholder="To be translated..."
       :is-source="isSourceLanguage(locale.originalCode)"
       @update:value="(value) => handleSaveTranslation(locale.originalCode, value)"
       @translate-machine="emit('translateByMachine', $event)"
     />
 
-    <!-- AI翻译面板 -->
+    <!-- AI Translation Panel -->
     <AITranslatePanel
       :ai-models="props.aiModels"
       :is-translating="props.isTranslating"
@@ -95,6 +95,6 @@ function handleReferenceClick(reference: string) {
     />
   </div>
   <div v-else class="flex justify-center items-center h-50 bg-gray-50 rounded text-gray-600">
-    <p>请选择一个翻译条目</p>
+    <p>Please select a translation entry</p>
   </div>
 </template>

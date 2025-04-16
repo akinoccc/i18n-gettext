@@ -1,18 +1,18 @@
 import type { TreeViewNode } from 'reactive-vscode'
-import type { TranslationEntry } from '../state/useTranslationsState'
+import type { TranslationEntry } from '../../types'
 import { computed, createSingletonComposable, useTreeView } from 'reactive-vscode'
 import * as vscode from 'vscode'
-import { useTranslationEntries } from '../composables/useTranslationEntries'
 import { CommandType } from '../../constants'
+import { useTranslationEntries } from '../composables/useTranslationEntries'
 
 /**
- * 翻译条目树视图组合式函数
+ * Translation entry tree view composable function
  */
 export const useEntryListTreeView = createSingletonComposable(() => {
-  // 使用翻译条目组合式函数
+  // Use translation entry composable
   const translationEntries = useTranslationEntries()
 
-  // 创建树节点数据
+  // Create tree node data
   const treeData = computed<TreeViewNode[]>(() => {
     const entries = translationEntries.filteredEntries.value
 
@@ -49,7 +49,7 @@ export const useEntryListTreeView = createSingletonComposable(() => {
     })
   })
 
-  // 创建树视图
+  // Create tree view
   const view = useTreeView('i18n-gettext.entries', treeData, {
     title: () => {
       const total = translationEntries.filteredEntries.value.length
@@ -61,20 +61,20 @@ export const useEntryListTreeView = createSingletonComposable(() => {
   })
 
   /**
-   * 设置搜索文本
+   * Set search text
    */
   function setSearchText(text: string) {
     translationEntries.setSearchText(text)
   }
 
   /**
-   * 设置过滤类型
+   * Set filter type
    */
   function setFilterType(type: 'all' | 'untranslated' | 'translated') {
     translationEntries.setFilterType(type)
   }
 
-  // 返回公开的API
+  // Return public API
   return {
     view,
     setSearchText,

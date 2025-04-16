@@ -1,15 +1,15 @@
 /**
- * 命令枚举
+ * Command enumeration
  */
 export enum CommandType {
-  // 视图命令
+  // View commands
   SELECT_ENTRY = 'i18n-gettext.selectEntry',
 
-  // 自定义命令
+  // Custom commands
   OPEN_TRANSLATION_EDITOR = 'i18n-gettext.openTranslationEditor',
   SEARCH_ENTRIES = 'i18n-gettext.searchEntries',
   CLEAR_SEARCH = 'i18n-gettext.clearSearch',
 
-  // VSCode内置命令
+  // VSCode built-in commands
   OPEN_WITH = 'vscode.openWith',
 }

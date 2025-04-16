@@ -1,33 +1,31 @@
 import {
-  computed,
   defineExtension,
   useIsDarkTheme,
-  useWorkspaceFolders,
   watchEffect,
 } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { registerCommands } from './commands'
+import { useAITranslator } from './composables'
 import { ReferenceDefinitionProvider, useEntryListTreeView, useFileTranslationTreeView, useProgressTreeView } from './providers'
 import { logger } from './utils'
-import { useAITranslator } from './composables'
 
 export const { activate, deactivate } = defineExtension(async (context) => {
   logger.info(vscode.l10n.t('i18n gettext extension activated'))
 
-  // 获取工作区文件夹
+  // Get workspace folder
   // const workspaceFolders = useWorkspaceFolders()
 
-  // 初始化翻译视图 - 使用组合式函数
+  // Initialize translation view - using composables
   useEntryListTreeView()
   useFileTranslationTreeView()
   useProgressTreeView()
 
-  // 创建视图提供者实例
+  // Create view provider instance
   const definitionProvider = new ReferenceDefinitionProvider()
 
-  // 注册视图
+  // Register view
   try {
-    // 翻译视图通过组合式函数自动注册，这里只需要注册引用定义提供者
+    // Translation view is automatically registered through composables, only need to register reference definition provider here
     context.subscriptions.push(
       vscode.languages.registerDefinitionProvider(
         ['typescript', 'javascript', 'typescriptreact', 'javascriptreact'],
@@ -40,10 +38,10 @@ export const { activate, deactivate } = defineExtension(async (context) => {
     logger.error(vscode.l10n.t('Error registering view: {error}', { error }))
   }
 
-  // 注册所有命令
+  // Register all commands
   registerCommands(context)
 
-  // // 计算工作区状态
+  // Calculate workspace state
   // const workspaceState = computed(() => {
   //   const folders = workspaceFolders.value || []
   //   return {
@@ -52,16 +50,16 @@ export const { activate, deactivate } = defineExtension(async (context) => {
   //   }
   // })
 
-  // // 监听工作区变化
-  // watchEffect(() => {
-  //   if (workspaceState.value.hasWorkspace) {
-  //     logger.info(vscode.l10n.t('Workspace root directory: {rootPath}', { rootPath: workspaceState.value.rootPath }))
+  // Listen for workspace changes
+  // const workspaceState = computed(() => {
+  //   const folders = workspaceFolders.value || []
+  //   return {
+  //     hasWorkspace: folders.length > 0,
+  //     rootPath: folders[0]?.uri.fsPath || '',
   //   }
   // })
 
-  useAITranslator().getAvailableModels()
-
-  // 监听主题变化
+  // Listen for theme changes
   const isDark = useIsDarkTheme()
   watchEffect(() => {
     logger.info(
@@ -71,4 +69,6 @@ export const { activate, deactivate } = defineExtension(async (context) => {
       ),
     )
   })
+
+  useAITranslator().getAvailableModels()
 })

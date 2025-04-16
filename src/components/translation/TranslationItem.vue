@@ -52,7 +52,7 @@ function handleMachineTranslate() {
           size="sm"
           @click="handleMachineTranslate"
         >
-          机翻
+          Machine
         </Button>
         <Button size="sm">
           AI
