@@ -1,12 +1,8 @@
-import type { ExtensionContext } from 'vscode'
-
 import type { TranslationEntry } from '../../types'
 import { createSingletonComposable } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { TranslationEditorProvider, useEntryListTreeView } from '../providers'
 import { useTranslationsState } from '../state'
-import { useMessageHandler } from './useMessageHandler'
-import { useModelConfig } from './useModelConfig'
 
 /**
  * Command operation composable function
@@ -35,38 +31,14 @@ export const useCommandActions = createSingletonComposable(() => {
     entryListTreeView.setSearchText('')
   }
 
-  /**
-   * Handle select entry command
-   * @param entry Translation entry
-   */
-  async function handleSelectEntry(context: ExtensionContext, entry: TranslationEntry) {
-    useTranslationsState().setSelectedEntry(entry)
-
-    // Render editor
+  function selectEntry(context: vscode.ExtensionContext, entry: TranslationEntry) {
     TranslationEditorProvider.render(context)
-
-    const modelConfig = await useModelConfig()
-    const webview = TranslationEditorProvider.currentPanel?._panel.webview
-
-    if (!webview) {
-      return
-    }
-
-    // Send model configuration to WebView
-    modelConfig.sendModelConfigToWebview(webview)
-
-    // Send select entry message
-    if (TranslationEditorProvider.currentPanel) {
-      useMessageHandler().sendSelectEntryMessage(
-        TranslationEditorProvider.currentPanel._panel.webview,
-        entry,
-      )
-    }
+    useTranslationsState().setSelectedEntry(entry)
   }
 
   return {
     searchEntries,
     clearSearch,
-    handleSelectEntry,
+    selectEntry,
   }
 })

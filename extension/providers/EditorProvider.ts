@@ -1,4 +1,3 @@
-import type { TranslationEntry } from '../../types'
 import { watch } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { EditorType } from '../../constants'

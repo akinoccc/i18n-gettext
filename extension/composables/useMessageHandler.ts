@@ -8,13 +8,14 @@ import { useTranslationsState } from '../state'
 import { logger } from '../utils/logger'
 import { useAITranslator } from './useAITranslator'
 import { localesConfig } from './useConfig'
+import { useModelConfig } from './useModelConfig'
 import { useTranslator } from './useTranslator'
 
 /**
  * Message handler composable function
  */
 export const useMessageHandler = createSingletonComposable(() => {
-  const { setSelectedEntry } = useTranslationsState()
+  const { setSelectedEntry, selectedEntry } = useTranslationsState()
   const translator = useTranslator()
   const aiTranslator = useAITranslator()
 
@@ -39,6 +40,10 @@ export const useMessageHandler = createSingletonComposable(() => {
   async function handleMessage(message: WebViewMessage, webview: Webview): Promise<void> {
     logger.info(message.type, JSON.stringify(message.data))
     switch (message.type) {
+      case WebViewMessageType.WEBVIEW_READY:
+        handleWebViewReady(webview)
+        break
+
       case WebViewMessageType.GO_TO_REFERENCE:
         await handleGoToReference(message.data.reference)
         break
@@ -63,6 +68,16 @@ export const useMessageHandler = createSingletonComposable(() => {
         await handleAIBatchTranslate(message.data as AIBatchTranslateData, webview)
         break
     }
+  }
+
+  /**
+   * WebView ready message
+   * @param webview Webview instance
+   */
+  async function handleWebViewReady(webview: Webview) {
+    const { sendModelConfigToWebview } = await useModelConfig()
+    sendModelConfigToWebview(webview)
+    sendSelectEntryMessage(webview, selectedEntry.value)
   }
 
   /**

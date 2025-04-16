@@ -5,14 +5,14 @@ import { useMessageHandler } from './useMessageHandler'
 import { useModelConfig } from './useModelConfig'
 
 /**
- * WebView处理组合式函数
+ * WebView Handler Composables
  */
 export const useWebviewHandler = createSingletonComposable(() => {
   /**
-   * 设置WebView HTML内容
-   * @param webview Webview实例
-   * @param context 扩展上下文
-   * @returns HTML内容
+   * Setup WebView HTML content
+   * @param webview Webview instance
+   * @param context Extension context
+   * @returns HTML content
    */
   function setupHtml(webview: Webview, context: ExtensionContext): string {
     return __getWebviewHtml__({
@@ -23,14 +23,14 @@ export const useWebviewHandler = createSingletonComposable(() => {
   }
 
   /**
-   * 设置WebView钩子
-   * @param webview Webview实例
-   * @param disposables 可释放资源列表
+   * Setup WebView hooks
+   * @param webview Webview instance
+   * @param disposables Disposable resources list
    */
   async function setupWebviewHooks(webview: Webview, disposables: Disposable[]) {
     const handler = useMessageHandler()
 
-    // 设置消息处理钩子
+    // Setup message processing hooks
     handler.setupWebviewHooks(
       webview,
       (message: WebViewMessage) => handler.handleMessage(message, webview),

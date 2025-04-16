@@ -12,7 +12,7 @@ export function registerCommands(context: ExtensionContext): void {
 
   // Register public commands
   useVscodeCommands({
-    [CommandType.SELECT_ENTRY]: (entry: TranslationEntry) => commandActions.handleSelectEntry(context, entry),
+    [CommandType.SELECT_ENTRY]: (entry: TranslationEntry) => commandActions.selectEntry(context, entry),
     [CommandType.SEARCH_ENTRIES]: commandActions.searchEntries,
     [CommandType.CLEAR_SEARCH]: commandActions.clearSearch,
   })

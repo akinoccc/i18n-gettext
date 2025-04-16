@@ -2,6 +2,8 @@
  * WebView message type enumeration
  */
 export enum WebViewMessageType {
+  // Webview ready
+  WEBVIEW_READY = 'i18n-gettext.webviewReady',
   // Go to reference
   GO_TO_REFERENCE = 'i18n-gettext.goToReference',
   // Update translation

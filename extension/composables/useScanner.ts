@@ -1,4 +1,4 @@
-import type { TranslationTree } from '../state'
+import type { TranslationTree } from '../../types'
 import * as fs from 'node:fs'
 
 import { createSingletonComposable } from 'reactive-vscode'

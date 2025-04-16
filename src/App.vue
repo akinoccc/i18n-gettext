@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
+import { WebViewMessageType } from '../constants'
 import TranslationEditor from './components/translation/TranslationEditor.vue'
 import { useAITranslation } from './composables/useAITranslation'
 import { useTranslationEntry } from './composables/useTranslationEntry'
+import { useVscodeApi } from './composables/useVscodeApi'
 
 const {
   translationEntry,
@@ -23,7 +25,16 @@ const {
   setupMessageListeners: setupAIListeners,
 } = useAITranslation()
 
+// Wait for webview to be ready
+const vscodeApi = useVscodeApi()
+
 onMounted(() => {
+  // Send ready message to extension
+  vscodeApi.postMessage({
+    type: WebViewMessageType.WEBVIEW_READY,
+    data: null,
+  })
+
   // Set up message listeners
   setupTranslationListeners()
   setupAIListeners()
