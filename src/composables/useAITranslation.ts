@@ -7,7 +7,7 @@ import { useVscodeApi } from './useVscodeApi'
 export function useAITranslation() {
   const vscodeApi = useVscodeApi()
   const aiModels = ref<ModelInfo[]>([])
-  const selectedAIModel = ref('')
+  const selectedAIModel = ref<string>('')
   const isTranslating = ref(false)
   const error = ref('')
 
@@ -15,8 +15,8 @@ export function useAITranslation() {
 
   // Parse model ID string
   function parseModelId(model: string): { provider: string, modelId: string } {
-    const [provider, id] = model.split(':')
-    return { provider, modelId: id }
+    const [provider, modelId] = model.split(':')
+    return { provider, modelId }
   }
 
   // Update selected AI model
@@ -58,15 +58,6 @@ export function useAITranslation() {
 
   // Translate all untranslated languages by AI
   function translateAllByAI(sourceLanguage: string) {
-    // Get all non-source languages
-    const availableCodes = Object.keys(translationEntry.value.locales)
-    const toTranslateLocales = availableCodes
-      .filter(code => code !== sourceLanguage && !translationEntry.value.locales[code])
-      .map(code => ({ originalCode: code, code }))
-
-    if (toTranslateLocales.length === 0)
-      return
-
     // Set translating status
     isTranslating.value = true
     error.value = ''
@@ -79,9 +70,9 @@ export function useAITranslation() {
     }
 
     // Use batch translation to reduce token consumption
-    if (toTranslateLocales.length > 1) {
+    if (Object.keys(translationEntry.value.locales).length > 0) {
       // Collect all target language codes
-      const targetLanguages = toTranslateLocales.map(locale => locale.originalCode)
+      const targetLanguages = Object.keys(translationEntry.value.locales)
 
       // Use batch translation to reduce token consumption
       vscodeApi.postMessage({
@@ -98,7 +89,7 @@ export function useAITranslation() {
     }
     else {
       // If there is only one language, use single translation
-      const locale = toTranslateLocales[0]
+      const locale = Object.keys(translationEntry.value.locales)[0]
 
       // Send message to extension
       vscodeApi.postMessage({
@@ -106,7 +97,7 @@ export function useAITranslation() {
         data: {
           sourceText: translationEntry.value.id,
           sourceLanguage,
-          targetLanguage: locale.originalCode,
+          targetLanguage: locale,
           provider: modelInfo.provider,
           modelId: modelInfo.modelId,
           entryId: translationEntry.value.id,

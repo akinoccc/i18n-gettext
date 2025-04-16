@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { LoaderCircle } from 'lucide-vue-next'
+
 interface Props {
   size?: 'sm' | 'md' | 'lg'
   disabled?: boolean
@@ -14,7 +16,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 <template>
   <button
-    class="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+    class="flex items-center justify-center gap-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
     :class="{
       'opacity-50 cursor-not-allowed': props.disabled || props.loading,
       'text-xs py-0.5 px-1.5': props.size === 'sm',
@@ -22,7 +24,22 @@ const props = withDefaults(defineProps<Props>(), {
     }"
     :disabled="props.disabled || props.loading"
   >
-    <span v-if="props.loading">加载中...</span>
-    <slot v-else />
+    <LoaderCircle v-if="props.loading" class="w-4 h-4 animate-spin" />
+    <slot />
   </button>
 </template>
+
+<style scoped>
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+</style>
