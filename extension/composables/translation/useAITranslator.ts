@@ -5,9 +5,22 @@ import type { Webview } from 'vscode'
 import type { AIBatchTranslateData, AITranslateData, ModelConfig } from '../../../types'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
+// 导入所有AI SDK
+import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock'
 import { createAnthropic } from '@ai-sdk/anthropic'
+import { createAzure } from '@ai-sdk/azure'
+import { createCerebras } from '@ai-sdk/cerebras'
+import { createCohere } from '@ai-sdk/cohere'
+import { createDeepInfra } from '@ai-sdk/deepinfra'
 import { createDeepSeek } from '@ai-sdk/deepseek'
+import { createFireworks } from '@ai-sdk/fireworks'
+import { createVertex } from '@ai-sdk/google-vertex'
+import { createGroq } from '@ai-sdk/groq'
+import { createMistral } from '@ai-sdk/mistral'
 import { createOpenAI } from '@ai-sdk/openai'
+import { createPerplexity } from '@ai-sdk/perplexity'
+import { createTogetherAI } from '@ai-sdk/togetherai'
+import { createXai } from '@ai-sdk/xai'
 import { generateText } from 'ai'
 import { createSingletonComposable, useWorkspaceFolders } from 'reactive-vscode'
 import * as vscode from 'vscode'
@@ -126,6 +139,64 @@ export const useAITranslator = createSingletonComposable(() => {
         return createDeepSeek({
           apiKey,
         })(modelId)
+      case 'xai':
+        return createXai({
+          apiKey,
+        })(modelId)
+      case 'amazon-bedrock':
+        return createAmazonBedrock({
+          accessKeyId: apiKey.split(':')[0],
+          secretAccessKey: apiKey.split(':')[1],
+          region: 'us-east-1', // 默认区域，可以从配置中读取
+        })(modelId)
+      case 'azure':
+        return createAzure({
+          apiKey,
+          baseURL: 'https://api.cognitive.microsoft.com', // 默认端点，可以从配置中读取
+        })(modelId)
+      case 'cerebras':
+        return createCerebras({
+          apiKey,
+        })(modelId)
+      case 'cohere':
+        return createCohere({
+          apiKey,
+        })(modelId)
+      case 'deepinfra':
+        return createDeepInfra({
+          apiKey,
+        })(modelId)
+      case 'fireworks':
+        return createFireworks({
+          apiKey,
+        })(modelId)
+      case 'groq':
+        return createGroq({
+          apiKey,
+        })(modelId)
+      case 'mistral':
+        return createMistral({
+          apiKey,
+        })(modelId)
+      case 'perplexity':
+        return createPerplexity({
+          apiKey,
+        })(modelId)
+      case 'togetherai':
+        return createTogetherAI({
+          apiKey,
+        })(modelId)
+      case 'google-vertex': {
+        // Google Vertex AI需要特殊的认证方式，这里假设用户在apiKey中提供了完整的JSON字符串
+        const credentials = JSON.parse(apiKey)
+        return createVertex({
+          project: credentials.project_id,
+          location: credentials.location || 'us-central1',
+          googleAuthOptions: {
+            credentials,
+          },
+        })(modelId)
+      }
       default:
         throw new Error(vscode.l10n.t('Unsupported provider: {provider}', { provider }))
     }
@@ -221,7 +292,7 @@ export const useAITranslator = createSingletonComposable(() => {
     const targetLanguagesStr = targetLanguages.join('、')
 
     return `
-      You are a multi-language translation expert, 
+      You are a multi-language translation expert,
       please translate the following ${sourceLanguage} text into ${targetLanguagesStr}.
       ${BASE_PROMPT}
       ${contextInfo}
@@ -229,7 +300,7 @@ export const useAITranslator = createSingletonComposable(() => {
       Source Text:
       "${sourceText}"
 
-      Please return the result in the following format, 
+      Please return the result in the following format,
       ensuring that each translation is marked with the language code:
       [targetLanguageCode] Translation content
       ...and so on
