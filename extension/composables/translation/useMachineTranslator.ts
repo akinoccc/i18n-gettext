@@ -127,7 +127,6 @@ export const useTranslator = createSingletonComposable(() => {
    */
   async function handleGoogleTranslate(data: GoogleTranslateRequestData, webview: vscode.Webview): Promise<string> {
     try {
-      const entry = getEntryById(data.entryId)
       const result = await translateByGoogle(data.entryId, data.targetCode)
 
       logger.info(vscode.l10n.t('Google translation completed'))
