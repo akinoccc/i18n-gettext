@@ -31,11 +31,22 @@ This workflow runs when a new tag with the format `v*` is pushed (e.g., `v1.0.0`
 - Publishes the extension to the Visual Studio Marketplace
 - Creates a GitHub Release with the VSIX file attached
 
-## Required Secrets
+## Required Secrets and Permissions
 
 To use the publish workflow, you need to set up the following secret in your GitHub repository:
 
 - `VSCE_PAT`: A Personal Access Token for the Visual Studio Marketplace. You can generate this token from [Azure DevOps](https://dev.azure.com/).
+
+### GitHub Token Permissions
+
+The publish workflow requires specific permissions to create GitHub releases. These permissions are configured in the workflow file:
+
+```yaml
+permissions:
+  contents: write # This is required for creating releases
+```
+
+This grants the GitHub Actions workflow the necessary permissions to create releases and upload assets.
 
 ## How to Use
 
@@ -61,5 +72,6 @@ If a workflow fails, check the GitHub Actions logs for details. Common issues in
 - Missing secrets
 - Linting or type checking errors
 - Build failures
+- Permission issues (e.g., "Resource not accessible by integration" error when creating releases)
 
 For more information on GitHub Actions, see the [official documentation](https://docs.github.com/en/actions).
