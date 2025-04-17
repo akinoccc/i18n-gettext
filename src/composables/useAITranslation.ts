@@ -1,4 +1,4 @@
-import type { AIBatchTranslateResultData, AITranslateResultData, ModelInfo, TranslateByMachineResultData } from 'types'
+import type { AIBatchTranslateResultData, AITranslateResultData, ModelInfo, TranslateByMachineResultData } from '../../types'
 import { ref } from 'vue'
 import { WebViewMessageType } from '../../constants'
 import { useTranslationEntry } from './useTranslationEntry'
@@ -33,7 +33,7 @@ export function useAITranslation() {
     vscodeApi.postMessage({
       type: WebViewMessageType.TRANSLATE_BY_MACHINE,
       data: {
-        entryId: translationEntry.value.id,
+        entryId: translationEntry.value!.id,
         originalCode: locale.originalCode,
         targetCode: locale.code,
         aiModel: selectedAIModel.value,
@@ -44,12 +44,12 @@ export function useAITranslation() {
   // Translate all untranslated languages by machine
   function translateAllByMachine(sourceLanguage: string) {
     // Get all non-source languages
-    if (!translationEntry.value.locales)
+    if (!translationEntry.value!.locales)
       return
 
-    const availableCodes = Object.keys(translationEntry.value.locales)
+    const availableCodes = Object.keys(translationEntry.value!.locales)
     const toTranslateLocales = availableCodes
-      .filter(code => code !== sourceLanguage && !translationEntry.value.locales[code])
+      .filter(code => code !== sourceLanguage && !translationEntry.value!.locales[code])
       .map(code => ({ originalCode: code, code }))
 
     // Translate each language by machine
@@ -75,12 +75,12 @@ export function useAITranslation() {
     vscodeApi.postMessage({
       type: WebViewMessageType.AI_TRANSLATE,
       data: {
-        sourceText: translationEntry.value.id,
+        sourceText: translationEntry.value!.id,
         sourceLanguage,
         targetLanguage,
         provider: modelInfo.provider,
         modelId: modelInfo.modelId,
-        entryId: translationEntry.value.id,
+        entryId: translationEntry.value!.id,
       },
     })
   }
@@ -99,20 +99,20 @@ export function useAITranslation() {
     }
 
     // Use batch translation to reduce token consumption
-    if (Object.keys(translationEntry.value.locales).length > 0) {
+    if (Object.keys(translationEntry.value!.locales).length > 0) {
       // Collect all target language codes
-      const targetLanguages = Object.keys(translationEntry.value.locales)
+      const targetLanguages = Object.keys(translationEntry.value!.locales)
 
       // Use batch translation to reduce token consumption
       vscodeApi.postMessage({
         type: WebViewMessageType.AI_BATCH_TRANSLATE,
         data: {
-          sourceText: translationEntry.value.id,
+          sourceText: translationEntry.value!.id,
           sourceLanguage,
           targetLanguages,
           provider: modelInfo.provider,
           modelId: modelInfo.modelId,
-          entryId: translationEntry.value.id,
+          entryId: translationEntry.value!.id,
         },
       })
     }
@@ -166,7 +166,7 @@ export function useAITranslation() {
     // Update translation entry
     if (translationEntry.value && data.results) {
       Object.entries(data.results).forEach(([langCode, translation]) => {
-        updateTranslationEntry(langCode, translation)
+        updateTranslationEntry(langCode, translation as string)
       })
     }
   }

@@ -1,4 +1,4 @@
-import type { TranslationEntry } from 'types'
+import type { TranslationEntry } from '../../types'
 import { ref } from 'vue'
 import { WebViewMessageType } from '../../constants'
 import { useVscodeApi } from './useVscodeApi'
