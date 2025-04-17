@@ -4,6 +4,7 @@ import { computed, createSingletonComposable, useTreeView } from 'reactive-vscod
 import * as vscode from 'vscode'
 import { CommandType } from '../../constants'
 import { useTranslationEntries } from '../composables'
+import { useTranslationsState } from '../composables/state'
 
 /**
  * Translation entry tree view composable function
@@ -49,14 +50,47 @@ export const useEntryListTreeView = createSingletonComposable(() => {
     })
   })
 
+  // 获取翻译状态
+  const { statistics } = useTranslationsState()
+
   // Create tree view
   const view = useTreeView('i18n-gettext.entries', treeData, {
     title: () => {
       const total = translationEntries.filteredEntries.value.length
       const searchText = translationEntries.searchText.value
+      const filterType = translationEntries.filterType.value
+
+      // 获取统计信息
+      const totalEntries = statistics.value?.totalEntries || 0
+      const translatedEntries = statistics.value?.translatedEntries || 0
+      const untranslatedEntries = statistics.value?.untranslatedEntries || 0
+
+      // 根据过滤类型显示不同的标题
+      let titlePrefix = ''
+      switch (filterType) {
+        case 'translated':
+          titlePrefix = vscode.l10n.t('Translated({total})', {
+            total,
+            totalEntries,
+          })
+          break
+        case 'untranslated':
+          titlePrefix = vscode.l10n.t('Untranslated({total})', {
+            total,
+            totalEntries,
+          })
+          break
+        default:
+          titlePrefix = vscode.l10n.t('All({total}) [✓{translated} ⚠{untranslated}]', {
+            total: totalEntries,
+            translated: translatedEntries,
+            untranslated: untranslatedEntries,
+          })
+      }
+
       return searchText
-        ? vscode.l10n.t('Translation Entries({total}) - Search: {query}', { total, query: searchText })
-        : vscode.l10n.t('Translation Entries({total})', { total })
+        ? `${titlePrefix} - ${vscode.l10n.t('Search: {query}', { query: searchText })}`
+        : titlePrefix
     },
   })
 

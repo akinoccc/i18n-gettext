@@ -15,5 +15,8 @@ export function registerCommands(context: ExtensionContext): void {
     [CommandType.SELECT_ENTRY]: (entry: TranslationEntry) => commandActions.selectEntry(context, entry),
     [CommandType.SEARCH_ENTRIES]: commandActions.searchEntries,
     [CommandType.CLEAR_SEARCH]: commandActions.clearSearch,
+    [CommandType.FILTER_ALL_ENTRIES]: commandActions.filterAllEntries,
+    [CommandType.FILTER_TRANSLATED_ENTRIES]: commandActions.filterTranslatedEntries,
+    [CommandType.FILTER_UNTRANSLATED_ENTRIES]: commandActions.filterUntranslatedEntries,
   })
 }

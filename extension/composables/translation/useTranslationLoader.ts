@@ -381,7 +381,7 @@ export function useTranslationLoader() {
       Object.keys(translations).forEach((msgid) => {
         const translation = translations[msgid]
 
-        if (translation.msgstr) {
+        if (translation.msgstr || poFile.locale !== config.sourceLanguage) {
           stats.translated++
         }
         else {

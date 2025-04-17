@@ -10,6 +10,11 @@ export enum CommandType {
   SEARCH_ENTRIES = 'i18n-gettext.searchEntries',
   CLEAR_SEARCH = 'i18n-gettext.clearSearch',
 
+  // Filter commands
+  FILTER_ALL_ENTRIES = 'i18n-gettext.filterAllEntries',
+  FILTER_TRANSLATED_ENTRIES = 'i18n-gettext.filterTranslatedEntries',
+  FILTER_UNTRANSLATED_ENTRIES = 'i18n-gettext.filterUntranslatedEntries',
+
   // VSCode built-in commands
   OPEN_WITH = 'vscode.openWith',
 }

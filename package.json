@@ -70,6 +70,24 @@
         "title": "Clear Search",
         "category": "i18n Gettext",
         "icon": "$(clear-all)"
+      },
+      {
+        "command": "i18n-gettext.filterAllEntries",
+        "title": "Show All Entries",
+        "category": "i18n Gettext",
+        "icon": "$(list-filter)"
+      },
+      {
+        "command": "i18n-gettext.filterTranslatedEntries",
+        "title": "Show Translated Entries",
+        "category": "i18n Gettext",
+        "icon": "$(check)"
+      },
+      {
+        "command": "i18n-gettext.filterUntranslatedEntries",
+        "title": "Show Untranslated Entries",
+        "category": "i18n Gettext",
+        "icon": "$(warning)"
       }
     ],
     "viewsContainers": {
@@ -116,6 +134,21 @@
           "command": "i18n-gettext.clearSearch",
           "when": "view == i18n-gettext.entries",
           "group": "navigation"
+        },
+        {
+          "command": "i18n-gettext.filterAllEntries",
+          "when": "view == i18n-gettext.entries",
+          "group": "filter"
+        },
+        {
+          "command": "i18n-gettext.filterTranslatedEntries",
+          "when": "view == i18n-gettext.entries",
+          "group": "filter"
+        },
+        {
+          "command": "i18n-gettext.filterUntranslatedEntries",
+          "when": "view == i18n-gettext.entries",
+          "group": "filter"
         }
       ],
       "view/item/context": [

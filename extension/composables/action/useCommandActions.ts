@@ -31,6 +31,27 @@ export const useCommandActions = createSingletonComposable(() => {
     entryListTreeView.setSearchText('')
   }
 
+  /**
+   * Filter all entries
+   */
+  function filterAllEntries(): void {
+    entryListTreeView.setFilterType('all')
+  }
+
+  /**
+   * Filter translated entries
+   */
+  function filterTranslatedEntries(): void {
+    entryListTreeView.setFilterType('translated')
+  }
+
+  /**
+   * Filter untranslated entries
+   */
+  function filterUntranslatedEntries(): void {
+    entryListTreeView.setFilterType('untranslated')
+  }
+
   function selectEntry(context: vscode.ExtensionContext, entry: TranslationEntry) {
     TranslationEditorProvider.render(context)
     useTranslationsState().setSelectedEntry(entry)
@@ -39,6 +60,9 @@ export const useCommandActions = createSingletonComposable(() => {
   return {
     searchEntries,
     clearSearch,
+    filterAllEntries,
+    filterTranslatedEntries,
+    filterUntranslatedEntries,
     selectEntry,
   }
 })
