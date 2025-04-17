@@ -43,11 +43,6 @@
     },
     "commands": [
       {
-        "command": "i18n-gettext.refreshView",
-        "title": "Refresh View",
-        "category": "i18n Gettext"
-      },
-      {
         "command": "i18n-gettext.selectEntry",
         "title": "Select Entry",
         "category": "i18n Gettext",
@@ -121,11 +116,6 @@
     "menus": {
       "view/title": [
         {
-          "command": "i18n-gettext.refreshView",
-          "when": "view == i18n-gettext.progress",
-          "group": "navigation"
-        },
-        {
           "command": "i18n-gettext.searchEntries",
           "when": "view == i18n-gettext.entries",
           "group": "navigation"
@@ -149,13 +139,6 @@
           "command": "i18n-gettext.filterUntranslatedEntries",
           "when": "view == i18n-gettext.entries",
           "group": "filter"
-        }
-      ],
-      "view/item/context": [
-        {
-          "command": "i18n-gettext.openTranslationEditor",
-          "when": "view == i18n-gettext.entries && viewItem == translationEntry",
-          "group": "inline"
         }
       ]
     }

@@ -3,16 +3,7 @@ import { ref } from 'vue'
 import { WebViewMessageType } from '../../constants'
 import { useVscodeApi } from './useVscodeApi'
 
-const translationEntry = ref<TranslationEntry>({
-  id: 'this is a test',
-  references: [],
-  msgctxt: '',
-  locales: {
-    en: 'this is a test',
-    zh: '',
-  },
-  hasUntranslated: false,
-})
+const translationEntry = ref<TranslationEntry>()
 
 export function useTranslationEntry() {
   const vscodeApi = useVscodeApi()

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { LocaleIdentifier, ModelInfo, TranslationEntry } from 'types'
-import { FileWarning } from 'lucide-vue-next'
 import { computed, ref, watchEffect } from 'vue'
 import { localesMap } from '../../../constants/locale'
 import ReferencesList from './ReferencesList.vue'
@@ -159,11 +158,54 @@ function handleTranslateSingleByAI(locale: LocaleIdentifier & { originalCode: st
   </div>
   <div
     v-else
-    class="flex flex-col items-center justify-center gap-3 h-[200px] bg-gray-50 rounded-lg text-gray-500"
+    class="flex flex-col items-center justify-center gap-3 h-[200px] bg-gray-50 rounded-lg text-gray-500 relative"
   >
-    <FileWarning :size="32" class="text-gray-400" />
-    <p class="text-sm">
-      Please select a translation entry
+    <div class="spinner">
+      <div class="spinner-ring" />
+    </div>
+    <p class="text-sm mt-3 text-gray-500">
+      Loading...
     </p>
   </div>
 </template>
+
+<style scoped>
+.spinner {
+  position: relative;
+  width: 40px;
+  height: 40px;
+}
+
+.spinner-ring {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border: 3px solid transparent;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.spinner-ring::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  width: 40px;
+  height: 40px;
+  border: 3px solid transparent;
+  border-top-color: #a855f7;
+  border-radius: 50%;
+  opacity: 0.6;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+</style>
