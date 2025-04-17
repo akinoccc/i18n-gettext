@@ -8,5 +8,6 @@ export default antfu({
     'no-restricted-syntax': 'off',
     'node/prefer-global/process': 'off',
     'no-template-curly-in-string': 'off',
+    'ts/no-empty-object-type': 'off',
   },
 })
