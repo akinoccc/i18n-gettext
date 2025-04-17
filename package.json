@@ -144,8 +144,7 @@
     }
   },
   "scripts": {
-    "build": "pnpm run build:types && vite build",
-    "build:types": "tsc -p tsconfig.types.json",
+    "build": "vite build",
     "dev": "vite",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
