@@ -3,7 +3,7 @@
   "name": "i18n-gettext",
   "displayName": "i18n Gettext",
   "type": "commonjs",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "VSCode extension for extracting, compiling and managing gettext-based translation strings",
   "categories": [
@@ -149,7 +149,6 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
-    "vscode:prepublish": "pnpm run build",
     "l10n:export": "npx @vscode/l10n-dev export --outDir ./l10n ./extension",
     "l10n:sync": "tsx scripts/sync-l10n.ts"
   },
