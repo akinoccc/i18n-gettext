@@ -1,81 +1,17 @@
+import type { TranslationEntry } from '../../../types'
 import * as fs from 'node:fs'
+
 import * as path from 'node:path'
-
-import { translate } from '@vitalets/google-translate-api'
-
 import { createSingletonComposable } from 'reactive-vscode'
 import * as vscode from 'vscode'
+import { logger } from '../../utils'
+import { localesConfig, useConfig } from '../config/useConfig'
 import { useTranslationsState } from '../state'
-import { logger } from '../utils'
-import { localesConfig, useConfig } from './useConfig'
 
-/**
- * 语言代码映射类型
- */
-type LanguageMappings = Record<string, Record<string, string>>
-
-/**
- * 翻译组合式函数
- */
-export const useTranslator = createSingletonComposable(() => {
+export const usePoEditor = createSingletonComposable(() => {
+  const { getEntryById } = useTranslationsState()
+  const { updateTranslation } = useTranslationsState()
   const config = useConfig()
-  const { updateTranslation, getEntryById } = useTranslationsState()
-
-  /**
-   * 翻译服务的语言代码映射
-   * 不同翻译服务对语言代码的要求不同，需要进行映射
-   */
-  const LANGUAGE_MAPPINGS: LanguageMappings = {
-    google: {
-      'zh-CN': 'zh-CN',
-      'zh-TW': 'zh-TW',
-      'en': 'en',
-      'ja': 'ja',
-      'ko': 'ko',
-    },
-    deepl: {
-      'zh-CN': 'ZH',
-      'zh-TW': 'ZH',
-      'en': 'EN',
-      'ja': 'JA',
-      'ko': 'KO',
-    },
-    youdao: {
-      'zh-CN': 'zh-CHS',
-      'zh-TW': 'zh-CHT',
-      'en': 'en',
-      'ja': 'ja',
-      'ko': 'ko',
-    },
-    baidu: {
-      'zh-CN': 'zh',
-      'zh-TW': 'cht',
-      'en': 'en',
-      'ja': 'jp',
-      'ko': 'kor',
-    },
-    tencent: {
-      'zh-CN': 'zh',
-      'zh-TW': 'zh-TW',
-      'en': 'en',
-      'ja': 'ja',
-      'ko': 'ko',
-    },
-    microsoft: {
-      'zh-CN': 'zh-Hans',
-      'zh-TW': 'zh-Hant',
-      'en': 'en',
-      'ja': 'ja',
-      'ko': 'ko',
-    },
-    yandex: {
-      'zh-CN': 'zh',
-      'zh-TW': 'zh',
-      'en': 'en',
-      'ja': 'ja',
-      'ko': 'ko',
-    },
-  }
 
   /**
    * 保存翻译到PO文件
@@ -85,13 +21,14 @@ export const useTranslator = createSingletonComposable(() => {
    * @param domain 可选的域名
    * @returns 是否保存成功
    */
-  async function saveTranslation(
+  async function save(
     entryId: string,
     locale: string,
     value: string,
     domain?: string,
   ): Promise<boolean> {
     const entry = getEntryById(entryId)
+
     if (!entry) {
       logger.error(vscode.l10n.t('Entry not found: {entryId}', { entryId }))
       return false
@@ -182,44 +119,7 @@ export const useTranslator = createSingletonComposable(() => {
     }
   }
 
-  /**
-   * 获取目标语言代码
-   * @param locale 源语言代码
-   * @param service 翻译服务名称
-   * @returns 目标语言代码
-   */
-  function getTargetLanguage(locale: string, service: string): string {
-    const mappings = LANGUAGE_MAPPINGS[service]
-    if (!mappings) {
-      return locale
-    }
-
-    // 获取简化的语言代码
-    const simplifiedLocale = locale.split('-')[0]
-    return mappings[locale] || mappings[simplifiedLocale] || locale
-  }
-
-  /**
-   * 使用Google翻译
-   * @param text 要翻译的文本
-   * @param targetLocale 目标语言
-   * @returns 翻译结果
-   */
-  async function translateByGoogle(text: string, targetLocale: string): Promise<string> {
-    try {
-      const targetLang = getTargetLanguage(targetLocale, 'google')
-      const result = await translate(text, { to: targetLang })
-      return result.text || text
-    }
-    catch (error) {
-      logger.error(vscode.l10n.t('Google translation failed: {error}', { error }))
-      throw error
-    }
-  }
-
   return {
-    saveTranslation,
-    getTargetLanguage,
-    translateByGoogle,
+    save,
   }
 })

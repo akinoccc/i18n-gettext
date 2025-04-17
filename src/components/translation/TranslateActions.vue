@@ -3,7 +3,8 @@ import { Bot, Languages } from 'lucide-vue-next'
 
 interface Props {
   enableAI: boolean
-  isTranslating: boolean
+  isAITranslating: boolean
+  isMachineTranslating: boolean
 }
 
 const props = defineProps<Props>()
@@ -13,25 +14,34 @@ const emit = defineEmits(['translateAllMachine', 'translateAllAI'])
 <template>
   <div class="flex items-center justify-end flex-wrap gap-3">
     <button
-      class="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-md transition-colors duration-200"
+      class="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+      :disabled="props.isMachineTranslating || props.isAITranslating"
       @click="emit('translateAllMachine')"
     >
-      <Languages :size="18" />
-      <span>Translate All with Machine</span>
+      <span v-if="props.isMachineTranslating" class="flex items-center gap-2">
+        <span class="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        Translating...
+      </span>
+      <template v-else>
+        <Languages :size="18" />
+        <span>Translate All with Machine</span>
+      </template>
     </button>
 
     <button
       v-if="props.enableAI"
-      :disabled="props.isTranslating"
+      :disabled="props.isAITranslating || props.isMachineTranslating"
       class="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
       @click="emit('translateAllAI')"
     >
-      <Bot :size="18" />
-      <span v-if="props.isTranslating" class="flex items-center gap-2">
+      <span v-if="props.isAITranslating" class="flex items-center gap-2">
         <span class="w-3 h-3 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
         Translating...
       </span>
-      <span v-else>Translate All with AI</span>
+      <template v-else>
+        <Bot :size="18" />
+        <span>Translate All with AI</span>
+      </template>
     </button>
   </div>
 </template>

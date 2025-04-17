@@ -10,7 +10,8 @@ interface Props {
   translationEntry: TranslationEntry
   aiModels: ModelInfo[]
   sourceLanguage: string
-  isTranslating: boolean
+  isAITranslating: boolean
+  isMachineTranslating: boolean
 }
 
 const props = defineProps<Props>()
@@ -20,7 +21,7 @@ const emit = defineEmits<{
   translateByMachine: [locale: LocaleIdentifier & { originalCode: string }]
   translateAllByMachine: []
   translateAllByAI: []
-  translateItemByAI: []
+  translateSingleByAI: [locale: LocaleIdentifier & { originalCode: string }]
   updateSelectedModel: [modelId: string]
 }>()
 
@@ -74,6 +75,14 @@ function handleModelChange(modelId: string) {
   selectedModel.value = modelId
   emit('updateSelectedModel', modelId)
 }
+
+function handleTranslateByMachine(locale: LocaleIdentifier & { originalCode: string }) {
+  emit('translateByMachine', locale)
+}
+
+function handleTranslateSingleByAI(locale: LocaleIdentifier & { originalCode: string }) {
+  emit('translateSingleByAI', locale)
+}
 </script>
 
 <template>
@@ -94,10 +103,11 @@ function handleModelChange(modelId: string) {
         :selected-model="selectedModel"
         placeholder="To be translated..."
         :is-source="isSourceLanguage(locale.originalCode)"
-        :is-translating="props.isTranslating"
+        :is-a-i-translating="props.isAITranslating"
+        :is-machine-translating="props.isMachineTranslating"
         @update:value="(value) => handleSaveTranslation(locale.originalCode, value)"
-        @translate-machine="emit('translateByMachine', $event)"
-        @translate-ai="emit('translateItemByAI')"
+        @translate-by-machine="handleTranslateByMachine(locale)"
+        @translate-single-by-a-i="handleTranslateSingleByAI(locale)"
       />
     </div>
 
@@ -124,7 +134,8 @@ function handleModelChange(modelId: string) {
       <!-- Batch Actions -->
       <TranslationActions
         :enable-a-i="!!selectedModel"
-        :is-translating="props.isTranslating"
+        :is-a-i-translating="props.isAITranslating"
+        :is-machine-translating="props.isMachineTranslating"
         @translate-all-machine="emit('translateAllByMachine')"
         @translate-all-a-i="emit('translateAllByAI')"
       />

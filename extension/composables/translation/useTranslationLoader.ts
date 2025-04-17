@@ -1,11 +1,11 @@
-import type { PoData, TranslationEntry, TranslationStatisticsObject, TranslationTree } from '../state'
+import type { PoData, TranslationEntry, TranslationStatisticsObject, TranslationTree } from '../../../types'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { computed, ref, useWorkspaceFolders, watch } from 'reactive-vscode'
 import * as vscode from 'vscode'
+import { logger } from '../../utils/logger'
+import { localesConfig } from '../config/useConfig'
 import { useTranslationsState } from '../state'
-import { logger } from '../utils/logger'
-import { localesConfig } from './useConfig'
 /**
  * 翻译加载组合式函数
  * 提供处理翻译文件加载相关的响应式功能

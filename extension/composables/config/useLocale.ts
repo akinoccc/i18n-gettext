@@ -1,4 +1,4 @@
-import { localesMap } from '../../constants'
+import { localesMap } from '../../../constants'
 
 export function useLocale(code: string) {
   const codeMap = new Map<string, string>()

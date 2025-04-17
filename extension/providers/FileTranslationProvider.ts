@@ -1,10 +1,16 @@
 import type { TreeViewNode } from 'reactive-vscode'
-import type { TranslationEntry } from '../state'
-import { computed, createSingletonComposable, ref, useActiveTextEditor, useL10nText, useTreeView, useWorkspaceFolders } from 'reactive-vscode'
+import type { TranslationEntry } from '../../types'
+import {
+  computed,
+  createSingletonComposable,
+  ref,
+  useActiveTextEditor,
+  useTreeView,
+  useWorkspaceFolders,
+} from 'reactive-vscode'
 import * as vscode from 'vscode'
-import { useTranslationEntries } from '../composables'
 import { CommandType } from '../../constants'
-import { useTranslationsState } from '../state'
+import { useTranslationEntries, useTranslationsState } from '../composables'
 
 /**
  * 当前文件翻译条目视图组合式函数

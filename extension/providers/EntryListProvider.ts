@@ -3,7 +3,7 @@ import type { TranslationEntry } from '../../types'
 import { computed, createSingletonComposable, useTreeView } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { CommandType } from '../../constants'
-import { useTranslationEntries } from '../composables/useTranslationEntries'
+import { useTranslationEntries } from '../composables'
 
 /**
  * Translation entry tree view composable function

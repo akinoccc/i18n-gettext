@@ -1,8 +1,8 @@
-import type { TranslationEntry } from '../state'
+import type { TranslationEntry } from '../../../types'
 import { computed, ref } from 'reactive-vscode'
 import * as vscode from 'vscode'
-import { useTranslationsState } from '../state'
-import { logger } from '../utils'
+import { useTranslationsState } from '.'
+import { logger } from '../../utils'
 
 /**
  * 翻译条目组合式函数

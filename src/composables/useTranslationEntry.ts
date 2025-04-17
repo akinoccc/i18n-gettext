@@ -58,7 +58,6 @@ export function useTranslationEntry() {
   function setupMessageListeners() {
     // Listen for translation entry selection
     vscodeApi.on(WebViewMessageType.SELECT_ENTRY, (entry: TranslationEntry & { sourceLanguage: string }) => {
-      console.log('SELECT_ENTRY', entry)
       translationEntry.value = entry
       sourceLanguage.value = entry.sourceLanguage
     })

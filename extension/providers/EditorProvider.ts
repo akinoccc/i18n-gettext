@@ -1,8 +1,7 @@
 import { watch } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { EditorType } from '../../constants'
-import { useMessageHandler, useWebviewHandler } from '../composables'
-import { useTranslationsState } from '../state'
+import { useMessageHandler, useTranslationsState, useWebviewHandler } from '../composables'
 
 export class TranslationEditorProvider {
   public static currentPanel: TranslationEditorProvider | undefined

@@ -1,6 +1,6 @@
-import type { TranslationEntry, TranslationStatisticsObject, TranslationTree } from '../../types'
+import type { TranslationEntry, TranslationStatisticsObject, TranslationTree } from '../../../types'
 import { computed, createSingletonComposable, ref } from 'reactive-vscode'
-import { localesConfig } from '../composables'
+import { localesConfig } from '../config/useConfig'
 
 export const useTranslationsState = createSingletonComposable(() => {
   const selectedEntry = ref<TranslationEntry>()

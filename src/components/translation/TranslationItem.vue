@@ -9,14 +9,15 @@ interface Props {
   placeholder: string
   isSource: boolean
   selectedModel: string
-  isTranslating: boolean
+  isAITranslating: boolean
+  isMachineTranslating: boolean
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<{
   'update:value': [value: string]
-  'translateMachine': [locale: LocaleIdentifier & { originalCode: string }]
-  'translateAI': []
+  'translateByMachine': [locale: LocaleIdentifier & { originalCode: string }]
+  'translateSingleByAI': []
 }>()
 
 function handleChange(e: Event) {
@@ -25,11 +26,11 @@ function handleChange(e: Event) {
 }
 
 function handleMachineTranslate() {
-  emit('translateMachine', props.locale)
+  emit('translateByMachine', props.locale)
 }
 
-function handleAITranslate() {
-  emit('translateAI')
+function handleSingleAITranslate() {
+  emit('translateSingleByAI')
 }
 </script>
 
@@ -59,23 +60,33 @@ function handleAITranslate() {
       </div>
       <div v-else class="flex gap-2">
         <button
-          class="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors duration-200"
+          class="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          :disabled="props.isMachineTranslating || props.isAITranslating"
           @click="handleMachineTranslate"
         >
-          <Languages :size="14" />
-          <span>Machine</span>
+          <span v-if="props.isMachineTranslating" class="flex items-center gap-2">
+            <span class="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+            Translating...
+          </span>
+          <template v-else>
+            <Languages :size="14" />
+            <span>Machine</span>
+          </template>
         </button>
         <button
           v-if="props.selectedModel"
-          :disabled="props.isTranslating"
+          :disabled="props.isAITranslating || props.isMachineTranslating"
           class="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium bg-purple-50 text-purple-600 rounded hover:bg-purple-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          @click="handleAITranslate"
+          @click="handleSingleAITranslate"
         >
-          <Bot :size="14" />
-          <span v-if="props.isTranslating">
+          <span v-if="props.isAITranslating" class="flex items-center gap-2">
             <span class="w-3 h-3 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
+            Translating...
           </span>
-          <span v-else>AI</span>
+          <template v-else>
+            <Bot :size="14" />
+            <span>AI</span>
+          </template>
         </button>
       </div>
     </div>

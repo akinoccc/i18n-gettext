@@ -1,7 +1,7 @@
-import type { TranslationEntry } from '../../types'
+import type { TranslationEntry } from '../../../types'
 import { createSingletonComposable } from 'reactive-vscode'
 import * as vscode from 'vscode'
-import { TranslationEditorProvider, useEntryListTreeView } from '../providers'
+import { TranslationEditorProvider, useEntryListTreeView } from '../../providers'
 import { useTranslationsState } from '../state'
 
 /**

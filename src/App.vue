@@ -16,11 +16,13 @@ const {
 
 const {
   aiModels,
-  isTranslating,
+  isAITranslating,
+  isMachineTranslating,
   error,
   updateSelectedModel,
   translateByMachine,
   translateAllByMachine,
+  translateSingleByAI,
   translateAllByAI,
   setupMessageListeners: setupAIListeners,
 } = useAITranslation()
@@ -52,6 +54,10 @@ function handleTranslateAllByMachine() {
 function handleTranslateAllByAI() {
   translateAllByAI(sourceLanguage.value)
 }
+
+function handleTranslateSingleByAI(locale: { originalCode: string, code: string }) {
+  translateSingleByAI(sourceLanguage.value, locale.originalCode)
+}
 </script>
 
 <template>
@@ -75,12 +81,14 @@ function handleTranslateAllByAI() {
       :translation-entry="translationEntry"
       :ai-models="aiModels"
       :source-language="sourceLanguage"
-      :is-translating="isTranslating"
+      :is-a-i-translating="isAITranslating"
+      :is-machine-translating="isMachineTranslating"
       @go-to-reference="goToReference"
       @save-translation="saveTranslation"
       @translate-by-machine="handleTranslateByMachine"
       @translate-all-by-machine="handleTranslateAllByMachine"
       @translate-all-by-a-i="handleTranslateAllByAI"
+      @translate-single-by-a-i="handleTranslateSingleByAI"
       @update-selected-model="updateSelectedModel"
     />
   </main>

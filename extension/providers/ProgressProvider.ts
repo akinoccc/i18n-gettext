@@ -1,9 +1,8 @@
 import type { TreeViewNode } from 'reactive-vscode'
 import { computed, createSingletonComposable, useL10nText, useTreeView, watchEffect } from 'reactive-vscode'
 import * as vscode from 'vscode'
-import { useScanner } from '../composables'
-import { localesConfig } from '../composables/useConfig'
-import { useTranslationsState } from '../state'
+import { useScanner, useTranslationsState } from '../composables'
+import { localesConfig } from '../composables/config/useConfig'
 import { logger } from '../utils/logger'
 
 /**
@@ -40,9 +39,14 @@ export const useProgressTreeView = createSingletonComposable(() => {
       const total = statistics.value?.locales?.[locale].total ?? 0
       const percentage = ((translated / total) * 100).toFixed(2)
 
+      const isSourceLanguage = localesConfig.value.sourceLanguage === locale
+
+      const label = isSourceLanguage ? `${locale} (${total})` : `${locale} (${translated}/${total})`
+      const description = isSourceLanguage ? 'source' : `${percentage}%`
+
       const treeItem: vscode.TreeItem = {
-        label: `${locale} (${translated}/${total})`,
-        description: `${percentage}%${localesConfig.value.sourceLanguage === locale ? ' source' : ''}`,
+        label,
+        description,
         collapsibleState: vscode.TreeItemCollapsibleState.None,
         tooltip: `${locale}\nTranslation progress: ${percentage}%\nTranslated: ${translated}\nTotal entries: ${total}`,
         contextValue: 'localeProgress',

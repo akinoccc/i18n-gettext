@@ -10,6 +10,8 @@ export enum WebViewMessageType {
   UPDATE_TRANSLATION = 'i18n-gettext.updateTranslation',
   // Machine translation
   TRANSLATE_BY_MACHINE = 'i18n-gettext.translateByMachine',
+  // Machine translation result
+  TRANSLATE_BY_MACHINE_RESULT = 'i18n-gettext.translateByMachineResult',
   // Select entry
   SELECT_ENTRY = 'i18n-gettext.selectEntry',
   // Send model configuration

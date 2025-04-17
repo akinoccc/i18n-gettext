@@ -2,7 +2,7 @@
 import type { LanguageModelV1 } from 'ai'
 import type { Webview } from 'vscode'
 
-import type { AIBatchTranslateData, AITranslateData, ModelConfig } from '../../types'
+import type { AIBatchTranslateData, AITranslateData, ModelConfig } from '../../../types'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { createAnthropic } from '@ai-sdk/anthropic'
@@ -11,11 +11,11 @@ import { createOpenAI } from '@ai-sdk/openai'
 import { generateText } from 'ai'
 import { createSingletonComposable, useWorkspaceFolders } from 'reactive-vscode'
 import * as vscode from 'vscode'
-import { WebViewMessageType } from '../../constants'
+import { WebViewMessageType } from '../../../constants'
+import { logger } from '../../utils/logger'
+import { useModelConfig } from '../config/useModelConfig'
+import { usePoEditor } from '../po'
 import { useTranslationsState } from '../state'
-import { logger } from '../utils/logger'
-import { useModelConfig } from './useModelConfig'
-import { useTranslator } from './useTranslator'
 
 /**
  * Translation options interface
@@ -43,7 +43,7 @@ export interface BatchTranslationOptions {
  * AI translation composable function
  */
 export const useAITranslator = createSingletonComposable(() => {
-  const translator = useTranslator()
+  const poEditor = usePoEditor()
   const { getEntryById } = useTranslationsState()
 
   // Base Prompt
@@ -347,7 +347,7 @@ export const useAITranslator = createSingletonComposable(() => {
         },
       })
 
-      translator.saveTranslation(data.entryId, data.targetLanguage, result)
+      await poEditor.save(data.entryId, data.targetLanguage, result)
 
       return result
     }
@@ -395,7 +395,7 @@ export const useAITranslator = createSingletonComposable(() => {
       })
 
       data.targetLanguages.forEach((targetLanguage) => {
-        translator.saveTranslation(data.entryId, targetLanguage, results[targetLanguage])
+        poEditor.save(data.entryId, targetLanguage, results[targetLanguage])
       })
 
       return results

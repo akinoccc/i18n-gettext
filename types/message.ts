@@ -22,9 +22,19 @@ export interface UpdateTranslationData {
  * Machine translation message data
  */
 export interface TranslateByMachineData {
-  entry: string // JSON string
+  entryId: string
   originalCode: string
   targetCode: string
+}
+
+/**
+ * Machine translation result message data
+ */
+export interface TranslateByMachineResultData {
+  result: string
+  entryId?: string
+  targetLanguage: string
+  error?: string
 }
 
 /**

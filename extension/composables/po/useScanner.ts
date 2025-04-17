@@ -1,10 +1,10 @@
-import type { TranslationTree } from '../../types'
+import type { TranslationTree } from '../../../types'
 import * as fs from 'node:fs'
 
 import { createSingletonComposable } from 'reactive-vscode'
 import * as vscode from 'vscode'
-import { logger } from '../utils'
-import { useTranslationLoader } from './useTranslationLoader'
+import { logger } from '../../utils'
+import { useTranslationLoader } from '../translation/useTranslationLoader'
 
 /**
  * 扫描组合式函数，提供PO文件扫描相关功能

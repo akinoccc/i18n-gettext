@@ -1,10 +1,10 @@
 import type { Webview } from 'vscode'
-import type { ModelConfig } from '../../types'
+import type { ModelConfig } from '../../../types'
 
 import { createSingletonComposable } from 'reactive-vscode'
 import * as vscode from 'vscode'
-import { WebViewMessageType } from '../../constants'
-import { logger } from '../utils/logger'
+import { WebViewMessageType } from '../../../constants'
+import { logger } from '../../utils/logger'
 
 /**
  * 模型配置组合式函数

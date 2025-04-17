@@ -1,4 +1,4 @@
-import type { AIBatchTranslateResultData, AITranslateResultData, ModelInfo, TranslationEntry } from 'types'
+import type { AIBatchTranslateResultData, AITranslateResultData, ModelInfo, TranslateByMachineResultData, TranslationEntry } from 'types'
 import { ref } from 'vue'
 import { WebViewMessageType } from '../../constants'
 import { useTranslationEntry } from './useTranslationEntry'
@@ -8,7 +8,8 @@ export function useAITranslation() {
   const vscodeApi = useVscodeApi()
   const aiModels = ref<ModelInfo[]>([])
   const selectedAIModel = ref<string>('')
-  const isTranslating = ref(false)
+  const isAITranslating = ref(false)
+  const isMachineTranslating = ref(false)
   const error = ref('')
 
   const { translationEntry, updateTranslationEntry } = useTranslationEntry()
@@ -28,10 +29,11 @@ export function useAITranslation() {
   function translateByMachine(
     locale: { originalCode: string, code: string },
   ) {
+    isMachineTranslating.value = true
     vscodeApi.postMessage({
       type: WebViewMessageType.TRANSLATE_BY_MACHINE,
       data: {
-        entry: JSON.stringify(translationEntry.value),
+        entryId: translationEntry.value.id,
         originalCode: locale.originalCode,
         targetCode: locale.code,
         aiModel: selectedAIModel.value,
@@ -56,10 +58,37 @@ export function useAITranslation() {
     })
   }
 
+  // Translate single entry by AI
+  function translateSingleByAI(sourceLanguage: string, targetLanguage: string) {
+    // Set translating status
+    isAITranslating.value = true
+    error.value = ''
+
+    // Get selected model
+    const modelIdParts = parseModelId(selectedAIModel.value)
+    const modelInfo = {
+      provider: modelIdParts.provider,
+      modelId: modelIdParts.modelId,
+    }
+
+    // Send message to extension
+    vscodeApi.postMessage({
+      type: WebViewMessageType.AI_TRANSLATE,
+      data: {
+        sourceText: translationEntry.value.id,
+        sourceLanguage,
+        targetLanguage,
+        provider: modelInfo.provider,
+        modelId: modelInfo.modelId,
+        entryId: translationEntry.value.id,
+      },
+    })
+  }
+
   // Translate all untranslated languages by AI
   function translateAllByAI(sourceLanguage: string) {
     // Set translating status
-    isTranslating.value = true
+    isAITranslating.value = true
     error.value = ''
 
     // Get selected model
@@ -87,22 +116,22 @@ export function useAITranslation() {
         },
       })
     }
-    else {
-      // If there is only one language, use single translation
-      const locale = Object.keys(translationEntry.value.locales)[0]
+  }
 
-      // Send message to extension
-      vscodeApi.postMessage({
-        type: WebViewMessageType.AI_TRANSLATE,
-        data: {
-          sourceText: translationEntry.value.id,
-          sourceLanguage,
-          targetLanguage: locale,
-          provider: modelInfo.provider,
-          modelId: modelInfo.modelId,
-          entryId: translationEntry.value.id,
-        },
-      })
+  // Handle machine translation result
+  function handleMachineTranslateResult(
+    data: TranslateByMachineResultData,
+  ) {
+    isMachineTranslating.value = false
+
+    if (data.error) {
+      error.value = data.error
+      return
+    }
+
+    // Update translation entry
+    if (translationEntry.value && data.targetLanguage && data.result) {
+      updateTranslationEntry(data.targetLanguage, data.result)
     }
   }
 
@@ -110,7 +139,7 @@ export function useAITranslation() {
   function handleAITranslateResult(
     data: AITranslateResultData,
   ) {
-    isTranslating.value = false
+    isAITranslating.value = false
 
     if (data.error) {
       error.value = data.error
@@ -127,7 +156,7 @@ export function useAITranslation() {
   function handleAIBatchTranslateResult(
     data: AIBatchTranslateResultData,
   ) {
-    isTranslating.value = false
+    isAITranslating.value = false
 
     if (data.error) {
       error.value = data.error
@@ -161,6 +190,11 @@ export function useAITranslation() {
       }
     })
 
+    // Handle machine translation result
+    vscodeApi.on(WebViewMessageType.TRANSLATE_BY_MACHINE_RESULT, (data: TranslateByMachineResultData) => {
+      handleMachineTranslateResult(data)
+    })
+
     // Handle AI translation result
     vscodeApi.on(WebViewMessageType.AI_TRANSLATE_RESULT, (data: AITranslateResultData) => {
       handleAITranslateResult(data)
@@ -175,11 +209,13 @@ export function useAITranslation() {
   return {
     aiModels,
     selectedAIModel,
-    isTranslating,
+    isAITranslating,
+    isMachineTranslating,
     error,
     updateSelectedModel,
     translateByMachine,
     translateAllByMachine,
+    translateSingleByAI,
     translateAllByAI,
     setupMessageListeners,
   }
