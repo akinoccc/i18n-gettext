@@ -2,6 +2,7 @@
 import type { LocaleIdentifier, ModelInfo, TranslationEntry } from 'types'
 import { FileWarning } from 'lucide-vue-next'
 import { computed, ref, watchEffect } from 'vue'
+import { localesMap } from '../../../constants/locale'
 import ReferencesList from './ReferencesList.vue'
 import TranslationActions from './TranslateActions.vue'
 import TranslationItem from './TranslationItem.vue'
@@ -34,10 +35,25 @@ const locales = computed(() => {
   const availableCodes = Object.keys(props.translationEntry!.locales)
 
   return availableCodes.map((code) => {
+    // 查找匹配的语言配置
+    const localeConfig = localesMap.find(locale =>
+      locale.code === code || locale.alias.includes(code),
+    )
+
+    if (localeConfig) {
+      return {
+        name: localeConfig.name,
+        code,
+        flag: localeConfig.flag,
+        originalCode: code,
+      }
+    }
+
+    // 如果没有找到匹配项，返回默认值
     return {
-      name: code === 'en' ? 'English' : code === 'zh' ? '中文' : code,
+      name: code,
       code,
-      flag: code === 'en' ? '🇺🇸' : code === 'zh' ? '🇨🇳' : '🏳️',
+      flag: '🏳️',
       originalCode: code,
     }
   })

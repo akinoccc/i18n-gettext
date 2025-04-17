@@ -1,6 +1,7 @@
 import type { TreeViewNode } from 'reactive-vscode'
-import { computed, createSingletonComposable, useL10nText, useTreeView, watchEffect } from 'reactive-vscode'
+import { computed, createSingletonComposable, useTreeView } from 'reactive-vscode'
 import * as vscode from 'vscode'
+import { localesMap } from '../../constants/locale'
 import { useScanner, useTranslationsState } from '../composables'
 import { localesConfig } from '../composables/config/useConfig'
 import { logger } from '../utils/logger'
@@ -41,14 +42,25 @@ export const useProgressTreeView = createSingletonComposable(() => {
 
       const isSourceLanguage = localesConfig.value.sourceLanguage === locale
 
-      const label = isSourceLanguage ? `${locale} (${total})` : `${locale} (${translated}/${total})`
+      // 查找匹配的语言配置
+      const localeConfig = localesMap.find(item =>
+        item.code === locale || item.alias.includes(locale),
+      )
+
+      // 获取语言显示名称和国旗
+      const localeName = localeConfig ? localeConfig.name : locale
+      const localeFlag = localeConfig ? localeConfig.flag : '🏳️'
+
+      const label = isSourceLanguage
+        ? `${localeFlag} ${localeName} (${total})`
+        : `${localeFlag} ${localeName} (${translated}/${total})`
       const description = isSourceLanguage ? 'source' : `${percentage}%`
 
       const treeItem: vscode.TreeItem = {
         label,
         description,
         collapsibleState: vscode.TreeItemCollapsibleState.None,
-        tooltip: `${locale}\nTranslation progress: ${percentage}%\nTranslated: ${translated}\nTotal entries: ${total}`,
+        tooltip: `${locale} - ${localeName}\nTranslation progress: ${percentage}%\nTranslated: ${translated}\nTotal entries: ${total}`,
         contextValue: 'localeProgress',
       }
 

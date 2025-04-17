@@ -39,6 +39,7 @@ function handleSingleAITranslate() {
     <LanguageTag
       :code="props.locale.code"
       :flag="props.locale.flag"
+      :name="props.locale.name"
     />
 
     <div class="flex-1 px-3 h-full">
