@@ -190,6 +190,7 @@
     "@types/vscode": "^1.89.0",
     "@vitejs/plugin-vue": "^5.2.3",
     "@vscode/l10n-dev": "^0.0.35",
+    "@vscode/vsce": "^3.3.2",
     "eslint": "^9.24.0",
     "reactive-vscode": "^0.2.14",
     "tsup": "^8.0.2",

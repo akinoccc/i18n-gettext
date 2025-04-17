@@ -51,7 +51,6 @@ jobs:
 
       - name: Package Extension
         run: |
-          npm install -g @vscode/vsce
           npx @vscode/vsce package
 
       - name: Upload VSIX as artifact
