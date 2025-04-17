@@ -219,5 +219,8 @@
     "onlyBuiltDependencies": [
       "esbuild"
     ]
+  },
+  "vsce": {
+    "dependencies": false
   }
 }
