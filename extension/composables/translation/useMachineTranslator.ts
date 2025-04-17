@@ -4,7 +4,6 @@ import { createSingletonComposable } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { WebViewMessageType } from '../../../constants'
 import { logger } from '../../utils'
-import { useConfig } from '../config/useConfig'
 import { usePoEditor } from '../po/usePoEditor'
 import { useTranslationsState } from '../state'
 

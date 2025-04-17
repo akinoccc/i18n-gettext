@@ -13,7 +13,7 @@ export default defineConfig(async () => {
       vue(),
       vueDevTools(),
       unocss(),
-      vscode({ 
+      vscode({
         webview: {
           csp: '<meta http-equiv="Content-Security-Policy" />',
         },

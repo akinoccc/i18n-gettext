@@ -1,4 +1,4 @@
-import type { AIBatchTranslateResultData, AITranslateResultData, ModelInfo, TranslateByMachineResultData, TranslationEntry } from 'types'
+import type { AIBatchTranslateResultData, AITranslateResultData, ModelInfo, TranslateByMachineResultData } from 'types'
 import { ref } from 'vue'
 import { WebViewMessageType } from '../../constants'
 import { useTranslationEntry } from './useTranslationEntry'
