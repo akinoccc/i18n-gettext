@@ -3,9 +3,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "types": ["types"],
-      "constants": ["constants"]
+      "@/*": ["src/*"]
     },
     "declaration": true,
     "declarationMap": true

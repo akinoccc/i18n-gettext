@@ -4,5 +4,5 @@
     "composite": true,
     "moduleResolution": "bundler"
   },
-  "include": ["extension", "vite.config.ts", "constants", "types"]
+  "include": ["extension", "vite.config.ts"]
 }
