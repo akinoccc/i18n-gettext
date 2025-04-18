@@ -26,4 +26,6 @@ export enum WebViewMessageType {
   AI_TRANSLATE_RESULT = 'i18n-gettext.aiTranslateResult',
   // AI batch translation result
   AI_BATCH_TRANSLATE_RESULT = 'i18n-gettext.aiBatchTranslateResult',
+  // Next untranslated entry
+  NEXT_UNTRANSLATED_ENTRY = 'i18n-gettext.nextUntranslatedEntry',
 }

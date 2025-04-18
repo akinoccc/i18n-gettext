@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { LocaleIdentifier, ModelInfo, TranslationEntry } from 'types'
+import { AlertCircle } from 'lucide-vue-next'
 import { computed, ref, watchEffect } from 'vue'
 import { localesMap } from '../../../constants/locale'
 import ReferencesList from './ReferencesList.vue'
@@ -58,6 +59,17 @@ const locales = computed(() => {
   })
 })
 
+// Count untranslated items
+const untranslatedCount = computed(() => {
+  if (!props.translationEntry?.locales)
+    return 0
+
+  // Don't count source language
+  return Object.entries(props.translationEntry.locales)
+    .filter(([code, value]) => code !== props.sourceLanguage && !value)
+    .length
+})
+
 watchEffect(() => {
   if (props.aiModels.length && !selectedModel.value) {
     selectedModel.value = `${props.aiModels[0].provider}:${props.aiModels[0].modelId}`
@@ -110,6 +122,11 @@ function handleTranslateSingleByAI(locale: LocaleIdentifier & { originalCode: st
 
     <!-- Translation Entries -->
     <div class="flex flex-col gap-2">
+      <!-- Untranslated count -->
+      <div v-if="untranslatedCount > 0" class="flex items-center gap-2 mb-2 px-3 py-2 bg-amber-50 text-amber-700 rounded-md">
+        <AlertCircle :size="16" />
+        <span>{{ untranslatedCount }} item{{ untranslatedCount > 1 ? 's' : '' }} need{{ untranslatedCount > 1 ? '' : 's' }} translation</span>
+      </div>
       <TranslationItem
         v-for="locale in locales"
         :key="locale.code"

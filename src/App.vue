@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { WebViewMessageType } from '../constants'
 import TranslationEditor from './components/translation/TranslationEditor.vue'
 import { useAITranslation } from './composables/useAITranslation'
@@ -30,6 +30,22 @@ const {
 // Wait for webview to be ready
 const vscodeApi = useVscodeApi()
 
+// 检测操作系统类型，用于显示正确的快捷键
+const isMac = computed(() => navigator.platform.includes('Mac'))
+
+// Handle keyboard shortcuts
+function handleKeyDown(event: KeyboardEvent) {
+  // Check for Ctrl+Enter or Cmd+Enter
+  if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+    event.preventDefault()
+    // Send message to extension to navigate to next untranslated entry
+    vscodeApi.postMessage({
+      type: WebViewMessageType.NEXT_UNTRANSLATED_ENTRY,
+      data: null,
+    })
+  }
+}
+
 onMounted(() => {
   // Send ready message to extension
   vscodeApi.postMessage({
@@ -40,6 +56,14 @@ onMounted(() => {
   // Set up message listeners
   setupTranslationListeners()
   setupAIListeners()
+
+  // Add keyboard event listener
+  window.addEventListener('keydown', handleKeyDown)
+})
+
+onUnmounted(() => {
+  // Remove keyboard event listener
+  window.removeEventListener('keydown', handleKeyDown)
 })
 
 // Translation related processing
@@ -91,5 +115,13 @@ function handleTranslateSingleByAI(locale: { originalCode: string, code: string 
       @translate-single-by-a-i="handleTranslateSingleByAI"
       @update-selected-model="updateSelectedModel"
     />
+
+    <!-- Keyboard Shortcut Tip -->
+    <div class="flex items-center justify-center mt-16 gap-2 px-3 py-2 text-sm text-gray-400">
+      <kbd class="px-2 py-1 bg-white border border-gray-300 rounded-md shadow-sm font-mono text-xs text-gray-4">
+        {{ isMac ? '⌘' : 'Ctrl' }} + Enter
+      </kbd>
+      <span>to navigate to next untranslated item</span>
+    </div>
   </main>
 </template>

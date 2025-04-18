@@ -1,5 +1,7 @@
 export * from './EditorProvider'
 export * from './EntryListProvider'
 export * from './FileTranslationProvider'
+export * from './GettextDecorationProvider'
+export * from './GettextDefinitionProvider'
 export * from './ProgressProvider'
 export * from './ReferenceDefinitionProvider'

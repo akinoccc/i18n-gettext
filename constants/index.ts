@@ -1,4 +1,5 @@
 export * from './command'
 export * from './editor'
+export * from './gettext'
 export * from './locale'
 export * from './message'

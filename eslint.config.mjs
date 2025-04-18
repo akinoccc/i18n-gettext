@@ -9,5 +9,6 @@ export default antfu({
     'node/prefer-global/process': 'off',
     'no-template-curly-in-string': 'off',
     'ts/no-empty-object-type': 'off',
+    'prefer-regex-literals': 'off',
   },
 })

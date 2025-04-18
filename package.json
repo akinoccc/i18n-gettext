@@ -3,7 +3,7 @@
   "name": "i18n-gettext",
   "displayName": "i18n Gettext",
   "type": "commonjs",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "private": true,
   "description": "VSCode extension for extracting, compiling and managing gettext-based translation strings",
   "repository": {
@@ -87,6 +87,12 @@
         "title": "Show Untranslated Entries",
         "category": "i18n Gettext",
         "icon": "$(warning)"
+      },
+      {
+        "command": "i18n-gettext.nextUntranslatedEntry",
+        "title": "Go to Next Untranslated Entry",
+        "category": "i18n Gettext",
+        "icon": "$(arrow-down)"
       }
     ],
     "viewsContainers": {
@@ -145,7 +151,15 @@
           "group": "filter"
         }
       ]
-    }
+    },
+    "keybindings": [
+      {
+        "command": "i18n-gettext.nextUntranslatedEntry",
+        "key": "ctrl+enter",
+        "mac": "cmd+enter",
+        "when": "webviewId == 'i18n-gettext.translationEditor'"
+      }
+    ]
   },
   "scripts": {
     "build": "vite build",

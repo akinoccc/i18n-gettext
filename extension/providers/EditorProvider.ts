@@ -26,20 +26,24 @@ export class TranslationEditorProvider {
 
   public static render(context: vscode.ExtensionContext) {
     if (TranslationEditorProvider.currentPanel) {
-      TranslationEditorProvider.currentPanel._panel.reveal(vscode.ViewColumn.One)
+      // 第二个参数设置为true，确保面板获得焦点
+      TranslationEditorProvider.currentPanel._panel.reveal(vscode.ViewColumn.Beside, true)
     }
     else {
       const panel = vscode.window.createWebviewPanel(
         EditorType.TRANSLATION_EDITOR,
-        'i18n 翻译编辑器',
+        'i18n Gettext 编辑器',
         vscode.ViewColumn.Beside,
         {
           enableScripts: true,
           retainContextWhenHidden: true,
+          enableCommandUris: true,
         },
       )
 
       TranslationEditorProvider.currentPanel = new TranslationEditorProvider(panel, context)
+      // 确保新创建的面板获得焦点
+      panel.reveal(vscode.ViewColumn.Beside, true)
     }
   }
 

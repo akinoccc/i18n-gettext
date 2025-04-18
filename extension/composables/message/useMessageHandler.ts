@@ -3,7 +3,7 @@ import type { AIBatchTranslateData, AITranslateData, LogData, TranslateByMachine
 
 import { createSingletonComposable } from 'reactive-vscode'
 import * as vscode from 'vscode'
-import { WebViewMessageType } from '../../../constants'
+import { CommandType, WebViewMessageType } from '../../../constants'
 import { logger } from '../../utils/logger'
 import { localesConfig } from '../config/useConfig'
 import { useModelConfig } from '../config/useModelConfig'
@@ -67,6 +67,11 @@ export const useMessageHandler = createSingletonComposable(() => {
 
       case WebViewMessageType.AI_BATCH_TRANSLATE:
         await handleAIBatchTranslate(message.data as AIBatchTranslateData, webview)
+        break
+
+      case WebViewMessageType.NEXT_UNTRANSLATED_ENTRY:
+        // Execute the command to navigate to the next untranslated entry
+        await vscode.commands.executeCommand(CommandType.NEXT_UNTRANSLATED_ENTRY)
         break
     }
   }

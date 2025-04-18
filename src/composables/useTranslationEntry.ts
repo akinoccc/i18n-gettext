@@ -14,6 +14,13 @@ export function useTranslationEntry() {
     if (!translationEntry.value)
       return
 
+    // Check if the value has actually changed
+    const currentValue = translationEntry.value.locales[locale] || ''
+    if (currentValue === value) {
+      // Value hasn't changed, no need to save
+      return
+    }
+
     // Update local state
     translationEntry.value.locales[locale] = value
 

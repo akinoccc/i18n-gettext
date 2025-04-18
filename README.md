@@ -43,7 +43,7 @@ Search for "i18n Gettext" in the VSCode extension marketplace and click install 
 
 6. **Search Translation Entries**:
    Use the search function at the top of the translation panel to quickly find specific translation entries.
-   
+
 7. **Filter Translation Entries**:
    Use the filter buttons at the top of the translation panel to filter and display all/translated/untranslated entries.
 

@@ -9,6 +9,7 @@ export enum CommandType {
   OPEN_TRANSLATION_EDITOR = 'i18n-gettext.openTranslationEditor',
   SEARCH_ENTRIES = 'i18n-gettext.searchEntries',
   CLEAR_SEARCH = 'i18n-gettext.clearSearch',
+  NEXT_UNTRANSLATED_ENTRY = 'i18n-gettext.nextUntranslatedEntry',
 
   // Filter commands
   FILTER_ALL_ENTRIES = 'i18n-gettext.filterAllEntries',

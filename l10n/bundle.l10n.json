@@ -1,7 +1,13 @@
 {
   "i18n gettext extension activated": "i18n gettext extension activated",
   "Successfully registered reference definition provider": "Successfully registered reference definition provider",
+  "Successfully registered definition providers": "Successfully registered definition providers",
+  "Successfully registered providers": "Successfully registered providers",
   "Error registering view: {error}": "Error registering view: {error}",
+  "Error registering providers: {error}": "Error registering providers: {error}",
+  "Failed to parse gettext function: {error}": "Failed to parse gettext function: {error}",
+  "Failed to provide hover: {error}": "Failed to provide hover: {error}",
+  "Translation entry not found: {value}": "Translation entry not found: {value}",
   "Theme changed: {mode}": "Theme changed: {mode}",
   "dark": "dark",
   "light": "light",

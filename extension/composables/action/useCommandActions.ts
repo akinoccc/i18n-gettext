@@ -2,7 +2,9 @@ import type { TranslationEntry } from '../../../types'
 import { createSingletonComposable } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { TranslationEditorProvider, useEntryListTreeView } from '../../providers'
+import { logger } from '../../utils'
 import { useTranslationsState } from '../state'
+import { useTranslationEntries } from '../state/useTranslationEntries'
 
 /**
  * Command operation composable function
@@ -55,6 +57,64 @@ export const useCommandActions = createSingletonComposable(() => {
   function selectEntry(context: vscode.ExtensionContext, entry: TranslationEntry) {
     TranslationEditorProvider.render(context)
     useTranslationsState().setSelectedEntry(entry)
+
+    // 确保WebView面板获得焦点
+    if (TranslationEditorProvider.currentPanel) {
+      TranslationEditorProvider.currentPanel._panel.reveal(vscode.ViewColumn.Beside, true) // 第二个参数true表示保持焦点
+    }
+  }
+
+  /**
+   * 打开翻译编辑器
+   */
+  function openTranslationEditor(context: vscode.ExtensionContext): void {
+    TranslationEditorProvider.render(context)
+  }
+
+  /**
+   * Navigate to the next untranslated entry
+   */
+  function nextUntranslatedEntry(context: vscode.ExtensionContext): void {
+    const { selectedEntry, translationTree } = useTranslationsState()
+    const translationEntries = useTranslationEntries()
+
+    // If there's no translation tree or no entries, show a message and return
+    if (!translationTree.value || !translationTree.value.entries.length) {
+      logger.info(vscode.l10n.t('No translation entries available'))
+      vscode.window.showInformationMessage(vscode.l10n.t('No translation entries available'))
+      return
+    }
+
+    // Get all untranslated entries
+    const untranslatedEntries = translationEntries.filteredEntries.value.filter(entry => entry.hasUntranslated)
+
+    // If there are no untranslated entries, show a message and return
+    if (!untranslatedEntries.length) {
+      logger.info(vscode.l10n.t('No untranslated entries found'))
+      vscode.window.showInformationMessage(vscode.l10n.t('No untranslated entries found'))
+      return
+    }
+
+    // If there's no selected entry, select the first untranslated entry
+    if (!selectedEntry.value) {
+      logger.info(vscode.l10n.t('Selecting first untranslated entry'))
+      selectEntry(context, untranslatedEntries[0])
+      return
+    }
+
+    // Find the index of the current selected entry in the untranslated entries
+    const currentIndex = untranslatedEntries.findIndex(entry => entry.id === selectedEntry.value?.id)
+
+    // If the current entry is not found or it's the last one, select the first untranslated entry
+    if (currentIndex === -1 || currentIndex === untranslatedEntries.length - 1) {
+      logger.info(vscode.l10n.t('Selecting first untranslated entry'))
+      selectEntry(context, untranslatedEntries[0])
+    }
+    else {
+      // Select the next untranslated entry
+      logger.info(vscode.l10n.t('Selecting next untranslated entry'))
+      selectEntry(context, untranslatedEntries[currentIndex + 1])
+    }
   }
 
   return {
@@ -64,5 +124,7 @@ export const useCommandActions = createSingletonComposable(() => {
     filterTranslatedEntries,
     filterUntranslatedEntries,
     selectEntry,
+    openTranslationEditor,
+    nextUntranslatedEntry,
   }
 })

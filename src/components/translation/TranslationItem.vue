@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { LocaleIdentifier } from 'types'
-import { Bot, Languages } from 'lucide-vue-next'
+import { AlertCircle, Bot, Languages } from 'lucide-vue-next'
+import { computed, ref, watch } from 'vue'
 import LanguageTag from './LanguageTag.vue'
 
 interface Props {
@@ -20,9 +21,39 @@ const emit = defineEmits<{
   'translateSingleByAI': []
 }>()
 
+// Track the original value to compare with changes
+const originalValue = ref(props.value)
+
+// Update originalValue when props.value changes (e.g., from machine translation)
+watch(() => props.value, (newValue) => {
+  originalValue.value = newValue
+})
+
+// Computed property to check if the item is untranslated
+const isUntranslated = computed(() => {
+  return !props.isSource && !props.value
+})
+
 function handleChange(e: Event) {
   const target = e.target as HTMLInputElement
-  emit('update:value', target.value)
+  const newValue = target.value
+
+  // Only emit update if the value has actually changed
+  if (newValue !== originalValue.value) {
+    originalValue.value = newValue // Update our tracked value
+    emit('update:value', newValue)
+  }
+}
+
+function handleBlur(e: Event) {
+  const target = e.target as HTMLInputElement
+  const newValue = target.value
+
+  // Only emit update if the value has actually changed
+  if (newValue !== originalValue.value) {
+    originalValue.value = newValue // Update our tracked value
+    emit('update:value', newValue)
+  }
 }
 
 function handleMachineTranslate() {
@@ -35,7 +66,7 @@ function handleSingleAITranslate() {
 </script>
 
 <template>
-  <div class="flex items-center h-12 border border-gray-200 rounded-md overflow-hidden bg-white hover:border-gray-300 transition-colors duration-200">
+  <div class="flex items-center h-12 border border-gray-200 rounded-md overflow-hidden bg-white hover:border-gray-300 transition-colors duration-200" :class="{ 'border-amber-300': isUntranslated }">
     <LanguageTag
       :code="props.locale.code"
       :flag="props.locale.flag"
@@ -46,13 +77,23 @@ function handleSingleAITranslate() {
       <input
         :value="props.value"
         class="w-full h-full bg-transparent border-0 focus:outline-none text-gray-700 placeholder:text-gray-400"
+        :class="{ 'bg-amber-50/30': isUntranslated }"
         :placeholder="props.placeholder"
-        @blur="(e) => emit('update:value', (e.target as HTMLInputElement).value)"
+        @blur="handleBlur"
         @change="handleChange"
       >
     </div>
 
     <div class="flex items-center pr-3 gap-2 h-full">
+      <!-- Untranslated indicator -->
+      <div
+        v-if="isUntranslated"
+        class="flex items-center gap-1 px-2 py-1 text-xs font-medium bg-amber-50 text-amber-600 rounded"
+        title="Untranslated"
+      >
+        <AlertCircle :size="14" />
+        <span class="hidden sm:inline">Untranslated</span>
+      </div>
       <div
         v-if="props.isSource"
         class="px-2 py-1 text-xs font-medium bg-gray-50 text-gray-600 rounded"

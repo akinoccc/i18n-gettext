@@ -6,7 +6,7 @@ import {
 import * as vscode from 'vscode'
 import { registerCommands } from './commands'
 import { useAITranslator } from './composables'
-import { ReferenceDefinitionProvider, useEntryListTreeView, useFileTranslationTreeView, useProgressTreeView } from './providers'
+import { GettextDecorationProvider, GettextDefinitionProvider, useEntryListTreeView, useFileTranslationTreeView, useProgressTreeView } from './providers'
 import { logger } from './utils'
 
 export const { activate, deactivate } = defineExtension(async (context) => {
@@ -20,26 +20,72 @@ export const { activate, deactivate } = defineExtension(async (context) => {
   useFileTranslationTreeView()
   useProgressTreeView()
 
-  // Create view provider instance
-  const definitionProvider = new ReferenceDefinitionProvider()
+  // Create view provider instances
+  // const referenceDefinitionProvider = new ReferenceDefinitionProvider()
+  const gettextDefinitionProvider = new GettextDefinitionProvider(context)
+  const gettextDecorationProvider = new GettextDecorationProvider()
 
-  // Register view
+  // Supported languages for i18n functions
+  const supportedLanguages = [
+    'typescript',
+    'javascript',
+    'typescriptreact',
+    'javascriptreact',
+    'vue',
+    'html',
+    'golang',
+    'python',
+    'php',
+    'java',
+    'csharp',
+    'ruby',
+    'rust',
+    'swift',
+    'kotlin',
+    'scala',
+    'groovy',
+    'dart',
+    'lua',
+    'perl',
+    'r',
+    'julia',
+    'elixir',
+    'erlang',
+    'haskell',
+    'clojure',
+    'lisp',
+    'scheme',
+    'fortran',
+    'cobol',
+    'ada',
+    'pascal',
+    'delphi',
+    'objectivec',
+    'objective-c',
+    'smalltalk',
+    'apl',
+  ]
+
+  // Register providers
   try {
-    // Translation view is automatically registered through composables, only need to register reference definition provider here
+    // Translation view is automatically registered through composables, only need to register definition providers here
     context.subscriptions.push(
       vscode.languages.registerDefinitionProvider(
-        ['typescript', 'javascript', 'typescriptreact', 'javascriptreact'],
-        definitionProvider,
+        supportedLanguages,
+        gettextDefinitionProvider,
       ),
     )
-    logger.info(vscode.l10n.t('Successfully registered reference definition provider'))
+    logger.info(vscode.l10n.t('Successfully registered providers'))
   }
   catch (error) {
-    logger.error(vscode.l10n.t('Error registering view: {error}', { error }))
+    logger.error(vscode.l10n.t('Error registering providers: {error}', { error }))
   }
 
   // Register all commands
   registerCommands(context)
+
+  // Add decoration provider to disposables
+  context.subscriptions.push(gettextDecorationProvider)
 
   // Calculate workspace state
   // const workspaceState = computed(() => {
