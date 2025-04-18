@@ -8,10 +8,10 @@ interface VscodeApi {
   off: (type: string, callback: Function) => void
 }
 
-export function useVscodeApi(): VscodeApi {
   // Get VSCode API
   const vscode = new WebviewApi<string>()
 
+export function useVscodeApi(): VscodeApi {
   return {
     // Send message to extension
     postMessage(message: any) {
