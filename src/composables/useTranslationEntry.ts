@@ -1,14 +1,12 @@
 import type { TranslationEntry } from '../../types'
 import { ref } from 'vue'
 import { WebViewMessageType } from '../../constants'
-import { useVscodeApi } from './useVscodeApi'
+import { vscodeApi } from '../utils'
 
+const sourceLanguage = ref('')
 const translationEntry = ref<TranslationEntry>()
 
 export function useTranslationEntry() {
-  const vscodeApi = useVscodeApi()
-  const sourceLanguage = ref('')
-
   // Save translation content
   function saveTranslation(locale: string, value: string) {
     if (!translationEntry.value)
@@ -58,6 +56,7 @@ export function useTranslationEntry() {
     vscodeApi.on(WebViewMessageType.SELECT_ENTRY, (entry: TranslationEntry & { sourceLanguage: string }) => {
       translationEntry.value = entry
       sourceLanguage.value = entry.sourceLanguage
+      vscodeApi.setState(JSON.stringify(entry))
     })
   }
 

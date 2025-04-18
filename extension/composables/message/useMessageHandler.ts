@@ -233,6 +233,9 @@ export const useMessageHandler = createSingletonComposable(() => {
    * @param entry Translation entry
    */
   function sendSelectEntryMessage(webview: Webview, entry?: TranslationEntry): Thenable<boolean> {
+    if (!entry)
+      return Promise.resolve(false)
+
     return webview.postMessage({
       type: WebViewMessageType.SELECT_ENTRY,
       data: {

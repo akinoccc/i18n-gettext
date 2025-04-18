@@ -13,7 +13,6 @@ export function registerCommands(context: ExtensionContext): void {
   // Register public commands
   useVscodeCommands({
     [CommandType.SELECT_ENTRY]: (entry: TranslationEntry) => commandActions.selectEntry(context, entry),
-    [CommandType.OPEN_TRANSLATION_EDITOR]: () => commandActions.openTranslationEditor(context),
     [CommandType.SEARCH_ENTRIES]: commandActions.searchEntries,
     [CommandType.CLEAR_SEARCH]: commandActions.clearSearch,
     [CommandType.FILTER_ALL_ENTRIES]: commandActions.filterAllEntries,

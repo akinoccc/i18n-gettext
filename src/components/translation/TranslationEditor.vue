@@ -8,7 +8,7 @@ import TranslationActions from './TranslateActions.vue'
 import TranslationItem from './TranslationItem.vue'
 
 interface Props {
-  translationEntry: TranslationEntry
+  translationEntry?: TranslationEntry
   aiModels: ModelInfo[]
   sourceLanguage: string
   isAITranslating: boolean

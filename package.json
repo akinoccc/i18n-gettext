@@ -20,7 +20,8 @@
     "vscode": "^1.89.0"
   },
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onWebviewPanel:i18n-gettext.translationEditor"
   ],
   "contributes": {
     "configuration": {
@@ -51,12 +52,6 @@
         "title": "Select Entry",
         "category": "i18n Gettext",
         "icon": "$(globe)"
-      },
-      {
-        "command": "i18n-gettext.openTranslationEditor",
-        "title": "Open Translation Editor",
-        "category": "i18n Gettext",
-        "icon": "$(edit)"
       },
       {
         "command": "i18n-gettext.searchEntries",

@@ -4,7 +4,7 @@ import { WebViewMessageType } from '../constants'
 import TranslationEditor from './components/translation/TranslationEditor.vue'
 import { useAITranslation } from './composables/useAITranslation'
 import { useTranslationEntry } from './composables/useTranslationEntry'
-import { useVscodeApi } from './composables/useVscodeApi'
+import { vscodeApi } from './utils'
 
 const {
   translationEntry,
@@ -26,9 +26,6 @@ const {
   translateAllByAI,
   setupMessageListeners: setupAIListeners,
 } = useAITranslation()
-
-// Wait for webview to be ready
-const vscodeApi = useVscodeApi()
 
 // 检测操作系统类型，用于显示正确的快捷键
 const isMac = computed(() => navigator.platform.includes('Mac'))

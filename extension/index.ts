@@ -4,9 +4,10 @@ import {
   watchEffect,
 } from 'reactive-vscode'
 import * as vscode from 'vscode'
+import { EditorType } from '../constants'
 import { registerCommands } from './commands'
 import { useAITranslator } from './composables'
-import { GettextDecorationProvider, GettextDefinitionProvider, useEntryListTreeView, useFileTranslationTreeView, useProgressTreeView } from './providers'
+import { GettextDecorationProvider, GettextDefinitionProvider, TranslationEditorProvider, useEntryListTreeView, useFileTranslationTreeView, useProgressTreeView } from './providers'
 import { logger } from './utils'
 
 export const { activate, deactivate } = defineExtension(async (context) => {
@@ -75,6 +76,18 @@ export const { activate, deactivate } = defineExtension(async (context) => {
         gettextDefinitionProvider,
       ),
     )
+
+    // Register webview panel serializer to restore webview state after reload
+    context.subscriptions.push(
+      vscode.window.registerWebviewPanelSerializer(EditorType.TRANSLATION_EDITOR, {
+        async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any) {
+          logger.info(vscode.l10n.t('Deserializing webview panel'), typeof state)
+          // Restore the webview panel with its state
+          TranslationEditorProvider.deserialize(context, state, webviewPanel)
+        },
+      }),
+    )
+
     logger.info(vscode.l10n.t('Successfully registered providers'))
   }
   catch (error) {

@@ -1,11 +1,10 @@
 import type { AIBatchTranslateResultData, AITranslateResultData, ModelInfo, TranslateByMachineResultData } from '../../types'
 import { ref } from 'vue'
 import { WebViewMessageType } from '../../constants'
+import { vscodeApi } from '../utils'
 import { useTranslationEntry } from './useTranslationEntry'
-import { useVscodeApi } from './useVscodeApi'
 
 export function useAITranslation() {
-  const vscodeApi = useVscodeApi()
   const aiModels = ref<ModelInfo[]>([])
   const selectedAIModel = ref<string>('')
   const isAITranslating = ref(false)

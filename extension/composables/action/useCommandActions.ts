@@ -54,21 +54,35 @@ export const useCommandActions = createSingletonComposable(() => {
     entryListTreeView.setFilterType('untranslated')
   }
 
+  /**
+   * Select a translation entry and open it in the editor
+   * @param context Extension context
+   * @param entry Translation entry to select
+   */
   function selectEntry(context: vscode.ExtensionContext, entry: TranslationEntry) {
-    TranslationEditorProvider.render(context)
+    // Render the editor panel and ensure it's focused
+    const panel = TranslationEditorProvider.render(context)
+
+    // Set the selected entry in the state
     useTranslationsState().setSelectedEntry(entry)
 
-    // 确保WebView面板获得焦点
-    if (TranslationEditorProvider.currentPanel) {
-      TranslationEditorProvider.currentPanel._panel.reveal(vscode.ViewColumn.Beside, true) // 第二个参数true表示保持焦点
+    // Ensure the WebView panel gets focus
+    if (panel) {
+      panel._panel.reveal(vscode.ViewColumn.Beside, true) // Second parameter true ensures focus
     }
   }
 
   /**
-   * 打开翻译编辑器
+   * Open the translation editor
+   * @param context Extension context
    */
   function openTranslationEditor(context: vscode.ExtensionContext): void {
-    TranslationEditorProvider.render(context)
+    const panel = TranslationEditorProvider.render(context)
+
+    // Ensure the WebView panel gets focus
+    if (panel) {
+      panel._panel.reveal(vscode.ViewColumn.Beside, true)
+    }
   }
 
   /**
