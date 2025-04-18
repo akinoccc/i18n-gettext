@@ -3,7 +3,7 @@ import * as vscode from 'vscode'
 import { logger } from '../utils/logger'
 
 // 文件引用定义提供者类
-export class ReferenceDefinitionProvider implements vscode.DefinitionProvider {
+export class ReferenceDefinitionProvider {
   // 使用响应式API获取工作区文件夹
   private workspaceFolders = useWorkspaceFolders()
 
