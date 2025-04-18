@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景形状：简洁的方形带圆角 -->
+  <rect x="1.5" y="1.5" width="13" height="13" rx="3" fill="#202E45" stroke="#5B9AEA" stroke-width="1"/>
+  
+  <!-- 简化的翻译箭头 -->
+  <path d="M4 5.5L6 3.5L8 5.5" stroke="#5B9AEA" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M12 10.5L10 12.5L8 10.5" stroke="#FF7B6B" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- 更清晰的i18n字样 -->
+  <rect x="4" y="6.5" width="8" height="3" fill="#202E45" rx="1"/>
+  <text x="4.5" y="9" font-family="Arial" font-size="3.5" font-weight="bold" fill="#FF7B6B">i18n</text>
+</svg>

@@ -9,6 +9,18 @@ export class TranslationEditorProvider {
   public readonly _panel: vscode.WebviewPanel
   private _disposables: vscode.Disposable[] = []
 
+  /**
+   * 设置 webview 面板的图标
+   * @param panel WebviewPanel 实例
+   * @param context 扩展上下文
+   */
+  private static setWebviewIcon(panel: vscode.WebviewPanel, context: vscode.ExtensionContext): void {
+    panel.iconPath = {
+      light: vscode.Uri.joinPath(context.extensionUri, 'resources', 'i18n-gettext-light.svg'),
+      dark: vscode.Uri.joinPath(context.extensionUri, 'resources', 'i18n-gettext-dark.svg'),
+    }
+  }
+
   private constructor(panel: vscode.WebviewPanel, context: vscode.ExtensionContext) {
     this._panel = panel
     const { selectedEntry } = useTranslationsState()
@@ -49,6 +61,9 @@ export class TranslationEditorProvider {
         },
       )
 
+      // 设置 webview 面板的图标
+      TranslationEditorProvider.setWebviewIcon(panel, context)
+
       TranslationEditorProvider.currentPanel = new TranslationEditorProvider(panel, context)
       // 确保新创建的面板获得焦点
       panel.reveal(viewColumn, true)
@@ -66,6 +81,9 @@ export class TranslationEditorProvider {
    */
   public static deserialize(context: vscode.ExtensionContext, state: any, panel: vscode.WebviewPanel) {
     logger.info('Deserializing translation editor panel')
+
+    // 设置 webview 面板的图标
+    TranslationEditorProvider.setWebviewIcon(panel, context)
 
     // Create a new panel instance with the restored panel
     TranslationEditorProvider.currentPanel = new TranslationEditorProvider(panel, context)

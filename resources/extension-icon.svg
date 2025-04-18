@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 添加圆角边框 -->
+  <rect x="2" y="2" width="20" height="20" rx="3" stroke="#424242" stroke-width="1.5" fill="none"/>
+  
+  <!-- 添加i18n文本标识 -->
+  <text x="5.5" y="15.5" font-family="Arial, sans-serif" font-size="7" font-weight="bold" fill="#424242">i18n</text>
+  
+  <!-- 添加翻译方向指示箭头 -->
+  <path d="M6 7L9 4.5L12 7" stroke="#424242" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M18 17L15 19.5L12 17" stroke="#424242" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

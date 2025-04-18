@@ -15,6 +15,7 @@
     "Other"
   ],
   "main": "./dist/extension/index.js",
+  "icon": "resources/extension-icon.png",
   "l10n": "./l10n",
   "engines": {
     "vscode": "^1.89.0"
@@ -95,7 +96,7 @@
         {
           "id": "i18n-gettext",
           "title": "i18n Gettext",
-          "icon": "$(globe)"
+          "icon": "resources/extension-icon.svg"
         }
       ]
     },
