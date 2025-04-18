@@ -1,4 +1,3 @@
-import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import vscode from '@tomjs/vite-plugin-vscode'
 import vue from '@vitejs/plugin-vue'

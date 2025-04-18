@@ -8,8 +8,8 @@ interface VscodeApi {
   off: (type: string, callback: Function) => void
 }
 
-  // Get VSCode API
-  const vscode = new WebviewApi<string>()
+// Get VSCode API
+const vscode = new WebviewApi<string>()
 
 export function useVscodeApi(): VscodeApi {
   return {
