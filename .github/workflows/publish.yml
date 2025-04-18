@@ -53,9 +53,6 @@ jobs:
       - name: Build Extension
         run: pnpm run build
 
-      - name: Install vsce
-        run: pnpm add -g @vscode/vsce
-
       - name: Package Extension
         run: npx @vscode/vsce package
 
