@@ -1,48 +1,58 @@
-# i18n Gettext for VsCode
+# i18n Gettext for VSCode
 
-基于Gettext的VSCode国际化翻译管理扩展，帮助您轻松处理多语言项目的翻译工作。
+English | [简体中文](./README.md)
 
-## 功能特点
+A VSCode extension for managing Gettext-based internationalization translations, helping you easily handle multilingual project translations.
 
-- 🌍 **翻译管理**：集中管理和编辑 PO 翻译文件
-- 🔍 **快速搜索**：轻松查找和导航翻译条目
-- 📊 **翻译进度**：直观显示项目翻译完成度
-- 🔄 **自动翻译**：支持 Google 翻译等多种翻译引擎（暂只支持 Google）
-- 📝 **编辑器集成**：专用的翻译编辑界面
-- 🔗 **引用导航**：支持从代码直接跳转到对应的翻译条目
-- 📱 **文件监听**：自动检测并同步翻译文件变化
+## Features
 
-## 安装
+- 🌍 **Translation Management**: Centrally manage and edit PO translation files
+- 🔍 **Quick Search**: Easily find and navigate translation entries
+- 📊 **Translation Progress**: Visually display project translation completion
+- 🤖 **AI Translation**: Support multiple AI models for high-quality translation, including OpenAI, Anthropic, Mistral, etc.
+- 🔄 **Machine Translation**: Support machine translation engines like Google Translate
+- 📝 **Editor Integration**: Dedicated translation editing interface
+- 🔗 **Reference Navigation**: Jump directly from code to corresponding translation entries
+- 📱 **File Monitoring**: Automatically detect and synchronize translation file changes
+- 🔢 **Entry Filtering**: Filter by all/translated/untranslated entries
 
-在VSCode扩展商店中搜索"i18n Gettext"，点击安装即可使用。
+## Installation
 
-## 要求
+Search for "i18n Gettext" in the VSCode extension marketplace and click install to use.
 
-- VSCode 1.89.0 或更高版本
+## Requirements
 
-## 使用方法
+- VSCode 1.89.0 or higher
 
-1. **配置翻译文件路径**：
-   扩展默认配置翻译文件位于 `src/language/${locale}/${domain}.po`，您可以根据您的项目结构进行自定义。
+## Usage
 
-2. **访问翻译管理面板**：
-   点击活动栏中的"i18n Gettext"图标，即可打开翻译管理面板。
+1. **Configure Translation File Path**:
+   The extension defaults to translation files located at `src/language/${locale}/${domain}.po`, which you can customize according to your project structure.
 
-3. **查看当前文件翻译**：
-   打开包含国际化字符串的文件，在翻译面板中将显示该文件中的所有翻译内容。
+2. **Access Translation Management Panel**:
+   Click the "i18n Gettext" icon in the activity bar to open the translation management panel.
 
-4. **编辑翻译**：
-   点击任意翻译条目右侧的编辑图标，即可打开翻译编辑器。
+3. **View Current File Translations**:
+   Open a file containing internationalized strings, and all translations in that file will be displayed in the translation panel.
 
-5. **查看翻译进度**：
-   在"翻译进度"视图中，可以查看项目中各语言的翻译完成度。
+4. **Edit Translations**:
+   Click the edit icon to the right of any translation entry to open the translation editor.
 
-6. **搜索翻译条目**：
-   使用翻译面板顶部的搜索功能，可以快速查找特定的翻译条目。
+5. **View Translation Progress**:
+   In the "Translation Progress" view, you can see the translation completion status for each language in the project.
 
-## 配置选项
+6. **Search Translation Entries**:
+   Use the search function at the top of the translation panel to quickly find specific translation entries.
+   
+7. **Filter Translation Entries**:
+   Use the filter buttons at the top of the translation panel to filter and display all/translated/untranslated entries.
 
-在VSCode设置中，可以找到"i18n Gettext"部分，配置以下选项：
+8. **Use AI Translation**:
+   In the translation editor, you can select AI models for single or batch translation.
+
+## Configuration Options
+
+In VSCode settings, you can find the "i18n Gettext" section to configure the following options:
 
 ```json
 {
@@ -57,31 +67,75 @@
 }
 ```
 
-- **type**：翻译文件组织方式，支持以下几种类型：
-  - **flat**：所有翻译文件位于同一目录层级，通常使用 `${locale}.${domain}.po` 格式命名
-  - **nested**：翻译文件按语言代码分层组织，形如 `${locale}/${domain}.po`
-  - **domain**：翻译文件按域名分层组织，形如 `${domain}/${locale}.po`
-  - **custom**：自定义组织方式，完全按照 pattern 定义的模式组织
-- **basePath**：翻译文件根目录
-- **pattern**：翻译文件路径模式，使用 `${locale}` 和 `${domain}` 占位符
-- **defaultDomain**：默认域名
-- **sourceLanguage**：源语言代码
-- **translator.engines**：支持的翻译引擎
+- **type**: Translation file organization method, supporting the following types:
+  - **flat**: All translation files are at the same directory level, typically named in the format `${locale}.${domain}.po`
+  - **nested**: Translation files organized by language code, like `${locale}/${domain}.po`
+  - **domain**: Translation files organized by domain name, like `${domain}/${locale}.po`
+  - **custom**: Custom organization, completely following the pattern defined in the pattern
+- **basePath**: Root directory for translation files
+- **pattern**: Translation file path pattern, using `${locale}` and `${domain}` placeholders
+- **defaultDomain**: Default domain name
+- **sourceLanguage**: Source language code
+- **translator.engines**: Supported translation engines
 
-## 提示与技巧
+## AI Translation Configuration
 
-- 在代码中可以通过定义跳转直接导航到对应的翻译条目
-- 在翻译编辑器中，可以一次性编辑多个语言的翻译
-- 对于大型项目，可以通过搜索功能快速定位需要修改的翻译
+To use the AI translation feature, you need to create a `.i18n-gettext.secret` configuration file in the project root directory or `.vscode` directory, formatted as follows:
 
-## 问题反馈
+```json
+{
+  "ai": [
+    {
+      "provider": "openai",
+      "modelId": "gpt-4o",
+      "apiKey": "your-api-key"
+    },
+    {
+      "provider": "anthropic",
+      "modelId": "claude-3-opus-20240229",
+      "apiKey": "your-api-key"
+    }
+  ]
+}
+```
 
-如果您在使用过程中遇到任何问题，或者有功能建议，请在GitHub上提交issue。
+Supported AI providers include:
+- openai
+- anthropic
+- mistral
+- groq
+- cohere
+- perplexity
+- deepseek
+- amazon-bedrock
+- azure
+- google-vertex
+- and many other AI model providers
 
-## 许可证
+## Tips and Tricks
+
+- You can navigate directly to corresponding translation entries through definition jumps in the code
+- In the translation editor, you can edit translations for multiple languages at once
+- For large projects, you can quickly locate translations that need modification using the search function
+- The AI batch translation feature can translate multiple languages simultaneously, improving efficiency
+- The translation entry list supports filtering by all/translated/untranslated entries for easier management
+
+## Architecture Features
+
+- Based on Vue 3 Composition API style composable function architecture
+- Uses the reactive system provided by the reactive-vscode library for state management
+- Adopts singleton pattern composable functions to ensure state consistency
+- Clear dependency relationships, avoiding circular dependencies
+- Reactive state automatically handles dependency relationship changes
+
+## Feedback
+
+If you encounter any issues during use or have feature suggestions, please submit an issue on [GitHub](https://github.com/akinoccc/i18n-gettext).
+
+## License
 
 [MIT](./LICENSE)
 
 ---
 
-**享受更便捷的国际化开发体验！**
+**Enjoy a more convenient internationalization development experience!**

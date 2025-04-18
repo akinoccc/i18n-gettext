@@ -24,3 +24,4 @@ scripts/**
 **/.nvmrc
 **/.pnpm-lock.yaml
 **/.DS_Store
+*.vsix
