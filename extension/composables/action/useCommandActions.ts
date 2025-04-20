@@ -60,11 +60,10 @@ export const useCommandActions = createSingletonComposable(() => {
    * @param entry Translation entry to select
    */
   function selectEntry(context: vscode.ExtensionContext, entry: TranslationEntry) {
-    // Render the editor panel and ensure it's focused
-    const panel = TranslationEditorProvider.render(context)
-
     // Set the selected entry in the state
     useTranslationsState().setSelectedEntry(entry)
+    // Render the editor panel and ensure it's focused
+    const panel = TranslationEditorProvider.render(context)
 
     // Ensure the WebView panel gets focus
     if (panel) {

@@ -32,6 +32,10 @@ export function useTranslationLoader() {
     return folders.length > 0 ? folders[0].uri.fsPath : ''
   })
 
+  function buildItemKey(msgid: string, msgctxt: string): string {
+    return `${msgid}:${msgctxt}`
+  }
+
   /**
    * 获取 gettext-parser 模块
    */
@@ -63,6 +67,7 @@ export function useTranslationLoader() {
   function extractTranslations(poData: PoData, locale: string): Record<
     string,
     {
+      msgid: string
       msgstr: string
       msgctxt: string
       references: string[]
@@ -71,6 +76,7 @@ export function useTranslationLoader() {
     const translations: Record<
       string,
       {
+        msgid: string
         msgstr: string
         msgctxt: string
         references: string[]
@@ -91,7 +97,8 @@ export function useTranslationLoader() {
 
         const translation = messages[msgid]
         // 使用第一个翻译（单数形式）
-        translations[msgid] = {
+        translations[buildItemKey(msgid, translation.msgctxt)] = {
+          msgid,
           msgstr: translation.msgstr[0] || '',
           msgctxt: translation.msgctxt || '',
           references: translation.comments?.reference?.split('\n') || [],
@@ -378,8 +385,8 @@ export function useTranslationLoader() {
       }
 
       // 将翻译添加到条目映射
-      Object.keys(translations).forEach((msgid) => {
-        const translation = translations[msgid]
+      Object.keys(translations).forEach((itemKey) => {
+        const translation = translations[itemKey]
 
         if (translation.msgstr || poFile.locale === config.sourceLanguage) {
           stats.translated++
@@ -389,19 +396,19 @@ export function useTranslationLoader() {
         }
         stats.total++
 
-        const entry = entriesMap.get(msgid)
+        const entry = entriesMap.get(itemKey)
         if (entry) {
           if (!translation.msgstr && poFile.locale !== config.sourceLanguage) {
             entry.hasUntranslated = true
           }
           // 已有此条目，添加此语言的翻译
           entry.locales[poFile.locale] = translation.msgstr
-          entriesMap.set(msgid, entry)
+          entriesMap.set(itemKey, entry)
         }
         else {
           // 创建新条目
-          entriesMap.set(msgid, {
-            id: msgid,
+          entriesMap.set(itemKey, {
+            id: translation.msgid,
             msgctxt: translation.msgctxt,
             locales: { [poFile.locale]: translation.msgstr },
             references: translation.references,
