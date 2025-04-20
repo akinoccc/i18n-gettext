@@ -66,7 +66,7 @@ function handleSingleAITranslate() {
 </script>
 
 <template>
-  <div class="flex items-center h-12 border border-gray-200 rounded-md overflow-hidden bg-white hover:border-gray-300 transition-colors duration-200" :class="{ 'border-amber-300': isUntranslated }">
+  <div class="flex items-center h-12 border border-truegray-200 rounded-md overflow-hidden bg-white hover:border-truegray-300 dark:bg-truegray-900 dark:border-truegray-700 dark:hover:border-truegray-500 transition-colors duration-200" :class="{ 'border-amber-300': isUntranslated }">
     <LanguageTag
       :code="props.locale.code"
       :flag="props.locale.flag"
@@ -76,7 +76,7 @@ function handleSingleAITranslate() {
     <div class="flex-1 px-3 h-full">
       <input
         :value="props.value"
-        class="w-full h-full bg-transparent border-0 focus:outline-none text-gray-700 placeholder:text-gray-400"
+        class="w-full h-full bg-transparent border-0 focus:outline-none text-gray-700 placeholder:text-gray-400 dark:text-truegray-300 dark:placeholder:text-truegray-600"
         :class="{ 'bg-amber-50/30': isUntranslated }"
         :placeholder="props.placeholder"
         @blur="handleBlur"
@@ -88,7 +88,7 @@ function handleSingleAITranslate() {
       <!-- Untranslated indicator -->
       <div
         v-if="isUntranslated"
-        class="flex items-center gap-1 px-2 py-1 text-xs font-medium bg-amber-50 text-amber-600 rounded"
+        class="flex items-center gap-1 px-2 py-1 text-xs font-medium bg-amber-50 text-amber-600 dark:bg-amber-900 dark:text-amber-400 rounded"
         title="Untranslated"
       >
         <AlertCircle :size="14" />
@@ -96,13 +96,13 @@ function handleSingleAITranslate() {
       </div>
       <div
         v-if="props.isSource"
-        class="px-2 py-1 text-xs font-medium bg-gray-50 text-gray-600 rounded"
+        class="px-2 py-1 text-xs font-medium bg-gray-50 text-gray-600 dark:bg-truegray-800 dark:text-truegray-400 rounded"
       >
         source
       </div>
       <div v-else class="flex gap-2">
         <button
-          class="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium bg-blue-50 text-blue-600 rounded hover:bg-blue-100 dark:bg-blue-700 dark:text-blue-100 dark:hover:bg-blue-800 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           :disabled="props.isMachineTranslating || props.isAITranslating"
           @click="handleMachineTranslate"
         >
@@ -118,7 +118,7 @@ function handleSingleAITranslate() {
         <button
           v-if="props.selectedModel"
           :disabled="props.isAITranslating || props.isMachineTranslating"
-          class="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium bg-purple-50 text-purple-600 rounded hover:bg-purple-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium bg-purple-50 text-purple-600 rounded hover:bg-purple-100 dark:bg-purple-700 dark:text-purple-400 dark:hover:bg-purple-800 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           @click="handleSingleAITranslate"
         >
           <span v-if="props.isAITranslating" class="flex items-center gap-2">

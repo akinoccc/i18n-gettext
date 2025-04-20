@@ -23,9 +23,9 @@ function handleReferenceClick(reference: string) {
 </script>
 
 <template>
-  <div v-if="props.references?.length" class="border border-gray-200 rounded-md overflow-hidden bg-white">
+  <div v-if="props.references?.length" class="border bg-white border-truegray-200 dark:bg-truegray-900 dark:border-truegray-700 rounded-md overflow-hidden">
     <div
-      class="py-2 px-3 bg-gray-50 flex items-center gap-2 cursor-pointer select-none hover:bg-gray-100 transition-colors duration-200"
+      class="py-2 px-3 bg-truegray-50 hover:(bg-truegray-100 bg-truegray-700) dark:bg-truegray-800 flex items-center gap-2 cursor-pointer select-none transition-colors duration-200"
       @click="toggleReferences"
     >
       <ChevronRight
@@ -33,7 +33,7 @@ function handleReferenceClick(reference: string) {
         class="text-gray-500 transition-transform duration-200"
         :class="{ 'rotate-90': showReferences }"
       />
-      <span class="text-sm text-gray-700 font-medium">References ({{ props.references.length }})</span>
+      <span class="text-sm text-truegray-700 dark:text-truegray-300 font-medium">References ({{ props.references.length }})</span>
     </div>
     <div
       class="transition-all duration-200 overflow-hidden"
@@ -42,7 +42,7 @@ function handleReferenceClick(reference: string) {
       <div
         v-for="(reference, index) in props.references"
         :key="index"
-        class="py-2 px-3 flex items-center gap-2 border-t border-gray-100 cursor-pointer transition-colors hover:bg-gray-50"
+        class="py-2 px-3 flex items-center gap-2 border-t border-truegray-100 dark:border-truegray-700 cursor-pointer transition-colors hover:bg-gray-50"
         @click="handleReferenceClick(reference)"
       >
         <FileText :size="14" class="text-gray-400" />

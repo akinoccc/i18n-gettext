@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { WebViewMessageType } from '../constants'
 import TranslationEditor from './components/translation/TranslationEditor.vue'
 import { useAITranslation } from './composables/useAITranslation'
@@ -92,7 +92,7 @@ function handleTranslateSingleByAI(locale: { originalCode: string, code: string 
         <h1 class="text-lg font-semibold m-0">
           "{{ translationEntry?.id }}"
         </h1>
-        <div v-if="translationEntry?.msgctxt" class="bg-gray-100 text-gray-600 px-2 py-1 rounded">
+        <div v-if="translationEntry?.msgctxt" class="bg-truegray-100 text-truegray-600 px-2 py-1 rounded dark:bg-truegray-800 dark:text-truegray-400">
           {{ translationEntry?.msgctxt }}
         </div>
       </div>
@@ -115,7 +115,7 @@ function handleTranslateSingleByAI(locale: { originalCode: string, code: string 
 
     <!-- Keyboard Shortcut Tip -->
     <div class="flex items-center justify-center mt-16 gap-2 px-3 py-2 text-sm text-gray-400">
-      <kbd class="px-2 py-1 bg-white border border-gray-300 rounded-md shadow-sm font-mono text-xs text-gray-4">
+      <kbd class="px-2 py-1 bg-white dark:bg-truegray-900 border border-truegray-300 dark:border-truegray-700 rounded-md shadow-sm font-mono text-xs text-truegray-400 dark:text-truegray-400">
         {{ isMac ? '⌘' : 'Ctrl' }} + Enter
       </kbd>
       <span>to navigate to next untranslated item</span>

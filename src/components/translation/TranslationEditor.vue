@@ -144,12 +144,12 @@ function handleTranslateSingleByAI(locale: LocaleIdentifier & { originalCode: st
     </div>
 
     <!-- Translation Actions & AI Model Selection -->
-    <div class="flex flex-col gap-3 p-3 bg-white">
+    <div class="flex flex-col gap-3 p-3">
       <!-- AI Model Selection -->
-      <div v-if="selectedModel" class="flex items-center justify-end gap-3 pb-2">
+      <div v-if="props.aiModels.length" class="flex items-center justify-end gap-3 pb-2">
         <select
           v-model="selectedModel"
-          class="w-fit text-sm bg-transparent border border-gray-200 rounded-md px-3 py-1.5 text-gray-600 focus:border-purple-300 focus:outline-none cursor-pointer"
+          class="w-fit text-sm bg-transparent border border-truegray-200 dark:border-truegray-700 rounded-md px-3 py-1.5 text-truegray-600 dark:text-truegray-400 focus:border-purple-300 focus:outline-none cursor-pointer"
           @change="(e) => handleModelChange((e.target as HTMLSelectElement).value)"
         >
           <option value="" disabled selected>

@@ -14,12 +14,12 @@ const emit = defineEmits(['translateAllMachine', 'translateAllAI'])
 <template>
   <div class="flex items-center justify-end flex-wrap gap-3">
     <button
-      class="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+      class="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-700 dark:text-blue-100 dark:hover:bg-blue-800 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
       :disabled="props.isMachineTranslating || props.isAITranslating"
       @click="emit('translateAllMachine')"
     >
       <span v-if="props.isMachineTranslating" class="flex items-center gap-2">
-        <span class="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <span class="w-3 h-3 border-2 border-blue-600 dark:border-blue-100 border-t-transparent rounded-full animate-spin" />
         Translating...
       </span>
       <template v-else>
@@ -31,11 +31,11 @@ const emit = defineEmits(['translateAllMachine', 'translateAllAI'])
     <button
       v-if="props.enableAI"
       :disabled="props.isAITranslating || props.isMachineTranslating"
-      class="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+      class="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-purple-50 text-purple-600 hover:bg-purple-100 dark:bg-purple-700 dark:text-purple-100 dark:hover:bg-purple-800 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
       @click="emit('translateAllAI')"
     >
       <span v-if="props.isAITranslating" class="flex items-center gap-2">
-        <span class="w-3 h-3 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
+        <span class="w-3 h-3 border-2 border-purple-600 dark:border-purple-100 border-t-transparent rounded-full animate-spin" />
         Translating...
       </span>
       <template v-else>
