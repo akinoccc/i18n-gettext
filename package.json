@@ -3,7 +3,7 @@
   "name": "i18n-gettext",
   "displayName": "i18n Gettext",
   "type": "commonjs",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "VSCode extension for extracting, compiling and managing gettext-based translation strings",
   "repository": {
