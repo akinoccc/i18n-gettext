@@ -1,7 +1,7 @@
 import type { Webview } from 'vscode'
 import type { ModelConfig } from '../../../types'
 
-import { createSingletonComposable } from 'reactive-vscode'
+import { createSingletonComposable, reactive, useFsWatcher } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { WebViewMessageType } from '../../../constants'
 import { logger } from '../../utils/logger'
@@ -11,6 +11,12 @@ import { logger } from '../../utils/logger'
  */
 export const useModelConfig = createSingletonComposable(async () => {
   const { loadConfig } = await import('unconfig')
+  let currentWebview: Webview | null = null
+
+  // 使用reactive创建响应式的globs集合
+  const configPatterns = reactive(new Set<string>())
+  let cleanupWatcher: (() => void) | null = null
+
   /**
    * 读取模型配置信息
    * @returns 返回配置信息，如果读取失败则返回空数组
@@ -72,6 +78,7 @@ export const useModelConfig = createSingletonComposable(async () => {
    */
   async function sendModelConfigToWebview(webview: Webview): Promise<boolean> {
     try {
+      currentWebview = webview
       const models = await readModelConfig()
 
       logger.info('Models: ', JSON.stringify(models))
@@ -91,8 +98,61 @@ export const useModelConfig = createSingletonComposable(async () => {
     }
   }
 
+  /**
+   * 监听配置文件变化
+   * 当配置文件发生变化时，自动向 webview 发送更新后的配置
+   * @returns 返回清理函数
+   */
+  function watchModelConfigChanges(): () => void {
+    // 如果已存在清理函数，先清理旧的监听器
+    if (cleanupWatcher) {
+      cleanupWatcher()
+      cleanupWatcher = null
+    }
+
+    // 获取工作区文件夹
+    const workspaceFolders = vscode.workspace.workspaceFolders
+    if (!workspaceFolders || workspaceFolders.length === 0) {
+      logger.warn(vscode.l10n.t('No workspace folders found for file watching'))
+      return () => {}
+    }
+
+    // 清空并设置新的监听模式
+    configPatterns.clear()
+    configPatterns.add('**/.vscode/.i18n-gettext.secret.*')
+    configPatterns.add('**/.i18n-gettext.secret.*')
+
+    // 使用 useFsWatcher 创建响应式的文件监听器
+    const watcher = useFsWatcher(configPatterns)
+
+    // 处理配置文件变化的函数
+    const handleConfigChange = async (uri: vscode.Uri) => {
+      logger.info(vscode.l10n.t('Model config file changed: {uri}', { uri: uri.toString() }))
+      if (currentWebview) {
+        await sendModelConfigToWebview(currentWebview)
+        logger.info(vscode.l10n.t('Webview model config updated'))
+      }
+    }
+
+    // 监听文件变化事件
+    watcher.onDidCreate(handleConfigChange)
+    watcher.onDidChange(handleConfigChange)
+    watcher.onDidDelete(handleConfigChange)
+
+    logger.info(vscode.l10n.t('Model config file watcher initialized with reactive patterns'))
+
+    // 保存清理函数，用于在下次调用前清理
+    cleanupWatcher = () => {
+      configPatterns.clear()
+      // useFsWatcher 会自动处理资源的清理，不需要手动调用 dispose
+    }
+
+    return cleanupWatcher
+  }
+
   return {
     readModelConfig,
     sendModelConfigToWebview,
+    watchModelConfigChanges,
   }
 })

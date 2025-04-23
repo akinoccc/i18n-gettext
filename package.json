@@ -3,7 +3,7 @@
   "name": "i18n-gettext",
   "displayName": "i18n Gettext",
   "type": "commonjs",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "VSCode extension for extracting, compiling and managing gettext-based translation strings",
   "repository": {
@@ -90,6 +90,12 @@
         "title": "Go to Next Untranslated Entry",
         "category": "i18n Gettext",
         "icon": "$(arrow-down)"
+      },
+      {
+        "command": "i18n-gettext.refreshEntries",
+        "title": "Refresh Translations",
+        "category": "i18n Gettext",
+        "icon": "$(refresh)"
       }
     ],
     "viewsContainers": {
@@ -123,29 +129,34 @@
     "menus": {
       "view/title": [
         {
+          "command": "i18n-gettext.refreshEntries",
+          "when": "view == i18n-gettext.entries",
+          "group": "navigation@1"
+        },
+        {
           "command": "i18n-gettext.searchEntries",
           "when": "view == i18n-gettext.entries",
-          "group": "navigation"
+          "group": "navigation@2"
         },
         {
           "command": "i18n-gettext.clearSearch",
           "when": "view == i18n-gettext.entries",
-          "group": "navigation"
+          "group": "navigation@3"
         },
         {
           "command": "i18n-gettext.filterAllEntries",
           "when": "view == i18n-gettext.entries",
-          "group": "filter"
+          "group": "filter@1"
         },
         {
           "command": "i18n-gettext.filterTranslatedEntries",
           "when": "view == i18n-gettext.entries",
-          "group": "filter"
+          "group": "filter@2"
         },
         {
           "command": "i18n-gettext.filterUntranslatedEntries",
           "when": "view == i18n-gettext.entries",
-          "group": "filter"
+          "group": "filter@3"
         }
       ]
     },

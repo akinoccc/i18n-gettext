@@ -29,7 +29,7 @@ export const useScanner = createSingletonComposable(() => {
   const isLoading = ref(false)
 
   // 使用 usePathUtils composable
-  const { getLocaleDirPath, parsePoFilePath } = usePath()
+  const { getLocaleDirPath } = usePath()
 
   // 根工作区路径
   const rootPath = computed(() => {
@@ -61,48 +61,59 @@ export const useScanner = createSingletonComposable(() => {
     }
 
     isLoading.value = true
-    try {
-      const config = localesConfig.value
-      const localesDirPath = path.join(rootPath.value, config.root, config.basePath)
 
-      try {
-        await fs.promises.access(localesDirPath)
-      }
-      catch (error) {
-        logger.error(vscode.l10n.t('Locales directory not found: {localesDirPath}', { localesDirPath }))
-        return { entries: [], locales: [] }
-      }
+    return new Promise(async (resolve) => {
+      await vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: vscode.l10n.t('Loading translations...'),
+        cancellable: false,
+      }, async (progress) => {
+        progress.report({ increment: 0 })
+        try {
+          const config = localesConfig.value
+          const localesDirPath = path.join(rootPath.value, config.root, config.basePath)
 
-      const { poFiles, locales } = await scanPoFiles(localesDirPath, config)
-      const result = await processPoFiles(poFiles, locales, config)
+          try {
+            await fs.promises.access(localesDirPath)
+          }
+          catch (error) {
+            logger.error(vscode.l10n.t('Locales directory not found: {localesDirPath}', { localesDirPath }))
+            resolve({ entries: [], locales: [] })
+          }
 
-      const resultHash = JSON.stringify({
-        entriesCount: result.entries.length,
-        localesCount: result.locales.length,
-      })
-      const cacheHash = cachedTranslationTree.value
-        ? JSON.stringify({
-            entriesCount: cachedTranslationTree.value.entries.length,
-            localesCount: cachedTranslationTree.value.locales.length,
+          progress.report({ increment: 50, message: vscode.l10n.t('Loading translation files...') })
+          const { poFiles, locales } = await scanPoFiles(localesDirPath, config)
+          const result = await processPoFiles(poFiles, locales, config)
+
+          const resultHash = JSON.stringify({
+            entriesCount: result.entries.length,
+            localesCount: result.locales.length,
           })
-        : ''
+          const cacheHash = cachedTranslationTree.value
+            ? JSON.stringify({
+                entriesCount: cachedTranslationTree.value.entries.length,
+                localesCount: cachedTranslationTree.value.locales.length,
+              })
+            : ''
 
-      if (resultHash !== cacheHash) {
-        cachedTranslationTree.value = result
-        setTranslationTree(result)
-        logger.info(
-          `Loaded ${result.entries.length} translation entries from ${result.locales.length} locales`,
-        )
-      }
-
-      isLoading.value = false
-      return result
-    }
-    catch (error) {
-      isLoading.value = false
-      logger.error(vscode.l10n.t('Failed to load translations: {error}', { error }))
-      return cachedTranslationTree.value || { entries: [], locales: [] }
-    }
+          if (resultHash !== cacheHash) {
+            cachedTranslationTree.value = result
+            setTranslationTree(result)
+            logger.info(
+              `Loaded ${result.entries.length} translation entries from ${result.locales.length} locales`,
+            )
+          }
+          progress.report({ increment: 100, message: vscode.l10n.t('Translations refreshed successfully') })
+          isLoading.value = false
+          resolve(result)
+        }
+        catch (error) {
+          isLoading.value = false
+          logger.error(vscode.l10n.t('Failed to load translations: {error}', { error }))
+          resolve(cachedTranslationTree.value || { entries: [], locales: [] })
+        }
+      })
+    })
   }
 
   /**

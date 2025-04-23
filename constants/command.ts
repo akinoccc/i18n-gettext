@@ -4,7 +4,7 @@
 export enum CommandType {
   // View commands
   SELECT_ENTRY = 'i18n-gettext.selectEntry',
-
+  REFRESH_ENTRIES = 'i18n-gettext.refreshEntries',
   SEARCH_ENTRIES = 'i18n-gettext.searchEntries',
   CLEAR_SEARCH = 'i18n-gettext.clearSearch',
   NEXT_UNTRANSLATED_ENTRY = 'i18n-gettext.nextUntranslatedEntry',

@@ -75,7 +75,7 @@ const untranslatedCount = computed(() => {
 })
 
 watchEffect(() => {
-  if (props.aiModels.length && !selectedModel.value) {
+  if (props.aiModels.length) {
     selectedModel.value = `${props.aiModels[0].provider}:${props.aiModels[0].modelId}`
     emit('updateSelectedModel', selectedModel.value)
   }

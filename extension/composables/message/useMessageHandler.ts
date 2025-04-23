@@ -81,8 +81,9 @@ export const useMessageHandler = createSingletonComposable(() => {
    * @param webview Webview instance
    */
   async function handleWebViewReady(webview: Webview) {
-    const { sendModelConfigToWebview } = await useModelConfig()
+    const { sendModelConfigToWebview, watchModelConfigChanges } = await useModelConfig()
     sendModelConfigToWebview(webview)
+    watchModelConfigChanges()
     sendSelectEntryMessage(webview, selectedEntry.value)
   }
 

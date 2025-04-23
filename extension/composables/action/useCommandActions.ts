@@ -4,6 +4,7 @@ import * as vscode from 'vscode'
 import { TranslationEditorProvider, useEntryListTreeView } from '../../providers'
 import { logger } from '../../utils'
 import { useMessageHandler } from '../message'
+import { useScanner } from '../po'
 import { useTranslationsState } from '../state'
 import { useTranslationEntries } from '../state/useTranslationEntries'
 
@@ -12,6 +13,7 @@ import { useTranslationEntries } from '../state/useTranslationEntries'
  */
 export const useCommandActions = createSingletonComposable(() => {
   const entryListTreeView = useEntryListTreeView()
+  const scanner = useScanner()
 
   /**
    * Search translation entries
@@ -133,6 +135,13 @@ export const useCommandActions = createSingletonComposable(() => {
     }
   }
 
+  /**
+   * Refresh translations
+   */
+  async function refreshEntries(): Promise<void> {
+    await scanner.loadAndRefreshTranslations()
+  }
+
   return {
     searchEntries,
     clearSearch,
@@ -142,5 +151,6 @@ export const useCommandActions = createSingletonComposable(() => {
     selectEntry,
     openTranslationEditor,
     nextUntranslatedEntry,
+    refreshEntries,
   }
 })

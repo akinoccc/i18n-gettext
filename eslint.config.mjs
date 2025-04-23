@@ -10,5 +10,6 @@ export default antfu({
     'no-template-curly-in-string': 'off',
     'ts/no-empty-object-type': 'off',
     'prefer-regex-literals': 'off',
+    'no-async-promise-executor': 'off',
   },
 })
