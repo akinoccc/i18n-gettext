@@ -1,4 +1,3 @@
-import { watch } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { EditorType } from '../../constants'
 import { useMessageHandler, useTranslationsState, useWebviewHandler } from '../composables'
@@ -31,10 +30,6 @@ export class TranslationEditorProvider {
     this._panel.webview.html = webviewHandler.setupHtml(this._panel.webview, context)
 
     webviewHandler.setupWebviewHooks(this._panel.webview, this._disposables)
-
-    watch(selectedEntry, (newEntry) => {
-      messageHandler.sendSelectEntryMessage(this._panel.webview, newEntry)
-    })
   }
 
   /**

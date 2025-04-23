@@ -48,6 +48,7 @@ export function useTranslationEntry() {
       return
 
     translationEntry.value.locales[langCode] = value
+    vscodeApi.setState(JSON.stringify(translationEntry.value))
   }
 
   // Set up message listeners

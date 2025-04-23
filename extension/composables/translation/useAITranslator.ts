@@ -26,6 +26,7 @@ import { createSingletonComposable, useWorkspaceFolders } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { WebViewMessageType } from '../../../constants'
 import { logger } from '../../utils/logger'
+import { localesConfig } from '../config'
 import { useModelConfig } from '../config/useModelConfig'
 import { usePoEditor } from '../po'
 import { useTranslationsState } from '../state'
@@ -217,7 +218,7 @@ export const useAITranslator = createSingletonComposable(() => {
     for (const ref of entry?.references || []) {
       const folder = useWorkspaceFolders().value?.[0]
       const refPath = ref.includes(':') ? ref.slice(0, ref.lastIndexOf(':')) : ref
-      const content = readFileSync(path.join(folder?.uri.fsPath || '', refPath), 'utf-8')
+      const content = readFileSync(path.join(folder?.uri.fsPath || '', path.join(localesConfig.value.root, refPath)), 'utf-8')
       references.push(content)
     }
     return {

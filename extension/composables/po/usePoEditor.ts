@@ -4,13 +4,16 @@ import * as path from 'node:path'
 import { createSingletonComposable } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { logger } from '../../utils'
-import { localesConfig, useConfig } from '../config/useConfig'
+import { localesConfig } from '../config/useConfig'
 import { useTranslationsState } from '../state'
+import { usePath } from './usePath'
 
 export const usePoEditor = createSingletonComposable(() => {
   const { getEntryById } = useTranslationsState()
   const { updateTranslation } = useTranslationsState()
-  const config = useConfig()
+
+  // 使用 usePathUtils composable
+  const { getPoFilePath } = usePath()
 
   /**
    * 保存翻译到PO文件
@@ -33,6 +36,8 @@ export const usePoEditor = createSingletonComposable(() => {
       return false
     }
 
+    entry.locales[locale] = value
+
     try {
       const gettextParser = await import('gettext-parser')
       // 获取根路径
@@ -44,9 +49,11 @@ export const usePoEditor = createSingletonComposable(() => {
 
       const rootPath = workspaceFolders[0].uri.fsPath
       const configValue = localesConfig.value
-      // 使用配置服务获取PO文件相对路径
-      const poFileRelativePath = config.getPoFilePath(locale, domain || configValue.defaultDomain)
-      const poFilePath = path.join(rootPath, configValue.basePath, poFileRelativePath)
+      // 使用 getPoFilePath 替代 config.getPoFilePath
+      const poFileRelativePath = getPoFilePath(locale, domain || configValue.defaultDomain)
+      const poFilePath = path.join(rootPath, configValue.root, configValue.basePath, poFileRelativePath)
+
+      logger.info(vscode.l10n.t('Saving translation to PO file: {poFilePath}', { poFilePath }))
 
       // 确保目录存在
       const poFileDir = path.dirname(poFilePath)

@@ -4,7 +4,6 @@ import * as vscode from 'vscode'
 import { localesMap } from '../../constants/locale'
 import { useScanner, useTranslationsState } from '../composables'
 import { localesConfig } from '../composables/config/useConfig'
-import { logger } from '../utils/logger'
 
 /**
  * 翻译进度树视图组合式函数
@@ -12,17 +11,6 @@ import { logger } from '../utils/logger'
 export const useProgressTreeView = createSingletonComposable(() => {
   const { setTranslationTree, statistics, translationTree } = useTranslationsState()
   const scanner = useScanner()
-
-  // 初始化数据
-  async function initializeData() {
-    try {
-      const tree = await scanner.loadTranslations()
-      setTranslationTree(tree)
-    }
-    catch (error) {
-      logger.error(vscode.l10n.t('Failed to initialize translation data: {error}', { error }))
-    }
-  }
 
   // 创建树节点数据
   const treeData = computed<TreeViewNode[]>(() => {
@@ -75,11 +63,7 @@ export const useProgressTreeView = createSingletonComposable(() => {
     },
   })
 
-  // 初始化数据
-  initializeData()
-
   return {
     view,
-    refreshData: initializeData,
   }
 })

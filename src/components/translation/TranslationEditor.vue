@@ -13,6 +13,10 @@ interface Props {
   sourceLanguage: string
   isAITranslating: boolean
   isMachineTranslating: boolean
+  isAIBatchTranslating: boolean
+  isSingleAITranslating: boolean
+  isSingleMachineTranslating: boolean
+  currentTranslatingLang: string
 }
 
 const props = defineProps<Props>()
@@ -110,6 +114,24 @@ function handleTranslateByMachine(locale: LocaleIdentifier & { originalCode: str
 function handleTranslateSingleByAI(locale: LocaleIdentifier & { originalCode: string }) {
   emit('translateSingleByAI', locale)
 }
+
+// 计算按钮状态的辅助函数
+function isSingleItemTranslating(locale: string): boolean {
+  return (props.isSingleAITranslating || props.isSingleMachineTranslating) && props.currentTranslatingLang === locale
+}
+
+function isItemDisabled(locale: string): boolean {
+  // 如果是当前正在翻译的项目，禁用按钮
+  if (isSingleItemTranslating(locale))
+    return true
+
+  // 如果正在进行批量翻译，所有按钮都禁用
+  if (props.isAIBatchTranslating || (props.isMachineTranslating && !props.isSingleMachineTranslating))
+    return true
+
+  // 如果其他项目正在单独翻译，当前项目不禁用
+  return false
+}
 </script>
 
 <template>
@@ -135,8 +157,9 @@ function handleTranslateSingleByAI(locale: LocaleIdentifier & { originalCode: st
         :selected-model="selectedModel"
         placeholder="To be translated..."
         :is-source="isSourceLanguage(locale.originalCode)"
-        :is-a-i-translating="props.isAITranslating"
-        :is-machine-translating="props.isMachineTranslating"
+        :is-a-i-translating="isSingleItemTranslating(locale.originalCode) && props.isSingleAITranslating"
+        :is-machine-translating="isSingleItemTranslating(locale.originalCode) && props.isSingleMachineTranslating"
+        :is-button-disabled="isItemDisabled(locale.originalCode)"
         @update:value="(value) => handleSaveTranslation(locale.originalCode, value)"
         @translate-by-machine="handleTranslateByMachine(locale)"
         @translate-single-by-a-i="handleTranslateSingleByAI(locale)"
@@ -166,8 +189,9 @@ function handleTranslateSingleByAI(locale: LocaleIdentifier & { originalCode: st
       <!-- Batch Actions -->
       <TranslationActions
         :enable-a-i="!!selectedModel"
-        :is-a-i-translating="props.isAITranslating"
-        :is-machine-translating="props.isMachineTranslating"
+        :is-a-i-translating="props.isAIBatchTranslating"
+        :is-machine-translating="props.isMachineTranslating && !props.isSingleMachineTranslating"
+        :is-any-item-translating="props.isSingleAITranslating || props.isSingleMachineTranslating"
         @translate-all-machine="emit('translateAllByMachine')"
         @translate-all-a-i="emit('translateAllByAI')"
       />

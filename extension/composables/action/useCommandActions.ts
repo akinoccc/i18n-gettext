@@ -3,6 +3,7 @@ import { createSingletonComposable } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { TranslationEditorProvider, useEntryListTreeView } from '../../providers'
 import { logger } from '../../utils'
+import { useMessageHandler } from '../message'
 import { useTranslationsState } from '../state'
 import { useTranslationEntries } from '../state/useTranslationEntries'
 
@@ -60,6 +61,7 @@ export const useCommandActions = createSingletonComposable(() => {
    * @param entry Translation entry to select
    */
   function selectEntry(context: vscode.ExtensionContext, entry: TranslationEntry) {
+    logger.info('selectEntry', JSON.stringify(entry))
     // Set the selected entry in the state
     useTranslationsState().setSelectedEntry(entry)
     // Render the editor panel and ensure it's focused
@@ -67,6 +69,7 @@ export const useCommandActions = createSingletonComposable(() => {
 
     // Ensure the WebView panel gets focus
     if (panel) {
+      useMessageHandler().sendSelectEntryMessage(panel._panel.webview, entry)
       panel._panel.reveal(vscode.ViewColumn.Beside, true) // Second parameter true ensures focus
     }
   }

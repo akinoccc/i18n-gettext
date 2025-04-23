@@ -5,6 +5,7 @@ interface Props {
   enableAI: boolean
   isAITranslating: boolean
   isMachineTranslating: boolean
+  isAnyItemTranslating: boolean
 }
 
 const props = defineProps<Props>()
@@ -15,7 +16,7 @@ const emit = defineEmits(['translateAllMachine', 'translateAllAI'])
   <div class="flex items-center justify-end flex-wrap gap-3">
     <button
       class="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-700 dark:text-blue-100 dark:hover:bg-blue-800 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-      :disabled="props.isMachineTranslating || props.isAITranslating"
+      :disabled="props.isMachineTranslating || props.isAITranslating || props.isAnyItemTranslating"
       @click="emit('translateAllMachine')"
     >
       <span v-if="props.isMachineTranslating" class="flex items-center gap-2">
@@ -30,7 +31,7 @@ const emit = defineEmits(['translateAllMachine', 'translateAllAI'])
 
     <button
       v-if="props.enableAI"
-      :disabled="props.isAITranslating || props.isMachineTranslating"
+      :disabled="props.isAITranslating || props.isMachineTranslating || props.isAnyItemTranslating"
       class="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-purple-50 text-purple-600 hover:bg-purple-100 dark:bg-purple-700 dark:text-purple-100 dark:hover:bg-purple-800 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
       @click="emit('translateAllAI')"
     >

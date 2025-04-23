@@ -18,6 +18,10 @@ const {
   aiModels,
   isAITranslating,
   isMachineTranslating,
+  isAIBatchTranslating,
+  isSingleAITranslating,
+  isSingleMachineTranslating,
+  currentTranslatingLang,
   error,
   updateSelectedModel,
   translateByMachine,
@@ -104,6 +108,10 @@ function handleTranslateSingleByAI(locale: { originalCode: string, code: string 
       :source-language="sourceLanguage"
       :is-a-i-translating="isAITranslating"
       :is-machine-translating="isMachineTranslating"
+      :is-a-i-batch-translating="isAIBatchTranslating"
+      :is-single-a-i-translating="isSingleAITranslating"
+      :is-single-machine-translating="isSingleMachineTranslating"
+      :current-translating-lang="currentTranslatingLang"
       @go-to-reference="goToReference"
       @save-translation="saveTranslation"
       @translate-by-machine="handleTranslateByMachine"

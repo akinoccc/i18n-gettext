@@ -1,11 +1,12 @@
 import type { TranslationEntry, TranslationStatisticsObject, TranslationTree } from '../../../types'
 import { computed, createSingletonComposable, ref } from 'reactive-vscode'
-import { localesConfig } from '../config/useConfig'
+import { localesConfig } from '../config'
 
 export const useTranslationsState = createSingletonComposable(() => {
   const selectedEntry = ref<TranslationEntry>()
   const translationTree = ref<TranslationTree>()
   const localeStatistics = ref<Record<string, TranslationStatisticsObject>>()
+
   const statistics = computed(() => {
     if (!translationTree.value)
       return

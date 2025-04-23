@@ -9,6 +9,10 @@ export function useAITranslation() {
   const selectedAIModel = ref<string>('')
   const isAITranslating = ref(false)
   const isMachineTranslating = ref(false)
+  const isAIBatchTranslating = ref(false)
+  const isSingleAITranslating = ref(false)
+  const isSingleMachineTranslating = ref(false)
+  const currentTranslatingLang = ref<string>('')
   const error = ref('')
 
   const { translationEntry, updateTranslationEntry } = useTranslationEntry()
@@ -29,6 +33,9 @@ export function useAITranslation() {
     locale: { originalCode: string, code: string },
   ) {
     isMachineTranslating.value = true
+    isSingleMachineTranslating.value = true
+    currentTranslatingLang.value = locale.originalCode
+
     vscodeApi.postMessage({
       type: WebViewMessageType.TRANSLATE_BY_MACHINE,
       data: {
@@ -51,9 +58,20 @@ export function useAITranslation() {
       .filter(code => code !== sourceLanguage && !translationEntry.value!.locales[code])
       .map(code => ({ originalCode: code, code }))
 
+    // Set global machine translation state
+    isMachineTranslating.value = true
+
     // Translate each language by machine
     toTranslateLocales.forEach((locale) => {
-      translateByMachine(locale)
+      vscodeApi.postMessage({
+        type: WebViewMessageType.TRANSLATE_BY_MACHINE,
+        data: {
+          entryId: translationEntry.value!.id,
+          originalCode: locale.originalCode,
+          targetCode: locale.code,
+          aiModel: selectedAIModel.value,
+        },
+      })
     })
   }
 
@@ -61,6 +79,8 @@ export function useAITranslation() {
   function translateSingleByAI(sourceLanguage: string, targetLanguage: string) {
     // Set translating status
     isAITranslating.value = true
+    isSingleAITranslating.value = true
+    currentTranslatingLang.value = targetLanguage
     error.value = ''
 
     // Get selected model
@@ -88,6 +108,7 @@ export function useAITranslation() {
   function translateAllByAI(sourceLanguage: string) {
     // Set translating status
     isAITranslating.value = true
+    isAIBatchTranslating.value = true
     error.value = ''
 
     // Get selected model
@@ -121,7 +142,17 @@ export function useAITranslation() {
   function handleMachineTranslateResult(
     data: TranslateByMachineResultData,
   ) {
-    isMachineTranslating.value = false
+    // 检查是否是当前正在单独翻译的语言
+    if (isSingleMachineTranslating.value && data.targetLanguage === currentTranslatingLang.value) {
+      isSingleMachineTranslating.value = false
+      currentTranslatingLang.value = ''
+    }
+
+    // 检查是否所有翻译请求都已完成
+    // 由于不知道有多少请求被发送，这里简单地重置状态
+    setTimeout(() => {
+      isMachineTranslating.value = false
+    }, 300)
 
     if (data.error) {
       error.value = data.error
@@ -138,7 +169,16 @@ export function useAITranslation() {
   function handleAITranslateResult(
     data: AITranslateResultData,
   ) {
-    isAITranslating.value = false
+    // 检查是否是当前正在单独翻译的语言
+    if (isSingleAITranslating.value && data.targetLanguage === currentTranslatingLang.value) {
+      isSingleAITranslating.value = false
+      currentTranslatingLang.value = ''
+    }
+
+    // 重置状态
+    setTimeout(() => {
+      isAITranslating.value = false
+    }, 300)
 
     if (data.error) {
       error.value = data.error
@@ -156,6 +196,7 @@ export function useAITranslation() {
     data: AIBatchTranslateResultData,
   ) {
     isAITranslating.value = false
+    isAIBatchTranslating.value = false
 
     if (data.error) {
       error.value = data.error
@@ -210,6 +251,10 @@ export function useAITranslation() {
     selectedAIModel,
     isAITranslating,
     isMachineTranslating,
+    isAIBatchTranslating,
+    isSingleAITranslating,
+    isSingleMachineTranslating,
+    currentTranslatingLang,
     error,
     updateSelectedModel,
     translateByMachine,

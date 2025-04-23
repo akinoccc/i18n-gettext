@@ -111,7 +111,7 @@ export const useMessageHandler = createSingletonComposable(() => {
       // Try to find file in each workspace
       for (const folder of vscode.workspace.workspaceFolders) {
         try {
-          const fullPath = vscode.Uri.joinPath(folder.uri, path)
+          const fullPath = vscode.Uri.joinPath(folder.uri, localesConfig.value.root, path)
 
           // Check if file exists
           try {
@@ -123,7 +123,9 @@ export const useMessageHandler = createSingletonComposable(() => {
           }
 
           const doc = await vscode.workspace.openTextDocument(fullPath)
-          const editor = await vscode.window.showTextDocument(doc)
+          const editor = await vscode.window.showTextDocument(doc, {
+            viewColumn: vscode.ViewColumn.Beside,
+          })
           const position = new vscode.Position(lineNumber - 1, 0)
 
           // Set selection range and scroll view to position

@@ -12,6 +12,7 @@ interface Props {
   selectedModel: string
   isAITranslating: boolean
   isMachineTranslating: boolean
+  isButtonDisabled?: boolean
 }
 
 const props = defineProps<Props>()
@@ -103,7 +104,7 @@ function handleSingleAITranslate() {
       <div v-else class="flex gap-2">
         <button
           class="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium bg-blue-50 text-blue-600 rounded hover:bg-blue-100 dark:bg-blue-700 dark:text-blue-100 dark:hover:bg-blue-800 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          :disabled="props.isMachineTranslating || props.isAITranslating"
+          :disabled="props.isMachineTranslating || props.isButtonDisabled"
           @click="handleMachineTranslate"
         >
           <span v-if="props.isMachineTranslating" class="flex items-center gap-2">
@@ -117,7 +118,7 @@ function handleSingleAITranslate() {
         </button>
         <button
           v-if="props.selectedModel"
-          :disabled="props.isAITranslating || props.isMachineTranslating"
+          :disabled="props.isAITranslating || props.isButtonDisabled"
           class="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium bg-purple-50 text-purple-600 rounded hover:bg-purple-100 dark:bg-purple-700 dark:text-purple-400 dark:hover:bg-purple-800 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           @click="handleSingleAITranslate"
         >
