@@ -7,15 +7,40 @@ import { useTranslationEntry } from './useTranslationEntry'
 export function useAITranslation() {
   const aiModels = ref<ModelInfo[]>([])
   const selectedAIModel = ref<string>('')
+  // 全局状态
   const isAITranslating = ref(false)
   const isMachineTranslating = ref(false)
   const isAIBatchTranslating = ref(false)
+  // 单个条目状态
   const isSingleAITranslating = ref(false)
   const isSingleMachineTranslating = ref(false)
   const currentTranslatingLang = ref<string>('')
+  // 用于存储每个语言的翻译状态
+  const languageTranslatingState = ref<Record<string, { ai: boolean, machine: boolean }>>({})
   const error = ref('')
 
   const { translationEntry, updateTranslationEntry } = useTranslationEntry()
+
+  // 更新特定语言的翻译状态
+  function updateLanguageTranslatingState(lang: string, type: 'ai' | 'machine', isTranslating: boolean) {
+    if (!languageTranslatingState.value[lang]) {
+      languageTranslatingState.value[lang] = { ai: false, machine: false }
+    }
+
+    languageTranslatingState.value[lang][type] = isTranslating
+  }
+
+  // 检查指定语言是否正在翻译
+  function isLanguageTranslating(lang: string, type?: 'ai' | 'machine'): boolean {
+    if (!languageTranslatingState.value[lang])
+      return false
+
+    if (type) {
+      return languageTranslatingState.value[lang][type]
+    }
+
+    return languageTranslatingState.value[lang].ai || languageTranslatingState.value[lang].machine
+  }
 
   // Parse model ID string
   function parseModelId(model: string): { provider: string, modelId: string } {
@@ -34,7 +59,7 @@ export function useAITranslation() {
   ) {
     isMachineTranslating.value = true
     isSingleMachineTranslating.value = true
-    currentTranslatingLang.value = locale.originalCode
+    updateLanguageTranslatingState(locale.originalCode, 'machine', true)
 
     vscodeApi.postMessage({
       type: WebViewMessageType.TRANSLATE_BY_MACHINE,
@@ -63,6 +88,9 @@ export function useAITranslation() {
 
     // Translate each language by machine
     toTranslateLocales.forEach((locale) => {
+      // 设置每个语言的翻译状态
+      updateLanguageTranslatingState(locale.originalCode, 'machine', true)
+
       vscodeApi.postMessage({
         type: WebViewMessageType.TRANSLATE_BY_MACHINE,
         data: {
@@ -80,7 +108,7 @@ export function useAITranslation() {
     // Set translating status
     isAITranslating.value = true
     isSingleAITranslating.value = true
-    currentTranslatingLang.value = targetLanguage
+    updateLanguageTranslatingState(targetLanguage, 'ai', true)
     error.value = ''
 
     // Get selected model
@@ -123,6 +151,13 @@ export function useAITranslation() {
       // Collect all target language codes
       const targetLanguages = Object.keys(translationEntry.value!.locales)
 
+      // 设置每个目标语言的AI翻译状态
+      targetLanguages.forEach((lang) => {
+        if (lang !== sourceLanguage) {
+          updateLanguageTranslatingState(lang, 'ai', true)
+        }
+      })
+
       // Use batch translation to reduce token consumption
       vscodeApi.postMessage({
         type: WebViewMessageType.AI_BATCH_TRANSLATE,
@@ -142,17 +177,19 @@ export function useAITranslation() {
   function handleMachineTranslateResult(
     data: TranslateByMachineResultData,
   ) {
-    // 检查是否是当前正在单独翻译的语言
-    if (isSingleMachineTranslating.value && data.targetLanguage === currentTranslatingLang.value) {
-      isSingleMachineTranslating.value = false
-      currentTranslatingLang.value = ''
+    // 更新特定语言的翻译状态
+    if (data.targetLanguage) {
+      updateLanguageTranslatingState(data.targetLanguage, 'machine', false)
     }
 
-    // 检查是否所有翻译请求都已完成
-    // 由于不知道有多少请求被发送，这里简单地重置状态
-    setTimeout(() => {
+    // 检查是否所有机器翻译都已完成
+    const anyLanguageStillTranslating = Object.values(languageTranslatingState.value)
+      .some(state => state.machine)
+
+    if (!anyLanguageStillTranslating) {
       isMachineTranslating.value = false
-    }, 300)
+      isSingleMachineTranslating.value = false
+    }
 
     if (data.error) {
       error.value = data.error
@@ -169,16 +206,19 @@ export function useAITranslation() {
   function handleAITranslateResult(
     data: AITranslateResultData,
   ) {
-    // 检查是否是当前正在单独翻译的语言
-    if (isSingleAITranslating.value && data.targetLanguage === currentTranslatingLang.value) {
-      isSingleAITranslating.value = false
-      currentTranslatingLang.value = ''
+    // 更新特定语言的AI翻译状态
+    if (data.targetLanguage) {
+      updateLanguageTranslatingState(data.targetLanguage, 'ai', false)
     }
 
-    // 重置状态
-    setTimeout(() => {
+    // 检查是否所有AI翻译都已完成
+    const anyLanguageStillTranslating = Object.values(languageTranslatingState.value)
+      .some(state => state.ai)
+
+    if (!anyLanguageStillTranslating) {
       isAITranslating.value = false
-    }, 300)
+      isSingleAITranslating.value = false
+    }
 
     if (data.error) {
       error.value = data.error
@@ -195,6 +235,11 @@ export function useAITranslation() {
   function handleAIBatchTranslateResult(
     data: AIBatchTranslateResultData,
   ) {
+    // 重置所有语言的AI翻译状态
+    Object.keys(languageTranslatingState.value).forEach((lang) => {
+      updateLanguageTranslatingState(lang, 'ai', false)
+    })
+
     isAITranslating.value = false
     isAIBatchTranslating.value = false
 
@@ -255,6 +300,8 @@ export function useAITranslation() {
     isSingleAITranslating,
     isSingleMachineTranslating,
     currentTranslatingLang,
+    languageTranslatingState,
+    isLanguageTranslating,
     error,
     updateSelectedModel,
     translateByMachine,

@@ -17,6 +17,7 @@ interface Props {
   isSingleAITranslating: boolean
   isSingleMachineTranslating: boolean
   currentTranslatingLang: string
+  languageTranslatingState: Record<string, { ai: boolean, machine: boolean }>
 }
 
 const props = defineProps<Props>()
@@ -116,21 +117,21 @@ function handleTranslateSingleByAI(locale: LocaleIdentifier & { originalCode: st
 }
 
 // 计算按钮状态的辅助函数
-function isSingleItemTranslating(locale: string): boolean {
-  return (props.isSingleAITranslating || props.isSingleMachineTranslating) && props.currentTranslatingLang === locale
+function isItemAITranslating(locale: string): boolean {
+  return props.languageTranslatingState[locale]?.ai || false
+}
+
+function isItemMachineTranslating(locale: string): boolean {
+  return props.languageTranslatingState[locale]?.machine || false
 }
 
 function isItemDisabled(locale: string): boolean {
-  // 如果是当前正在翻译的项目，禁用按钮
-  if (isSingleItemTranslating(locale))
-    return true
-
-  // 如果正在进行批量翻译，所有按钮都禁用
+  // 如果正在进行批量翻译，禁用所有按钮
   if (props.isAIBatchTranslating || (props.isMachineTranslating && !props.isSingleMachineTranslating))
     return true
 
-  // 如果其他项目正在单独翻译，当前项目不禁用
-  return false
+  // 否则根据自身的翻译状态决定是否禁用
+  return isItemAITranslating(locale) || isItemMachineTranslating(locale)
 }
 </script>
 
@@ -157,12 +158,12 @@ function isItemDisabled(locale: string): boolean {
         :selected-model="selectedModel"
         placeholder="To be translated..."
         :is-source="isSourceLanguage(locale.originalCode)"
-        :is-a-i-translating="isSingleItemTranslating(locale.originalCode) && props.isSingleAITranslating"
-        :is-machine-translating="isSingleItemTranslating(locale.originalCode) && props.isSingleMachineTranslating"
+        :is-a-i-translating="isItemAITranslating(locale.originalCode)"
+        :is-machine-translating="isItemMachineTranslating(locale.originalCode)"
         :is-button-disabled="isItemDisabled(locale.originalCode)"
         @update:value="(value) => handleSaveTranslation(locale.originalCode, value)"
-        @translate-by-machine="handleTranslateByMachine(locale)"
-        @translate-single-by-a-i="handleTranslateSingleByAI(locale)"
+        @translate-by-machine="handleTranslateByMachine"
+        @translate-single-by-a-i="() => handleTranslateSingleByAI(locale)"
       />
     </div>
 

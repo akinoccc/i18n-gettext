@@ -22,6 +22,7 @@ const {
   isSingleAITranslating,
   isSingleMachineTranslating,
   currentTranslatingLang,
+  languageTranslatingState,
   error,
   updateSelectedModel,
   translateByMachine,
@@ -112,6 +113,7 @@ function handleTranslateSingleByAI(locale: { originalCode: string, code: string 
       :is-single-a-i-translating="isSingleAITranslating"
       :is-single-machine-translating="isSingleMachineTranslating"
       :current-translating-lang="currentTranslatingLang"
+      :language-translating-state="languageTranslatingState"
       @go-to-reference="goToReference"
       @save-translation="saveTranslation"
       @translate-by-machine="handleTranslateByMachine"

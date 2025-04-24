@@ -133,7 +133,7 @@ export const useScanner = createSingletonComposable(() => {
     }
   }
 
-  function extractTranslations(poData: PoData, locale: string): Record<string, { msgid: string, msgstr: string, msgctxt: string, references: string[] }> {
+  function extractTranslations(poData: PoData): Record<string, { msgid: string, msgstr: string, msgctxt: string, references: string[] }> {
     const translations: Record<string, { msgid: string, msgstr: string, msgctxt: string, references: string[] }> = {}
     const contexts = poData.translations || {}
     Object.keys(contexts).forEach((context) => {
@@ -146,7 +146,7 @@ export const useScanner = createSingletonComposable(() => {
           msgid,
           msgstr: translation.msgstr[0] || '',
           msgctxt: translation.msgctxt || '',
-          references: translation.comments?.reference?.split('\n') || [],
+          references: translation.comments?.reference?.split(/\s+/) || [],
         }
       })
     })
@@ -251,7 +251,7 @@ export const useScanner = createSingletonComposable(() => {
       const poData = await readPoFile(poFile.path)
       if (!poData)
         continue
-      const translations = extractTranslations(poData, poFile.locale)
+      const translations = extractTranslations(poData)
       const stats = localeStatistics.get(poFile.locale) || {
         translated: 0,
         untranslated: 0,
