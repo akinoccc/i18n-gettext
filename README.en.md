@@ -57,6 +57,7 @@ In VSCode settings, you can find the "i18n Gettext" section to configure the fol
 ```json
 {
   "i18n-gettext.localesConfig": {
+    "root": ".",
     "type": "nested",
     "basePath": "src/language",
     "pattern": "${locale}/${domain}.po",
@@ -66,12 +67,13 @@ In VSCode settings, you can find the "i18n Gettext" section to configure the fol
 }
 ```
 
+- **root**: Project root directory
 - **type**: Translation file organization method, supporting the following types:
   - **flat**: All translation files are at the same directory level, typically named in the format `${locale}.${domain}.po`
   - **nested**: Translation files organized by language code, like `${locale}/${domain}.po`
   - **domain**: Translation files organized by domain name, like `${domain}/${locale}.po`
   - **custom**: Custom organization, completely following the pattern defined in the pattern
-- **basePath**: Root directory for translation files
+- **basePath**: directory for translation files(relative to the project root directory)
 - **pattern**: Translation file path pattern, using `${locale}` and `${domain}` placeholders
 - **defaultDomain**: Default domain name
 - **sourceLanguage**: Source language code
