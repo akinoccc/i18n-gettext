@@ -401,7 +401,7 @@ export const useAITranslator = createSingletonComposable(() => {
       const { text } = await generateText({
         model: modelInstance,
         prompt,
-        maxTokens: 4000,
+        maxTokens: sourceText.length * 3 * targetLanguages.length,
       })
 
       // Parse the multi-language result returned
