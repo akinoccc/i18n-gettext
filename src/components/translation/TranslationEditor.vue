@@ -82,8 +82,8 @@ const untranslatedCount = computed(() => {
 
 // 监听translationEntry的变化，当切换到新条目时重置选中的AI模型
 watchEffect(() => {
-  // 当切换条目时，如果有可用的AI模型，将模型重置为第一个
-  if (props.aiModels.length) {
+  // 当切换条目时，如果有可用的AI模型，并且没有选择AI模型，将模型重置为第一个
+  if (props.aiModels.length && !selectedModel.value) {
     selectedModel.value = `${props.aiModels[0].provider}:${props.aiModels[0].modelId}`
     emit('updateSelectedModel', selectedModel.value)
   }
