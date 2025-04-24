@@ -3,6 +3,7 @@ export interface ModelConfig {
   modelId: string
   apiKey?: string
   baseURL?: string
+  region?: string
 }
 
 export interface AIConfig {

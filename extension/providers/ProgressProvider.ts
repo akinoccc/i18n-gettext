@@ -2,15 +2,14 @@ import type { TreeViewNode } from 'reactive-vscode'
 import { computed, createSingletonComposable, useTreeView } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { localesMap } from '../../constants/locale'
-import { useScanner, useTranslationsState } from '../composables'
+import { useTranslationsState } from '../composables'
 import { localesConfig } from '../composables/config/useConfig'
 
 /**
  * 翻译进度树视图组合式函数
  */
 export const useProgressTreeView = createSingletonComposable(() => {
-  const { setTranslationTree, statistics, translationTree } = useTranslationsState()
-  const scanner = useScanner()
+  const { statistics, translationTree } = useTranslationsState()
 
   // 创建树节点数据
   const treeData = computed<TreeViewNode[]>(() => {

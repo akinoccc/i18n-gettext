@@ -5,6 +5,7 @@ import { createSingletonComposable, reactive, useFsWatcher } from 'reactive-vsco
 import * as vscode from 'vscode'
 import { WebViewMessageType } from '../../../constants'
 import { logger } from '../../utils/logger'
+import { useAITranslator } from '../translation'
 
 /**
  * 模型配置组合式函数
@@ -89,6 +90,8 @@ export const useAIConfig = createSingletonComposable(async () => {
     try {
       currentWebview = webview
       const { ai: models } = await readAIConfig()
+
+      useAITranslator().updateAIModels(models)
 
       const result = await webview.postMessage({
         type: WebViewMessageType.SEND_MODEL_CONFIG,

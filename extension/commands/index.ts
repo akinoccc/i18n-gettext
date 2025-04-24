@@ -20,5 +20,6 @@ export function registerCommands(context: ExtensionContext): void {
     [CommandType.FILTER_TRANSLATED_ENTRIES]: commandActions.filterTranslatedEntries,
     [CommandType.FILTER_UNTRANSLATED_ENTRIES]: commandActions.filterUntranslatedEntries,
     [CommandType.NEXT_UNTRANSLATED_ENTRY]: () => commandActions.nextUntranslatedEntry(context),
+    [CommandType.CHECK_ALL_UNTRANSLATED_ENTRIES]: commandActions.checkAllUntranslatedEntries,
   })
 }

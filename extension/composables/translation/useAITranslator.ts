@@ -80,9 +80,10 @@ export const useAITranslator = createSingletonComposable(() => {
       - KO: 조사 spacing
       - RTL: Maintain text direction (نظام iOS الجديد)
 
+
     # Output
-      - Only return translation
-      - No explanations
+      - Only return the plain translation result
+      - No any explanations and comments or any other text
       - Clean formatting
 `
   const additionalPrompts: string[] = []
@@ -110,13 +111,15 @@ export const useAITranslator = createSingletonComposable(() => {
 
     // Update the API key mapping and model list
     models.forEach((model) => {
-      if (model.provider && model.apiKey) {
-        API_KEYS[buildModelKey(model.provider, model.modelId)] = model.apiKey
+      if (model.provider) {
+        API_KEYS[buildModelKey(model.provider, model.modelId)] = model.apiKey || ''
       }
 
       AI_MODELS.push({
         provider: model.provider,
         modelId: model.modelId,
+        baseURL: model.baseURL,
+        region: model.region,
       })
     })
   }
@@ -140,7 +143,7 @@ export const useAITranslator = createSingletonComposable(() => {
    * @returns Language model instance
    */
   function getModelInstance(options: ModelConfig): LanguageModelV1 {
-    const { provider, modelId, baseURL } = options
+    const { provider, modelId, baseURL, region } = options
     const apiKey = API_KEYS[buildModelKey(provider, modelId)]
 
     if (!apiKey) {
@@ -164,12 +167,12 @@ export const useAITranslator = createSingletonComposable(() => {
         return createAmazonBedrock({
           accessKeyId: apiKey.split(':')[0],
           secretAccessKey: apiKey.split(':')[1],
-          region: 'us-east-1', // 默认区域，可以从配置中读取
+          region,
         })(modelId)
       case 'azure':
         return createAzure({
           apiKey,
-          baseURL: 'https://api.cognitive.microsoft.com', // 默认端点，可以从配置中读取
+          baseURL,
         })(modelId)
       case 'cerebras':
         return createCerebras({
@@ -215,6 +218,7 @@ export const useAITranslator = createSingletonComposable(() => {
         })(modelId)
       }
       case 'ollama':
+        logger.info('ollama:', baseURL, modelId)
         return createOllama({
           baseURL,
         })(modelId)
@@ -373,6 +377,9 @@ export const useAITranslator = createSingletonComposable(() => {
 
       // Clean up possible quotes
       const cleanedText = text.replace(/^["']|["']$/g, '').trim()
+
+      logger.info('translateWithAI result:', `${cleanedText}(${sourceText})`)
+
       return cleanedText
     }
     catch (error: any) {
@@ -403,6 +410,9 @@ export const useAITranslator = createSingletonComposable(() => {
         prompt,
         maxTokens: sourceText.length * 3 * targetLanguages.length,
       })
+
+      logger.info('sourceText:', sourceText)
+      logger.info('batchTranslateWithAI result:', text)
 
       // Parse the multi-language result returned
       const translations: Record<string, string> = {}
@@ -435,10 +445,7 @@ export const useAITranslator = createSingletonComposable(() => {
         sourceText: data.sourceText,
         sourceLanguage: data.sourceLanguage,
         targetLanguage: data.targetLanguage,
-        model: {
-          provider: data.provider,
-          modelId: data.modelId,
-        },
+        model: AI_MODELS.find(model => model.modelId === data.modelId) as Omit<ModelConfig, 'apiKey'>,
         entryId: data.entryId,
       })
 
@@ -483,10 +490,7 @@ export const useAITranslator = createSingletonComposable(() => {
         sourceText: data.sourceText,
         sourceLanguage: data.sourceLanguage,
         targetLanguages: data.targetLanguages,
-        model: {
-          provider: data.provider,
-          modelId: data.modelId,
-        },
+        model: AI_MODELS.find(model => model.modelId === data.modelId) as Omit<ModelConfig, 'apiKey'>,
         entryId: data.entryId,
       })
 
@@ -524,6 +528,7 @@ export const useAITranslator = createSingletonComposable(() => {
   }
 
   return {
+    updateAIModels,
     getAvailableModels,
     translateWithAI,
     batchTranslateWithAI,

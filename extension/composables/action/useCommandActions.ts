@@ -142,6 +142,12 @@ export const useCommandActions = createSingletonComposable(() => {
     await scanner.loadAndRefreshTranslations()
   }
 
+  /**
+   * Check all untranslated entries
+   */
+  function checkAllUntranslatedEntries(): void {
+  }
+
   return {
     searchEntries,
     clearSearch,
@@ -152,5 +158,6 @@ export const useCommandActions = createSingletonComposable(() => {
     openTranslationEditor,
     nextUntranslatedEntry,
     refreshEntries,
+    checkAllUntranslatedEntries,
   }
 })
