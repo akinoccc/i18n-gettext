@@ -90,7 +90,7 @@ export const useAITranslator = createSingletonComposable(() => {
     # Output
       - Only return the plain translation result
       - No any explanations and comments or any other text
-      - Clean formatting
+      - Clean formatting. Do not use any special characters.
 `
   const additionalPrompts: string[] = []
 
@@ -384,7 +384,7 @@ export const useAITranslator = createSingletonComposable(() => {
       })
 
       // Clean up possible quotes
-      const cleanedText = text.replace(/^["']|["']$/g, '').trim()
+      const cleanedText = text.replace(/^["']|["']$/gm, '').trim()
 
       logger.info('translateWithAI result:', `${cleanedText}(${sourceText})`)
 
@@ -430,7 +430,7 @@ export const useAITranslator = createSingletonComposable(() => {
         const match = line.match(/^\[([^\]]+)\]\s(.+)$/)
         if (match) {
           const [, langCode, translation] = match
-          translations[langCode] = translation.trim()
+          translations[langCode] = translation.replace(/^["']|["']$/gm, '').trim()
         }
       }
 
