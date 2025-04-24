@@ -18,6 +18,7 @@ interface Props {
   isSingleMachineTranslating: boolean
   currentTranslatingLang: string
   languageTranslatingState: Record<string, { ai: boolean, machine: boolean }>
+  isLanguageRecentlyTranslated?: (lang: string) => boolean
 }
 
 const props = defineProps<Props>()
@@ -29,6 +30,7 @@ const emit = defineEmits<{
   translateAllByAI: []
   translateSingleByAI: [locale: LocaleIdentifier & { originalCode: string }]
   updateSelectedModel: [modelId: string]
+  clearHighlight: [locale: string]
 }>()
 
 const selectedModel = ref('')
@@ -133,6 +135,14 @@ function isItemDisabled(locale: string): boolean {
   // 否则根据自身的翻译状态决定是否禁用
   return isItemAITranslating(locale) || isItemMachineTranslating(locale)
 }
+
+function handleClearHighlight(locale: string) {
+  emit('clearHighlight', locale)
+}
+
+function isRecentlyTranslated(locale: string): boolean {
+  return props.isLanguageRecentlyTranslated ? props.isLanguageRecentlyTranslated(locale) : false
+}
 </script>
 
 <template>
@@ -161,9 +171,11 @@ function isItemDisabled(locale: string): boolean {
         :is-a-i-translating="isItemAITranslating(locale.originalCode)"
         :is-machine-translating="isItemMachineTranslating(locale.originalCode)"
         :is-button-disabled="isItemDisabled(locale.originalCode)"
+        :is-recently-translated="isRecentlyTranslated(locale.originalCode)"
         @update:value="(value) => handleSaveTranslation(locale.originalCode, value)"
         @translate-by-machine="handleTranslateByMachine"
         @translate-single-by-a-i="() => handleTranslateSingleByAI(locale)"
+        @clear-highlight="handleClearHighlight"
       />
     </div>
 

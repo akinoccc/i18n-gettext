@@ -13,6 +13,7 @@ interface Props {
   isAITranslating: boolean
   isMachineTranslating: boolean
   isButtonDisabled?: boolean
+  isRecentlyTranslated?: boolean
 }
 
 const props = defineProps<Props>()
@@ -20,6 +21,7 @@ const emit = defineEmits<{
   'update:value': [value: string]
   'translateByMachine': [locale: LocaleIdentifier & { originalCode: string }]
   'translateSingleByAI': []
+  'clearHighlight': [locale: string]
 }>()
 
 // Track the original value to compare with changes
@@ -43,6 +45,9 @@ function handleChange(e: Event) {
   if (newValue !== originalValue.value) {
     originalValue.value = newValue // Update our tracked value
     emit('update:value', newValue)
+
+    // 当用户手动修改内容时，清除高亮状态
+    emit('clearHighlight', props.locale.originalCode)
   }
 }
 
@@ -54,6 +59,9 @@ function handleBlur(e: Event) {
   if (newValue !== originalValue.value) {
     originalValue.value = newValue // Update our tracked value
     emit('update:value', newValue)
+
+    // 当用户手动修改内容并失焦时，清除高亮状态
+    emit('clearHighlight', props.locale.originalCode)
   }
 }
 
@@ -67,7 +75,13 @@ function handleSingleAITranslate() {
 </script>
 
 <template>
-  <div class="flex items-center h-12 border border-truegray-200 rounded-md overflow-hidden bg-white hover:border-truegray-300 dark:bg-truegray-900 dark:border-truegray-700 dark:hover:border-truegray-500 transition-colors duration-200" :class="{ 'border-amber-300': isUntranslated }">
+  <div
+    class="flex items-center h-12 border border-truegray-200 rounded-md overflow-hidden bg-white hover:border-truegray-300 dark:bg-truegray-900 dark:border-truegray-700 dark:hover:border-truegray-500 transition-colors duration-200"
+    :class="{
+      'border-amber-300': isUntranslated,
+      'border-green-400 bg-green-50 dark:bg-green-900/20 shadow-sm': props.isRecentlyTranslated && !isUntranslated,
+    }"
+  >
     <LanguageTag
       :code="props.locale.code"
       :flag="props.locale.flag"
@@ -77,8 +91,11 @@ function handleSingleAITranslate() {
     <div class="flex-1 px-3 h-full">
       <input
         :value="props.value"
-        class="w-full h-full bg-transparent border-0 focus:outline-none text-gray-700 placeholder:text-gray-400 dark:text-truegray-300 dark:placeholder:text-truegray-600"
-        :class="{ 'bg-amber-50/30': isUntranslated }"
+        class="w-full h-full bg-transparent border-0 focus:outline-none placeholder:text-gray-400 dark:placeholder:text-truegray-600"
+        :class="{
+          'text-gray-700 dark:text-truegray-300': isUntranslated,
+          'text-green-700 dark:text-green-300': props.isRecentlyTranslated && !isUntranslated,
+        }"
         :placeholder="props.placeholder"
         @blur="handleBlur"
         @change="handleChange"
@@ -94,6 +111,15 @@ function handleSingleAITranslate() {
       >
         <AlertCircle :size="14" />
         <span class="hidden sm:inline">Untranslated</span>
+      </div>
+      <!-- Recent Translation indicator -->
+      <div
+        v-else-if="props.isRecentlyTranslated"
+        class="flex items-center gap-1 px-2 py-1 text-xs font-medium bg-green-50 text-green-600 dark:bg-green-900 dark:text-green-400 rounded"
+        title="Translated"
+      >
+        <span>✓</span>
+        <span class="hidden sm:inline">Translated</span>
       </div>
       <div
         v-if="props.isSource"

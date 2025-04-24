@@ -17,6 +17,8 @@ export function useAITranslation() {
   const currentTranslatingLang = ref<string>('')
   // 用于存储每个语言的翻译状态
   const languageTranslatingState = ref<Record<string, { ai: boolean, machine: boolean }>>({})
+  // 最近翻译完成的语言，用于高亮显示
+  const recentlyTranslatedLanguages = ref<Record<string, boolean>>({})
   const error = ref('')
 
   const { translationEntry, updateTranslationEntry } = useTranslationEntry()
@@ -42,6 +44,23 @@ export function useAITranslation() {
     return languageTranslatingState.value[lang].ai || languageTranslatingState.value[lang].machine
   }
 
+  // 设置语言为最近翻译完成状态，用于高亮显示
+  function markLanguageAsRecentlyTranslated(lang: string) {
+    recentlyTranslatedLanguages.value[lang] = true
+  }
+
+  // 清除指定语言的高亮状态
+  function clearLanguageHighlight(lang: string) {
+    if (recentlyTranslatedLanguages.value[lang]) {
+      recentlyTranslatedLanguages.value[lang] = false
+    }
+  }
+
+  // 检查语言是否是最近翻译完成的
+  function isLanguageRecentlyTranslated(lang: string): boolean {
+    return !!recentlyTranslatedLanguages.value[lang]
+  }
+
   // Parse model ID string
   function parseModelId(model: string): { provider: string, modelId: string } {
     const [provider, modelId] = model.split(':')
@@ -57,6 +76,9 @@ export function useAITranslation() {
   function translateByMachine(
     locale: { originalCode: string, code: string },
   ) {
+    // 清除之前的高亮状态
+    clearLanguageHighlight(locale.originalCode)
+
     isMachineTranslating.value = true
     isSingleMachineTranslating.value = true
     updateLanguageTranslatingState(locale.originalCode, 'machine', true)
@@ -83,6 +105,11 @@ export function useAITranslation() {
       .filter(code => code !== sourceLanguage && !translationEntry.value!.locales[code])
       .map(code => ({ originalCode: code, code }))
 
+    // 清除所有要翻译的语言的高亮状态
+    toTranslateLocales.forEach((locale) => {
+      clearLanguageHighlight(locale.originalCode)
+    })
+
     // Set global machine translation state
     isMachineTranslating.value = true
 
@@ -105,6 +132,9 @@ export function useAITranslation() {
 
   // Translate single entry by AI
   function translateSingleByAI(sourceLanguage: string, targetLanguage: string) {
+    // 清除高亮状态
+    clearLanguageHighlight(targetLanguage)
+
     // Set translating status
     isAITranslating.value = true
     isSingleAITranslating.value = true
@@ -150,6 +180,12 @@ export function useAITranslation() {
     if (Object.keys(translationEntry.value!.locales).length > 0) {
       // Collect all target language codes
       const targetLanguages = Object.keys(translationEntry.value!.locales)
+        .filter(lang => lang !== sourceLanguage)
+
+      // 清除所有目标语言的高亮状态
+      targetLanguages.forEach((lang) => {
+        clearLanguageHighlight(lang)
+      })
 
       // 设置每个目标语言的AI翻译状态
       targetLanguages.forEach((lang) => {
@@ -199,6 +235,8 @@ export function useAITranslation() {
     // Update translation entry
     if (translationEntry.value && data.targetLanguage && data.result) {
       updateTranslationEntry(data.targetLanguage, data.result)
+      // 标记为最近翻译完成
+      markLanguageAsRecentlyTranslated(data.targetLanguage)
     }
   }
 
@@ -228,6 +266,8 @@ export function useAITranslation() {
     // Update translation entry
     if (translationEntry.value && data.targetLanguage && data.result) {
       updateTranslationEntry(data.targetLanguage, data.result)
+      // 标记为最近翻译完成
+      markLanguageAsRecentlyTranslated(data.targetLanguage)
     }
   }
 
@@ -252,6 +292,8 @@ export function useAITranslation() {
     if (translationEntry.value && data.results) {
       Object.entries(data.results).forEach(([langCode, translation]) => {
         updateTranslationEntry(langCode, translation as string)
+        // 标记为最近翻译完成
+        markLanguageAsRecentlyTranslated(langCode)
       })
     }
   }
@@ -302,6 +344,8 @@ export function useAITranslation() {
     currentTranslatingLang,
     languageTranslatingState,
     isLanguageTranslating,
+    isLanguageRecentlyTranslated,
+    clearLanguageHighlight,
     error,
     updateSelectedModel,
     translateByMachine,

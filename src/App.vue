@@ -23,6 +23,8 @@ const {
   isSingleMachineTranslating,
   currentTranslatingLang,
   languageTranslatingState,
+  isLanguageRecentlyTranslated,
+  clearLanguageHighlight,
   error,
   updateSelectedModel,
   translateByMachine,
@@ -84,6 +86,10 @@ function handleTranslateAllByAI() {
 function handleTranslateSingleByAI(locale: { originalCode: string, code: string }) {
   translateSingleByAI(sourceLanguage.value, locale.originalCode)
 }
+
+function handleClearHighlight(locale: string) {
+  clearLanguageHighlight(locale)
+}
 </script>
 
 <template>
@@ -114,6 +120,7 @@ function handleTranslateSingleByAI(locale: { originalCode: string, code: string 
       :is-single-machine-translating="isSingleMachineTranslating"
       :current-translating-lang="currentTranslatingLang"
       :language-translating-state="languageTranslatingState"
+      :is-language-recently-translated="isLanguageRecentlyTranslated"
       @go-to-reference="goToReference"
       @save-translation="saveTranslation"
       @translate-by-machine="handleTranslateByMachine"
@@ -121,6 +128,7 @@ function handleTranslateSingleByAI(locale: { originalCode: string, code: string 
       @translate-all-by-a-i="handleTranslateAllByAI"
       @translate-single-by-a-i="handleTranslateSingleByAI"
       @update-selected-model="updateSelectedModel"
+      @clear-highlight="handleClearHighlight"
     />
 
     <!-- Keyboard Shortcut Tip -->
