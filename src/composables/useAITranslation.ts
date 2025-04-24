@@ -232,6 +232,9 @@ export function useAITranslation() {
       return
     }
 
+    // 翻译成功，清除错误信息
+    error.value = ''
+
     // Update translation entry
     if (translationEntry.value && data.targetLanguage && data.result) {
       updateTranslationEntry(data.targetLanguage, data.result)
@@ -263,6 +266,9 @@ export function useAITranslation() {
       return
     }
 
+    // 翻译成功，清除错误信息
+    error.value = ''
+
     // Update translation entry
     if (translationEntry.value && data.targetLanguage && data.result) {
       updateTranslationEntry(data.targetLanguage, data.result)
@@ -287,6 +293,9 @@ export function useAITranslation() {
       error.value = data.error
       return
     }
+
+    // 翻译成功，清除错误信息
+    error.value = ''
 
     // Update translation entry
     if (translationEntry.value && data.results) {
