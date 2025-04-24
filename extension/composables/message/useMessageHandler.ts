@@ -5,8 +5,8 @@ import { createSingletonComposable } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { CommandType, WebViewMessageType } from '../../../constants'
 import { logger } from '../../utils/logger'
+import { useAIConfig } from '../config/useAIConfig'
 import { localesConfig } from '../config/useConfig'
-import { useModelConfig } from '../config/useModelConfig'
 import { usePoEditor } from '../po'
 import { useTranslationsState } from '../state'
 import { useAITranslator } from '../translation/useAITranslator'
@@ -81,7 +81,7 @@ export const useMessageHandler = createSingletonComposable(() => {
    * @param webview Webview instance
    */
   async function handleWebViewReady(webview: Webview) {
-    const { sendModelConfigToWebview, watchModelConfigChanges } = await useModelConfig()
+    const { sendModelConfigToWebview, watchModelConfigChanges } = await useAIConfig()
     sendModelConfigToWebview(webview)
     watchModelConfigChanges()
     sendSelectEntryMessage(webview, selectedEntry.value)

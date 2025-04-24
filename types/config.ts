@@ -5,8 +5,9 @@ export interface ModelConfig {
   baseURL?: string
 }
 
-export interface Config {
-  models: ModelConfig[]
+export interface AIConfig {
+  additionalPrompts: string[]
+  ai: ModelConfig[]
 }
 
 export type ModelInfo = Omit<ModelConfig, 'apiKey'>

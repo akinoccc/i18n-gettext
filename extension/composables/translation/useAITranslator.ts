@@ -30,7 +30,7 @@ import * as vscode from 'vscode'
 import { WebViewMessageType } from '../../../constants'
 import { logger } from '../../utils/logger'
 import { localesConfig } from '../config'
-import { useModelConfig } from '../config/useModelConfig'
+import { useAIConfig } from '../config/useAIConfig'
 import { usePoEditor } from '../po'
 import { useTranslationsState } from '../state'
 
@@ -63,18 +63,29 @@ export const useAITranslator = createSingletonComposable(() => {
   const poEditor = usePoEditor()
   const { getEntryById } = useTranslationsState()
 
-  // Base Prompt
   const BASE_PROMPT = `
-    User can send the content to be translated,
-    and the assistant will answer the corresponding translation result,
-    ensuring that it conforms to the grammar and habits of the target language,
-    you can adjust the tone and style, and consider the cultural connotations and regional differences of certain words.
-    As a translator, you need to translate the original text into a translation with the standard of "faithfulness", "fluency", and "elegance".
-    "Faithfulness" means that the translation is faithful to the original content and intent;
-    "Fluency" means that the translation should be smooth and easy to understand, and clear;
-    "Elegance" means that the translation should be culturally aesthetic and linguistically graceful.
-    The goal is to create a translation that is both faithful to the original work and culturally aesthetic.
-  `
+    Translate faithfully, fluently and elegantly. Follow these rules:
+
+    # Whitespace Rules
+      - Add space between non-Latin (CJK/Arabic) and Latin scripts:
+        JP: "Reactを使う" → "React を使う"
+        KO: "Node.js설치" → "Node.js 설치"
+        TH: "ติดตั้งPython3.9" → "ติดตั้ง Python 3.9"
+      - Exceptions: Numbers/Units/Operators (200GB硬盘 → 200GB 硬盘)
+
+    # Language Specific
+      - CJK: Use native punctuation and spacing
+      - ZH: 「正确示例」
+      - JA: を適用
+      - KO: 조사 spacing
+      - RTL: Maintain text direction (نظام iOS الجديد)
+
+    # Output
+      - Only return translation
+      - No explanations
+      - Clean formatting
+`
+  const additionalPrompts: string[] = []
 
   // AI model list
   const AI_MODELS: Omit<ModelConfig, 'apiKey'>[] = []
@@ -115,9 +126,10 @@ export const useAITranslator = createSingletonComposable(() => {
    * @returns AI model list
    */
   async function getAvailableModels(): Promise<Omit<ModelConfig, 'apiKey'>[]> {
-    const modelConfig = await useModelConfig()
-    const models = await modelConfig.readModelConfig()
+    const modelConfig = await useAIConfig()
+    const { ai: models, additionalPrompts } = await modelConfig.readAIConfig()
     updateAIModels(models)
+    additionalPrompts.push(...additionalPrompts)
     return [...AI_MODELS]
   }
 
@@ -275,6 +287,7 @@ export const useAITranslator = createSingletonComposable(() => {
       You are a translation expert,
       please translate the following ${sourceLanguage} text exactly into ${targetLanguage},
       ${BASE_PROMPT}
+      ${additionalPrompts.join('\n')}
       ${contextInfo}
       Source Text:
       "${sourceText}"
@@ -314,6 +327,7 @@ export const useAITranslator = createSingletonComposable(() => {
       You are a multi-language translation expert,
       please translate the following ${sourceLanguage} text into ${targetLanguagesStr}.
       ${BASE_PROMPT}
+      ${additionalPrompts.join('\n')}
       ${contextInfo}
 
       Source Text:

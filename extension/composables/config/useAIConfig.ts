@@ -1,5 +1,5 @@
 import type { Webview } from 'vscode'
-import type { ModelConfig } from '../../../types'
+import type { AIConfig } from '../../../types'
 
 import { createSingletonComposable, reactive, useFsWatcher } from 'reactive-vscode'
 import * as vscode from 'vscode'
@@ -9,7 +9,7 @@ import { logger } from '../../utils/logger'
 /**
  * 模型配置组合式函数
  */
-export const useModelConfig = createSingletonComposable(async () => {
+export const useAIConfig = createSingletonComposable(async () => {
   const { loadConfig } = await import('unconfig')
   let currentWebview: Webview | null = null
 
@@ -21,20 +21,23 @@ export const useModelConfig = createSingletonComposable(async () => {
    * 读取模型配置信息
    * @returns 返回配置信息，如果读取失败则返回空数组
    */
-  async function readModelConfig(): Promise<ModelConfig[]> {
+  async function readAIConfig(): Promise<AIConfig> {
     try {
       // 获取工作区文件夹
       const workspaceFolders = vscode.workspace.workspaceFolders
       if (!workspaceFolders || workspaceFolders.length === 0) {
         logger.warn(vscode.l10n.t('No workspace folders found'))
-        return []
+        return {
+          additionalPrompts: [],
+          ai: [],
+        }
       }
 
       // 项目根目录
       const rootPath = workspaceFolders[0].uri.fsPath
 
       // 使用 unconfig 加载配置
-      const { config } = await loadConfig<{ ai: ModelConfig[] }>({
+      const { config } = await loadConfig<AIConfig>({
         cwd: rootPath,
         sources: [
           // 尝试加载 .vscode/.i18n-gettext.secret 配置
@@ -61,14 +64,20 @@ export const useModelConfig = createSingletonComposable(async () => {
       // 检查配置
       if (!config || !config.ai || !Array.isArray(config.ai)) {
         logger.warn(vscode.l10n.t('No AI configuration found in config files'))
-        return []
+        return {
+          additionalPrompts: [],
+          ai: [],
+        }
       }
 
-      return config.ai
+      return config
     }
     catch (error) {
       logger.error(vscode.l10n.t('Failed to read model config: {error}', { error }))
-      return []
+      return {
+        additionalPrompts: [],
+        ai: [],
+      }
     }
   }
 
@@ -79,9 +88,7 @@ export const useModelConfig = createSingletonComposable(async () => {
   async function sendModelConfigToWebview(webview: Webview): Promise<boolean> {
     try {
       currentWebview = webview
-      const models = await readModelConfig()
-
-      logger.info('Models: ', JSON.stringify(models))
+      const { ai: models } = await readAIConfig()
 
       const result = await webview.postMessage({
         type: WebViewMessageType.SEND_MODEL_CONFIG,
@@ -151,7 +158,7 @@ export const useModelConfig = createSingletonComposable(async () => {
   }
 
   return {
-    readModelConfig,
+    readAIConfig,
     sendModelConfigToWebview,
     watchModelConfigChanges,
   }
