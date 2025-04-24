@@ -54,6 +54,8 @@ Search for "i18n Gettext" in the VSCode extension marketplace and click install 
 
 In VSCode settings, you can find the "i18n Gettext" section to configure the following options:
 
+Default Config:
+
 ```json
 {
   "i18n-gettext.localesConfig": {

@@ -54,6 +54,8 @@
 
 在VSCode设置中，可以找到"i18n Gettext"部分，配置以下选项：
 
+默认配置：
+
 ```json
 {
   "i18n-gettext.localesConfig": {
