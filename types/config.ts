@@ -1,7 +1,8 @@
 export interface ModelConfig {
   provider: string
   modelId: string
-  apiKey: string
+  apiKey?: string
+  baseURL?: string
 }
 
 export interface Config {

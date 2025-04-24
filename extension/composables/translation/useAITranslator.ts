@@ -21,7 +21,10 @@ import { createOpenAI } from '@ai-sdk/openai'
 import { createPerplexity } from '@ai-sdk/perplexity'
 import { createTogetherAI } from '@ai-sdk/togetherai'
 import { createXai } from '@ai-sdk/xai'
+import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { generateText } from 'ai'
+import { createOllama } from 'ollama-ai-provider'
+import { createQwen } from 'qwen-ai-provider'
 import { createSingletonComposable, useWorkspaceFolders } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { WebViewMessageType } from '../../../constants'
@@ -124,7 +127,8 @@ export const useAITranslator = createSingletonComposable(() => {
    * @param modelId Model ID
    * @returns Language model instance
    */
-  function getModelInstance(provider: string, modelId: string): LanguageModelV1 {
+  function getModelInstance(options: ModelConfig): LanguageModelV1 {
+    const { provider, modelId, baseURL } = options
     const apiKey = API_KEYS[buildModelKey(provider, modelId)]
 
     if (!apiKey) {
@@ -198,6 +202,20 @@ export const useAITranslator = createSingletonComposable(() => {
           },
         })(modelId)
       }
+      case 'ollama':
+        return createOllama({
+          baseURL,
+        })(modelId)
+      case 'qwen':
+        return createQwen({
+          apiKey,
+          baseURL,
+        })(modelId)
+      case 'openRouter':
+        return createOpenRouter({
+          apiKey,
+          baseURL,
+        })(modelId)
       default:
         throw new Error(vscode.l10n.t('Unsupported provider: {provider}', { provider }))
     }
@@ -323,7 +341,7 @@ export const useAITranslator = createSingletonComposable(() => {
     entryId,
   }: TranslationOptions): Promise<string> {
     try {
-      const modelInstance = getModelInstance(model.provider, model.modelId)
+      const modelInstance = getModelInstance(model)
       const { references, msgctxt } = getEntryInfo(entryId)
       const prompt = buildTranslationPrompt(
         sourceText,
@@ -363,7 +381,7 @@ export const useAITranslator = createSingletonComposable(() => {
   }: BatchTranslationOptions): Promise<Record<string, string>> {
     try {
       const { references, msgctxt } = getEntryInfo(entryId)
-      const modelInstance = getModelInstance(model.provider, model.modelId)
+      const modelInstance = getModelInstance(model)
       const prompt = buildBatchTranslationPrompt(sourceText, sourceLanguage, targetLanguages, references, msgctxt)
 
       const { text } = await generateText({
