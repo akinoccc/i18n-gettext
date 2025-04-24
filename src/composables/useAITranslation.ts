@@ -270,6 +270,10 @@ export function useAITranslation() {
   function handleMachineTranslateResult(
     data: TranslateByMachineResultData,
   ) {
+    // 添加条目ID校验
+    if (data.entryId !== translationEntry.value?.id)
+      return
+
     // 更新特定语言的翻译状态
     if (data.targetLanguage) {
       updateLanguageTranslatingState(data.targetLanguage, 'machine', false)
@@ -314,6 +318,10 @@ export function useAITranslation() {
   function handleAITranslateResult(
     data: AITranslateResultData,
   ) {
+    // 添加条目ID校验
+    if (data.entryId !== translationEntry.value?.id)
+      return
+
     // 更新特定语言的AI翻译状态
     if (data.targetLanguage) {
       updateLanguageTranslatingState(data.targetLanguage, 'ai', false)
@@ -358,6 +366,10 @@ export function useAITranslation() {
   function handleAIBatchTranslateResult(
     data: AIBatchTranslateResultData,
   ) {
+    // 添加条目ID校验
+    if (data.entryId !== translationEntry.value?.id)
+      return
+
     // 重置所有语言的AI翻译状态
     Object.keys(languageTranslatingState.value).forEach((lang) => {
       updateLanguageTranslatingState(lang, 'ai', false)
