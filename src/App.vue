@@ -37,7 +37,6 @@ const {
   translateAllByAI,
   setupMessageListeners: setupAIListeners,
   onlyTranslateUntranslated,
-  updateOnlyTranslateUntranslated,
 } = useAITranslation()
 
 // 检测操作系统类型，用于显示正确的快捷键
@@ -49,11 +48,15 @@ function handleKeyDown(event: KeyboardEvent) {
   if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
     event.preventDefault()
     // Send message to extension to navigate to next untranslated entry
-    vscodeApi.postMessage({
-      type: WebViewMessageType.NEXT_UNTRANSLATED_ENTRY,
-      data: null,
-    })
+    nextUnTranslatedEntry()
   }
+}
+
+function nextUnTranslatedEntry() {
+  vscodeApi.postMessage({
+    type: WebViewMessageType.NEXT_UNTRANSLATED_ENTRY,
+    data: null,
+  })
 }
 
 onMounted(() => {
@@ -97,11 +100,6 @@ function handleClearHighlight(locale: string) {
   clearLanguageHighlight(locale)
   // 同时清除错误状态
   clearLanguageError(locale)
-}
-
-// 手动重置所有翻译状态
-function resetTranslationStates() {
-  resetAllTranslationStates()
 }
 </script>
 
@@ -149,7 +147,7 @@ function resetTranslationStates() {
 
     <!-- Keyboard Shortcut Tip -->
     <div class="flex items-center justify-center mt-16 gap-2 px-3 py-2 text-sm text-gray-400">
-      <kbd class="px-2 py-1 bg-white dark:bg-truegray-900 border border-truegray-300 dark:border-truegray-700 rounded-md shadow-sm font-mono text-xs text-truegray-400 dark:text-truegray-400">
+      <kbd class="px-2 py-1 bg-white dark:bg-truegray-900 border border-truegray-300 dark:border-truegray-700 rounded-md shadow-sm font-mono text-xs text-truegray-400 dark:text-truegray-400" @click="nextUnTranslatedEntry">
         {{ isMac ? '⌘' : 'Ctrl' }} + Enter
       </kbd>
       <span>to navigate to next untranslated item</span>
