@@ -6,7 +6,7 @@ import * as vscode from 'vscode'
 import { CommandType, WebViewMessageType } from '../../../constants'
 import { logger } from '../../utils/logger'
 import { useAIConfig } from '../config/useAIConfig'
-import { localesConfig } from '../config/useConfig'
+import { localesConfig, translator as translatorConfig } from '../config/useConfig'
 import { usePoEditor } from '../po'
 import { useTranslationsState } from '../state'
 import { useAITranslator } from '../translation/useAITranslator'
@@ -244,6 +244,7 @@ export const useMessageHandler = createSingletonComposable(() => {
       data: {
         ...entry,
         sourceLanguage: localesConfig.value.sourceLanguage,
+        onlyTranslateUntranslated: translatorConfig.value.onlyTranslateUntranslated,
       },
     })
   }

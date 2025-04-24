@@ -40,11 +40,14 @@
           },
           "description": "Locales config"
         },
-        "i18n-gettext.translator.engines": {
-          "type": "array",
-          "default": [
-            "google"
-          ]
+        "i18n-gettext.translator": {
+          "type": "object",
+          "properties": {
+            "onlyTranslateUntranslated": {
+              "type": "boolean",
+              "default": true
+            }
+          }
         }
       }
     },

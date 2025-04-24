@@ -36,6 +36,8 @@ const {
   translateSingleByAI,
   translateAllByAI,
   setupMessageListeners: setupAIListeners,
+  onlyTranslateUntranslated,
+  updateOnlyTranslateUntranslated,
 } = useAITranslation()
 
 // 检测操作系统类型，用于显示正确的快捷键
@@ -121,6 +123,7 @@ function resetTranslationStates() {
     </header>
 
     <TranslationEditor
+      v-model:only-translate-untranslated="onlyTranslateUntranslated"
       :translation-entry="translationEntry"
       :ai-models="aiModels"
       :source-language="sourceLanguage"

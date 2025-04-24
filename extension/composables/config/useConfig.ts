@@ -23,7 +23,7 @@ export interface LocalePattern {
 }
 
 // 导出定义的配置
-export const { localesConfig } = defineConfigs('i18n-gettext', {
+export const { localesConfig, translator } = defineConfigs('i18n-gettext', {
   localesConfig: {
     root: '.',
     type: 'nested',
@@ -33,7 +33,7 @@ export const { localesConfig } = defineConfigs('i18n-gettext', {
     sourceLanguage: 'en-US',
   } as LocalePattern,
   translator: {
-    engines: ['google'],
+    onlyTranslateUntranslated: true,
   },
 })
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { LocaleIdentifier, ModelInfo, TranslationEntry } from 'types'
 import { AlertCircle } from 'lucide-vue-next'
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watchEffect } from 'vue'
 import { localesMap } from '../../../constants/locale'
 import ReferencesList from './ReferencesList.vue'
 import TranslationActions from './TranslateActions.vue'
@@ -34,6 +34,7 @@ const emit = defineEmits<{
   updateSelectedModel: [modelId: string]
   clearHighlight: [locale: string]
 }>()
+const onlyTranslateUntranslated = defineModel<boolean>('onlyTranslateUntranslated', { required: true })
 
 const selectedModel = ref('')
 
@@ -80,13 +81,13 @@ const untranslatedCount = computed(() => {
 })
 
 // 监听translationEntry的变化，当切换到新条目时重置选中的AI模型
-watch(() => props.translationEntry, () => {
+watchEffect(() => {
   // 当切换条目时，如果有可用的AI模型，将模型重置为第一个
   if (props.aiModels.length) {
     selectedModel.value = `${props.aiModels[0].provider}:${props.aiModels[0].modelId}`
     emit('updateSelectedModel', selectedModel.value)
   }
-}, { deep: true })
+})
 
 function isSourceLanguage(locale: string): boolean {
   return locale === props.sourceLanguage
@@ -222,6 +223,15 @@ function getErrorMessage(locale: string): string | undefined {
         @translate-all-machine="emit('translateAllByMachine')"
         @translate-all-a-i="emit('translateAllByAI')"
       />
+      <div class="flex justify-end gap-2">
+        <input
+          v-model="onlyTranslateUntranslated"
+          type="checkbox"
+        >
+        <label>
+          Only translate untranslated items
+        </label>
+      </div>
     </div>
   </div>
   <div

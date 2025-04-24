@@ -7,6 +7,8 @@ import { useTranslationEntry } from './useTranslationEntry'
 export function useAITranslation() {
   const aiModels = ref<ModelInfo[]>([])
   const selectedAIModel = ref<string>('')
+  const onlyTranslateUntranslated = ref(true)
+
   // 全局状态
   const isAITranslating = ref(false)
   const isMachineTranslating = ref(false)
@@ -29,6 +31,10 @@ export function useAITranslation() {
   registerOnEntryChange(() => {
     resetAllTranslationStates()
   })
+
+  function updateOnlyTranslateUntranslated(value: boolean) {
+    onlyTranslateUntranslated.value = value
+  }
 
   // 更新特定语言的翻译状态
   function updateLanguageTranslatingState(lang: string, type: 'ai' | 'machine', isTranslating: boolean) {
@@ -133,7 +139,14 @@ export function useAITranslation() {
 
     const availableCodes = Object.keys(translationEntry.value!.locales)
     const toTranslateLocales = availableCodes
-      .filter(code => code !== sourceLanguage && !translationEntry.value!.locales[code])
+      .filter((code) => {
+        const isSourceLanguage = code === sourceLanguage
+        const isTranslated = translationEntry.value!.locales[code]
+        if (onlyTranslateUntranslated.value) {
+          return !isSourceLanguage && !isTranslated
+        }
+        return !isSourceLanguage
+      })
       .map(code => ({ originalCode: code, code }))
 
     // 清除所有要翻译的语言的高亮状态
@@ -215,7 +228,14 @@ export function useAITranslation() {
     if (Object.keys(translationEntry.value!.locales).length > 0) {
       // Collect all target language codes
       const targetLanguages = Object.keys(translationEntry.value!.locales)
-        .filter(lang => lang !== sourceLanguage)
+        .filter((lang) => {
+          const isSourceLanguage = lang === sourceLanguage
+          const isTranslated = translationEntry.value!.locales[lang]
+          if (onlyTranslateUntranslated.value) {
+            return !isSourceLanguage && !isTranslated
+          }
+          return !isSourceLanguage
+        })
 
       // 清除所有目标语言的高亮状态
       targetLanguages.forEach((lang) => {
@@ -424,6 +444,8 @@ export function useAITranslation() {
   return {
     aiModels,
     selectedAIModel,
+    onlyTranslateUntranslated,
+    updateOnlyTranslateUntranslated,
     isAITranslating,
     isMachineTranslating,
     isAIBatchTranslating,

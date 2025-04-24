@@ -2,6 +2,7 @@ import type { TranslationEntry } from '../../types'
 import { ref } from 'vue'
 import { WebViewMessageType } from '../../constants'
 import { vscodeApi } from '../utils'
+import { useAITranslation } from './useAITranslation'
 
 const sourceLanguage = ref('')
 const translationEntry = ref<TranslationEntry>()
@@ -67,9 +68,10 @@ export function useTranslationEntry() {
   // Set up message listeners
   function setupMessageListeners() {
     // Listen for translation entry selection
-    vscodeApi.on(WebViewMessageType.SELECT_ENTRY, (entry: TranslationEntry & { sourceLanguage: string }) => {
+    vscodeApi.on(WebViewMessageType.SELECT_ENTRY, (entry: TranslationEntry & { sourceLanguage: string, onlyTranslateUntranslated: boolean }) => {
       translationEntry.value = entry
       sourceLanguage.value = entry.sourceLanguage
+      useAITranslation().updateOnlyTranslateUntranslated(entry.onlyTranslateUntranslated)
       vscodeApi.setState(JSON.stringify(entry))
 
       // 触发条目变更事件
