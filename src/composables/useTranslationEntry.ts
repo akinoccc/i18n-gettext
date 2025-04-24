@@ -6,6 +6,19 @@ import { vscodeApi } from '../utils'
 const sourceLanguage = ref('')
 const translationEntry = ref<TranslationEntry>()
 
+// 创建事件总线用于跨组合函数通信
+interface TranslationEventHandlers {
+  onEntryChange: (() => void)[]
+}
+
+const eventHandlers: TranslationEventHandlers = {
+  onEntryChange: [],
+}
+
+export function registerTranslationEventHandler(event: keyof TranslationEventHandlers, handler: () => void) {
+  eventHandlers[event].push(handler)
+}
+
 export function useTranslationEntry() {
   // Save translation content
   function saveTranslation(locale: string, value: string) {
@@ -58,6 +71,9 @@ export function useTranslationEntry() {
       translationEntry.value = entry
       sourceLanguage.value = entry.sourceLanguage
       vscodeApi.setState(JSON.stringify(entry))
+
+      // 触发条目变更事件
+      eventHandlers.onEntryChange.forEach(handler => handler())
     })
   }
 
@@ -68,5 +84,6 @@ export function useTranslationEntry() {
     goToReference,
     setupMessageListeners,
     updateTranslationEntry,
+    registerOnEntryChange: (handler: () => void) => registerTranslationEventHandler('onEntryChange', handler),
   }
 }

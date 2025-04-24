@@ -24,7 +24,11 @@ const {
   currentTranslatingLang,
   languageTranslatingState,
   isLanguageRecentlyTranslated,
+  hasLanguageError,
+  getLanguageError,
   clearLanguageHighlight,
+  clearLanguageError,
+  resetAllTranslationStates,
   error,
   updateSelectedModel,
   translateByMachine,
@@ -89,6 +93,13 @@ function handleTranslateSingleByAI(locale: { originalCode: string, code: string 
 
 function handleClearHighlight(locale: string) {
   clearLanguageHighlight(locale)
+  // 同时清除错误状态
+  clearLanguageError(locale)
+}
+
+// 手动重置所有翻译状态
+function resetTranslationStates() {
+  resetAllTranslationStates()
 }
 </script>
 
@@ -121,6 +132,8 @@ function handleClearHighlight(locale: string) {
       :current-translating-lang="currentTranslatingLang"
       :language-translating-state="languageTranslatingState"
       :is-language-recently-translated="isLanguageRecentlyTranslated"
+      :has-language-error="hasLanguageError"
+      :get-language-error="getLanguageError"
       @go-to-reference="goToReference"
       @save-translation="saveTranslation"
       @translate-by-machine="handleTranslateByMachine"

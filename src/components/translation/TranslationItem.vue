@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { LocaleIdentifier } from 'types'
-import { AlertCircle, Bot, Languages } from 'lucide-vue-next'
+import { AlertCircle, Bot, Languages, XCircle } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import LanguageTag from './LanguageTag.vue'
 
@@ -14,6 +14,8 @@ interface Props {
   isMachineTranslating: boolean
   isButtonDisabled?: boolean
   isRecentlyTranslated?: boolean
+  hasError?: boolean
+  errorMessage?: string
 }
 
 const props = defineProps<Props>()
@@ -80,6 +82,7 @@ function handleSingleAITranslate() {
     :class="{
       'border-amber-300': isUntranslated,
       'border-green-400 bg-green-50 dark:bg-green-900/20 shadow-sm': props.isRecentlyTranslated && !isUntranslated,
+      'border-red-400 bg-red-50/50 dark:bg-red-900/20 shadow-sm': props.hasError,
     }"
   >
     <LanguageTag
@@ -95,6 +98,7 @@ function handleSingleAITranslate() {
         :class="{
           'text-gray-700 dark:text-truegray-300': isUntranslated,
           'text-green-700 dark:text-green-300': props.isRecentlyTranslated && !isUntranslated,
+          'text-red-700 dark:text-red-300': props.hasError,
         }"
         :placeholder="props.placeholder"
         @blur="handleBlur"
@@ -111,6 +115,15 @@ function handleSingleAITranslate() {
       >
         <AlertCircle :size="14" />
         <span class="hidden sm:inline">Untranslated</span>
+      </div>
+      <!-- Error indicator -->
+      <div
+        v-else-if="props.hasError"
+        class="flex items-center gap-1 px-2 py-1 text-xs font-medium bg-red-50 text-red-600 dark:bg-red-900 dark:text-red-400 rounded"
+        :title="props.errorMessage || 'Translation failed'"
+      >
+        <XCircle :size="14" />
+        <span class="hidden sm:inline">Failed</span>
       </div>
       <!-- Recent Translation indicator -->
       <div

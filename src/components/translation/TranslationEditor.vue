@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { LocaleIdentifier, ModelInfo, TranslationEntry } from 'types'
 import { AlertCircle } from 'lucide-vue-next'
-import { computed, ref, watchEffect } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { localesMap } from '../../../constants/locale'
 import ReferencesList from './ReferencesList.vue'
 import TranslationActions from './TranslateActions.vue'
@@ -19,6 +19,8 @@ interface Props {
   currentTranslatingLang: string
   languageTranslatingState: Record<string, { ai: boolean, machine: boolean }>
   isLanguageRecentlyTranslated?: (lang: string) => boolean
+  hasLanguageError?: (lang: string) => boolean
+  getLanguageError?: (lang: string) => string | undefined
 }
 
 const props = defineProps<Props>()
@@ -77,12 +79,14 @@ const untranslatedCount = computed(() => {
     .length
 })
 
-watchEffect(() => {
+// 监听translationEntry的变化，当切换到新条目时重置选中的AI模型
+watch(() => props.translationEntry, () => {
+  // 当切换条目时，如果有可用的AI模型，将模型重置为第一个
   if (props.aiModels.length) {
     selectedModel.value = `${props.aiModels[0].provider}:${props.aiModels[0].modelId}`
     emit('updateSelectedModel', selectedModel.value)
   }
-})
+}, { deep: true })
 
 function isSourceLanguage(locale: string): boolean {
   return locale === props.sourceLanguage
@@ -143,6 +147,14 @@ function handleClearHighlight(locale: string) {
 function isRecentlyTranslated(locale: string): boolean {
   return props.isLanguageRecentlyTranslated ? props.isLanguageRecentlyTranslated(locale) : false
 }
+
+function hasError(locale: string): boolean {
+  return props.hasLanguageError ? props.hasLanguageError(locale) : false
+}
+
+function getErrorMessage(locale: string): string | undefined {
+  return props.getLanguageError ? props.getLanguageError(locale) : undefined
+}
 </script>
 
 <template>
@@ -172,6 +184,8 @@ function isRecentlyTranslated(locale: string): boolean {
         :is-machine-translating="isItemMachineTranslating(locale.originalCode)"
         :is-button-disabled="isItemDisabled(locale.originalCode)"
         :is-recently-translated="isRecentlyTranslated(locale.originalCode)"
+        :has-error="hasError(locale.originalCode)"
+        :error-message="getErrorMessage(locale.originalCode)"
         @update:value="(value) => handleSaveTranslation(locale.originalCode, value)"
         @translate-by-machine="handleTranslateByMachine"
         @translate-single-by-a-i="() => handleTranslateSingleByAI(locale)"

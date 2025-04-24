@@ -19,9 +19,16 @@ export function useAITranslation() {
   const languageTranslatingState = ref<Record<string, { ai: boolean, machine: boolean }>>({})
   // 最近翻译完成的语言，用于高亮显示
   const recentlyTranslatedLanguages = ref<Record<string, boolean>>({})
+  // 用于记录翻译失败的语言及错误信息
+  const languageErrors = ref<Record<string, string>>({})
   const error = ref('')
 
-  const { translationEntry, updateTranslationEntry } = useTranslationEntry()
+  const { translationEntry, updateTranslationEntry, registerOnEntryChange } = useTranslationEntry()
+
+  // 注册 translationEntry 变更事件，在条目变化时重置所有状态
+  registerOnEntryChange(() => {
+    resetAllTranslationStates()
+  })
 
   // 更新特定语言的翻译状态
   function updateLanguageTranslatingState(lang: string, type: 'ai' | 'machine', isTranslating: boolean) {
@@ -56,6 +63,28 @@ export function useAITranslation() {
     }
   }
 
+  // 清除指定语言的错误状态
+  function clearLanguageError(lang: string) {
+    if (languageErrors.value[lang]) {
+      delete languageErrors.value[lang]
+    }
+  }
+
+  // 设置语言的错误状态
+  function setLanguageError(lang: string, errorMsg: string) {
+    languageErrors.value[lang] = errorMsg
+  }
+
+  // 获取特定语言的错误信息
+  function getLanguageError(lang: string): string | undefined {
+    return languageErrors.value[lang]
+  }
+
+  // 判断特定语言是否有翻译错误
+  function hasLanguageError(lang: string): boolean {
+    return !!languageErrors.value[lang]
+  }
+
   // 检查语言是否是最近翻译完成的
   function isLanguageRecentlyTranslated(lang: string): boolean {
     return !!recentlyTranslatedLanguages.value[lang]
@@ -78,6 +107,8 @@ export function useAITranslation() {
   ) {
     // 清除之前的高亮状态
     clearLanguageHighlight(locale.originalCode)
+    // 清除之前的错误状态
+    clearLanguageError(locale.originalCode)
 
     isMachineTranslating.value = true
     isSingleMachineTranslating.value = true
@@ -108,6 +139,8 @@ export function useAITranslation() {
     // 清除所有要翻译的语言的高亮状态
     toTranslateLocales.forEach((locale) => {
       clearLanguageHighlight(locale.originalCode)
+      // 清除所有要翻译的语言的错误状态
+      clearLanguageError(locale.originalCode)
     })
 
     // Set global machine translation state
@@ -134,6 +167,8 @@ export function useAITranslation() {
   function translateSingleByAI(sourceLanguage: string, targetLanguage: string) {
     // 清除高亮状态
     clearLanguageHighlight(targetLanguage)
+    // 清除错误状态
+    clearLanguageError(targetLanguage)
 
     // Set translating status
     isAITranslating.value = true
@@ -185,6 +220,8 @@ export function useAITranslation() {
       // 清除所有目标语言的高亮状态
       targetLanguages.forEach((lang) => {
         clearLanguageHighlight(lang)
+        // 清除所有目标语言的错误状态
+        clearLanguageError(lang)
       })
 
       // 设置每个目标语言的AI翻译状态
@@ -228,12 +265,22 @@ export function useAITranslation() {
     }
 
     if (data.error) {
+      // 记录特定语言的错误
+      if (data.targetLanguage) {
+        setLanguageError(data.targetLanguage, data.error)
+      }
+      // 全局错误仍然保留
       error.value = data.error
       return
     }
 
     // 翻译成功，清除错误信息
     error.value = ''
+
+    // 如果有目标语言，清除该语言的错误状态
+    if (data.targetLanguage) {
+      clearLanguageError(data.targetLanguage)
+    }
 
     // Update translation entry
     if (translationEntry.value && data.targetLanguage && data.result) {
@@ -262,12 +309,22 @@ export function useAITranslation() {
     }
 
     if (data.error) {
+      // 记录特定语言的错误
+      if (data.targetLanguage) {
+        setLanguageError(data.targetLanguage, data.error)
+      }
+      // 全局错误仍然保留
       error.value = data.error
       return
     }
 
     // 翻译成功，清除错误信息
     error.value = ''
+
+    // 如果有目标语言，清除该语言的错误状态
+    if (data.targetLanguage) {
+      clearLanguageError(data.targetLanguage)
+    }
 
     // Update translation entry
     if (translationEntry.value && data.targetLanguage && data.result) {
@@ -290,6 +347,7 @@ export function useAITranslation() {
     isAIBatchTranslating.value = false
 
     if (data.error) {
+      // 对于批量翻译，如果失败，我们设置全局错误，但不为单独语言设置错误
       error.value = data.error
       return
     }
@@ -300,11 +358,32 @@ export function useAITranslation() {
     // Update translation entry
     if (translationEntry.value && data.results) {
       Object.entries(data.results).forEach(([langCode, translation]) => {
+        // 清除该语言的错误状态
+        clearLanguageError(langCode)
+
         updateTranslationEntry(langCode, translation as string)
         // 标记为最近翻译完成
         markLanguageAsRecentlyTranslated(langCode)
       })
     }
+  }
+
+  // 重置所有翻译状态
+  function resetAllTranslationStates() {
+    // 重置高亮状态
+    recentlyTranslatedLanguages.value = {}
+    // 重置错误状态
+    languageErrors.value = {}
+    // 重置翻译中状态
+    languageTranslatingState.value = {}
+    // 重置全局翻译状态
+    isAITranslating.value = false
+    isMachineTranslating.value = false
+    isAIBatchTranslating.value = false
+    isSingleAITranslating.value = false
+    isSingleMachineTranslating.value = false
+    currentTranslatingLang.value = ''
+    error.value = ''
   }
 
   // Set up message listeners
@@ -354,7 +433,11 @@ export function useAITranslation() {
     languageTranslatingState,
     isLanguageTranslating,
     isLanguageRecentlyTranslated,
+    hasLanguageError,
+    getLanguageError,
     clearLanguageHighlight,
+    clearLanguageError,
+    resetAllTranslationStates,
     error,
     updateSelectedModel,
     translateByMachine,
