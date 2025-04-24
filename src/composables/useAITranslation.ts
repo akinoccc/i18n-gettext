@@ -98,7 +98,7 @@ export function useAITranslation() {
 
   // Parse model ID string
   function parseModelId(model: string): { provider: string, modelId: string } {
-    const [provider, modelId] = model.split(':')
+    const [provider, modelId] = model.split(':::')
     return { provider, modelId }
   }
 

@@ -84,7 +84,7 @@ const untranslatedCount = computed(() => {
 watchEffect(() => {
   // 当切换条目时，如果有可用的AI模型，并且没有选择AI模型，将模型重置为第一个
   if (props.aiModels.length && !selectedModel.value) {
-    selectedModel.value = `${props.aiModels[0].provider}:${props.aiModels[0].modelId}`
+    selectedModel.value = `${props.aiModels[0].provider}:::${props.aiModels[0].modelId}`
     emit('updateSelectedModel', selectedModel.value)
   }
 })
@@ -208,7 +208,8 @@ function getErrorMessage(locale: string): string | undefined {
           </option>
           <option
             v-for="model in props.aiModels"
-            :key="`${model.provider}:${model.modelId}`"
+            :key="`${model.provider}:::${model.modelId}`"
+            :value="`${model.provider}:::${model.modelId}`"
           >
             {{ model.provider }}:{{ model.modelId }}
           </option>

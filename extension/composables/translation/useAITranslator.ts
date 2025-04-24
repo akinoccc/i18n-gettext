@@ -64,7 +64,21 @@ export const useAITranslator = createSingletonComposable(() => {
   const { getEntryById } = useTranslationsState()
 
   const BASE_PROMPT = `
-    Translate faithfully, fluently and elegantly. Follow these rules:
+    Users can send content to the assistant that needs to be translated.
+    The assistant will answer the corresponding translation results and ensure that it conforms to Chinese language habits.
+    You can adjust your tone and style and take into account the cultural connotation and regional differences of certain words.
+    At the same time, as a translator, you need to translate the original text into a translation with faithful and elegant standards.
+    "Faith" means faithful to the content and intention of the original text;
+    "Prosperity" means that the translation should be smooth and easy to understand and clearly expressed;
+    "Elegant" means that the cultural aesthetics of the translation and the beauty of the language are pursued.
+    The goal is to create a translation that is both faithful to the spirit of the original work,
+    but also conforms to the target language and culture and readers' aesthetics.
+
+    And need to follow these rules:
+
+    # Notes:
+      - Chinese has two different writing systems: Simplified and Traditional.
+      - The translation should be in the same writing system as the source text.
 
     # Whitespace Rules
       - Add space between non-Latin (CJK/Arabic) and Latin scripts:
@@ -72,14 +86,6 @@ export const useAITranslator = createSingletonComposable(() => {
         KO: "Node.js설치" → "Node.js 설치"
         TH: "ติดตั้งPython3.9" → "ติดตั้ง Python 3.9"
       - Exceptions: Numbers/Units/Operators (200GB硬盘 → 200GB 硬盘)
-
-    # Language Specific
-      - CJK: Use native punctuation and spacing
-      - ZH: 「正确示例」
-      - JA: を適用
-      - KO: 조사 spacing
-      - RTL: Maintain text direction (نظام iOS الجديد)
-
 
     # Output
       - Only return the plain translation result
@@ -95,7 +101,7 @@ export const useAITranslator = createSingletonComposable(() => {
   const API_KEYS: Record<string, string> = {}
 
   function buildModelKey(provider: string, modelId: string): string {
-    return `${provider}:${modelId}`
+    return `${provider}:::${modelId}`
   }
 
   /**
@@ -145,6 +151,8 @@ export const useAITranslator = createSingletonComposable(() => {
   function getModelInstance(options: ModelConfig): LanguageModelV1 {
     const { provider, modelId, baseURL, region } = options
     const apiKey = API_KEYS[buildModelKey(provider, modelId)]
+
+    logger.info('getModelInstance:', provider, modelId, baseURL, region, apiKey)
 
     if (!apiKey) {
       logger.warn(vscode.l10n.t('No API key found for {provider}', { provider }))
@@ -290,12 +298,12 @@ export const useAITranslator = createSingletonComposable(() => {
     return `
       You are a translation expert,
       please translate the following ${sourceLanguage} text exactly into ${targetLanguage},
+      Source Text:
+      "${sourceText}"
       ${BASE_PROMPT}
       ${additionalPrompts.join('\n')}
       ${contextInfo}
-      Source Text:
-      "${sourceText}"
-      Only return the translation result, do not add any other explanation or mark.
+      **Only return the plain translation result, do not add any other explanation or mark.**
     `
   }
 
