@@ -223,7 +223,7 @@ export const useAITranslator = createSingletonComposable(() => {
           apiKey,
           baseURL,
         })(modelId)
-      case 'openRouter':
+      case 'open-router':
         return createOpenRouter({
           apiKey,
           baseURL,

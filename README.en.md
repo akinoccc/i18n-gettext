@@ -85,6 +85,7 @@ To use the AI translation feature, you need to create a `.i18n-gettext.secret` c
 
 ```json
 {
+  "additionalPrompts": [],
   "ai": [
     {
       "provider": "openai",
@@ -108,6 +109,9 @@ To use the AI translation feature, you need to create a `.i18n-gettext.secret` c
 Supported AI providers include:
 - openai
 - deepseek
+- ollama
+- open-router
+- qwen
 - anthropic
 - mistral
 - groq

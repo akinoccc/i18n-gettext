@@ -85,6 +85,7 @@
 
 ```json
 {
+  "additionalPrompts": [],
   "ai": [
     {
       "provider": "openai",
@@ -108,12 +109,14 @@
 支持的AI提供商包括：
 - openai
 - deepseek
+- ollama
+- open-router
+- qwen
 - anthropic
 - mistral
 - groq
 - cohere
 - perplexity
-- deepseek
 - amazon-bedrock
 - azure
 - google-vertex
