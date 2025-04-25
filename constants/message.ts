@@ -2,8 +2,12 @@
  * WebView message type enumeration
  */
 export enum WebViewMessageType {
+  // Initialize webview
+  INIT_WEBVIEW = 'i18n-gettext.initWebview',
   // Webview ready
   WEBVIEW_READY = 'i18n-gettext.webviewReady',
+  // Webview type
+  // WEBVIEW_TYPE = 'i18n-gettext.webviewType',
   // Go to reference
   GO_TO_REFERENCE = 'i18n-gettext.goToReference',
   // Update translation
@@ -12,10 +16,10 @@ export enum WebViewMessageType {
   TRANSLATE_BY_MACHINE = 'i18n-gettext.translateByMachine',
   // Machine translation result
   TRANSLATE_BY_MACHINE_RESULT = 'i18n-gettext.translateByMachineResult',
-  // Select entry
-  SELECT_ENTRY = 'i18n-gettext.selectEntry',
+  // Update selected entry
+  UPDATE_SELECTED_ENTRY = 'i18n-gettext.updateSelectedEntry',
   // Send model configuration
-  SEND_MODEL_CONFIG = 'i18n-gettext.sendModelConfig',
+  UPDATE_AI_CONFIG = 'i18n-gettext.updateAIConfig',
   // Log
   LOG = 'i18n-gettext.log',
   // AI translation
@@ -28,4 +32,6 @@ export enum WebViewMessageType {
   AI_BATCH_TRANSLATE_RESULT = 'i18n-gettext.aiBatchTranslateResult',
   // Next untranslated entry
   NEXT_UNTRANSLATED_ENTRY = 'i18n-gettext.nextUntranslatedEntry',
+  // Untranslated entries
+  // UNTRANSLATED_ENTRIES = 'i18n-gettext.untranslatedEntries',
 }

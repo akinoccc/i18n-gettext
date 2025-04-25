@@ -1,12 +1,13 @@
 import type { TranslationEntry } from '../../../types'
 import { createSingletonComposable } from 'reactive-vscode'
 import * as vscode from 'vscode'
-import { TranslationEditorProvider, useEntryListTreeView } from '../../providers'
+import { useEntryListTreeView, useTranslationEditorProvider } from '../../providers'
 import { logger } from '../../utils'
 import { useMessageHandler } from '../message'
 import { useScanner } from '../po'
 import { useTranslationsState } from '../state'
 import { useTranslationEntries } from '../state/useTranslationEntries'
+import { useWebview } from '../state/useWebview'
 
 /**
  * Command operation composable function
@@ -65,15 +66,7 @@ export const useCommandActions = createSingletonComposable(() => {
   function selectEntry(context: vscode.ExtensionContext, entry: TranslationEntry) {
     logger.info('selectEntry', JSON.stringify(entry))
     // Set the selected entry in the state
-    useTranslationsState().setSelectedEntry(entry)
-    // Render the editor panel and ensure it's focused
-    const panel = TranslationEditorProvider.render(context)
-
-    // Ensure the WebView panel gets focus
-    if (panel) {
-      useMessageHandler().sendSelectEntryMessage(panel._panel.webview, entry)
-      panel._panel.reveal(vscode.ViewColumn.Beside, true) // Second parameter true ensures focus
-    }
+    useTranslationsState().setSingleSelectedEntry(entry)
   }
 
   /**
@@ -81,19 +74,14 @@ export const useCommandActions = createSingletonComposable(() => {
    * @param context Extension context
    */
   function openTranslationEditor(context: vscode.ExtensionContext): void {
-    const panel = TranslationEditorProvider.render(context)
-
-    // Ensure the WebView panel gets focus
-    if (panel) {
-      panel._panel.reveal(vscode.ViewColumn.Beside, true)
-    }
+    useTranslationEditorProvider().render(vscode.ViewColumn.Beside)
   }
 
   /**
    * Navigate to the next untranslated entry
    */
   function nextUntranslatedEntry(context: vscode.ExtensionContext): void {
-    const { selectedEntry, translationTree } = useTranslationsState()
+    const { selectedEntries, translationTree } = useTranslationsState()
     const translationEntries = useTranslationEntries()
 
     // If there's no translation tree or no entries, show a message and return
@@ -114,14 +102,14 @@ export const useCommandActions = createSingletonComposable(() => {
     }
 
     // If there's no selected entry, select the first untranslated entry
-    if (!selectedEntry.value) {
+    if (!selectedEntries.value?.length) {
       logger.info(vscode.l10n.t('Selecting first untranslated entry'))
       selectEntry(context, untranslatedEntries[0])
       return
     }
 
     // Find the index of the current selected entry in the untranslated entries
-    const currentIndex = untranslatedEntries.findIndex(entry => entry.id === selectedEntry.value?.id)
+    const currentIndex = untranslatedEntries.findIndex(entry => entry.id === selectedEntries.value?.[0]?.id)
 
     // If the current entry is not found or it's the last one, select the first untranslated entry
     if (currentIndex === -1 || currentIndex === untranslatedEntries.length - 1) {
@@ -145,7 +133,21 @@ export const useCommandActions = createSingletonComposable(() => {
   /**
    * Check all untranslated entries
    */
-  function checkAllUntranslatedEntries(): void {
+  function checkAllUntranslatedEntries(context: vscode.ExtensionContext): void {
+    const {setTranslatorMode} = useTranslationsState()
+    setTranslatorMode('batch')
+    useTranslationEditorProvider().render(vscode.ViewColumn.Beside)
+    // useWebview().setCurrentWebviewType('batch')
+    // // Render the editor panel and ensure it's focused
+    // const panel = TranslationEditorProvider.render(context)
+
+    // // Ensure the WebView panel gets focus
+    // if (panel) {
+    //   const { untranslatedEntries } = useTranslationsState()
+    //   useMessageHandler().sendWebviewTypeMessage(panel._panel.webview, 'batch')
+    //   useMessageHandler().sendUntranslatedEntriesMessage(panel._panel.webview, untranslatedEntries.value)
+    //   panel._panel.reveal(vscode.ViewColumn.Beside, true) // Second parameter true ensures focus
+    // }
   }
 
   return {

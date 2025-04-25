@@ -23,8 +23,8 @@ export interface UpdateTranslationData {
  */
 export interface TranslateByMachineData {
   entryId: string
-  originalCode: string
-  targetCode: string
+  originalLanguageCode: string
+  targetLanguage: string
 }
 
 /**
@@ -33,6 +33,7 @@ export interface TranslateByMachineData {
 export interface TranslateByMachineResultData {
   result: string
   entryId?: string
+  msgctxt?: string
   targetLanguage: string
   error?: string
 }
@@ -62,6 +63,7 @@ export interface AITranslateData extends Omit<ModelConfig, 'apiKey'> {
   sourceLanguage: string
   targetLanguage: string
   entryId: string
+  msgctxt?: string
 }
 
 /**
@@ -72,6 +74,7 @@ export interface AIBatchTranslateData extends Omit<ModelConfig, 'apiKey'> {
   sourceLanguage: string
   targetLanguages: string[]
   entryId: string
+  msgctxt?: string
 }
 
 /**
@@ -80,6 +83,7 @@ export interface AIBatchTranslateData extends Omit<ModelConfig, 'apiKey'> {
 export interface AITranslateResultData {
   result: string
   entryId?: string
+  msgctxt?: string
   targetLanguage: string
   error?: string
 }
@@ -89,6 +93,8 @@ export interface AITranslateResultData {
  */
 export interface AIBatchTranslateResultData {
   results: Record<string, string>
-  entryId?: string
+  entryId: string
+  msgctxt?: string
   error?: string
+  targetLanguages: string[]
 }

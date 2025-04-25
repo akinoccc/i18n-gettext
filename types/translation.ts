@@ -2,7 +2,7 @@
 export interface TranslationEntry {
   id: string // Unique identifier
   references: string[] // Reference locations
-  msgctxt: string // Context
+  msgctxt?: string // Context
   locales: Record<string, string> // Translation list (indexed by language code)
   hasUntranslated: boolean // Whether there are untranslated entries
 }

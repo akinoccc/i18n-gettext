@@ -1,22 +1,33 @@
-import type { Webview } from 'vscode'
+// import type { Webview } from 'vscode'
 import type { AIConfig } from '../../../types'
 
-import { createSingletonComposable, reactive, useFsWatcher } from 'reactive-vscode'
+import { createSingletonComposable, reactive, ref, useFsWatcher } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { WebViewMessageType } from '../../../constants'
+// import { WebViewMessageType } from '../../../constants'
 import { logger } from '../../utils/logger'
-import { useAITranslator } from '../translation'
+import { useWebview } from '../state'
+// import { useAITranslator } from '../translation'
 
 /**
  * 模型配置组合式函数
  */
-export const useAIConfig = createSingletonComposable(async () => {
-  const { loadConfig } = await import('unconfig')
-  let currentWebview: Webview | null = null
+export const useAIConfig = createSingletonComposable(() => {
+  const aiConfig = ref<AIConfig>()
 
   // 使用reactive创建响应式的globs集合
   const configPatterns = reactive(new Set<string>())
   let cleanupWatcher: (() => void) | null = null
+
+  const sendAIConfigToWebview = () => {
+    const { webview } = useWebview()
+    webview.value?.postMessage({
+      type: WebViewMessageType.UPDATE_AI_CONFIG,
+      data: {
+        config: JSON.stringify(aiConfig.value),
+      },
+    })
+  }
 
   /**
    * 读取模型配置信息
@@ -24,6 +35,7 @@ export const useAIConfig = createSingletonComposable(async () => {
    */
   async function readAIConfig(): Promise<AIConfig> {
     try {
+      const { loadConfig } = await import('unconfig')
       // 获取工作区文件夹
       const workspaceFolders = vscode.workspace.workspaceFolders
       if (!workspaceFolders || workspaceFolders.length === 0) {
@@ -70,7 +82,7 @@ export const useAIConfig = createSingletonComposable(async () => {
           ai: [],
         }
       }
-
+      aiConfig.value = config
       return config
     }
     catch (error) {
@@ -79,32 +91,6 @@ export const useAIConfig = createSingletonComposable(async () => {
         additionalPrompts: [],
         ai: [],
       }
-    }
-  }
-
-  /**
-   * 发送模型配置到 WebView
-   * @param webview Webview 实例
-   */
-  async function sendModelConfigToWebview(webview: Webview): Promise<boolean> {
-    try {
-      currentWebview = webview
-      const { ai: models } = await readAIConfig()
-
-      useAITranslator().updateAIModels(models)
-
-      const result = await webview.postMessage({
-        type: WebViewMessageType.SEND_MODEL_CONFIG,
-        data: {
-          models: JSON.stringify(models),
-        },
-      })
-
-      return result
-    }
-    catch (error) {
-      logger.error(vscode.l10n.t('Failed to send model config to webview: {error}', { error }))
-      return false
     }
   }
 
@@ -138,10 +124,8 @@ export const useAIConfig = createSingletonComposable(async () => {
     // 处理配置文件变化的函数
     const handleConfigChange = async (uri: vscode.Uri) => {
       logger.info(vscode.l10n.t('Model config file changed: {uri}', { uri: uri.toString() }))
-      if (currentWebview) {
-        await sendModelConfigToWebview(currentWebview)
-        logger.info(vscode.l10n.t('Webview model config updated'))
-      }
+      await readAIConfig()
+      sendAIConfigToWebview()
     }
 
     // 监听文件变化事件
@@ -154,15 +138,19 @@ export const useAIConfig = createSingletonComposable(async () => {
     // 保存清理函数，用于在下次调用前清理
     cleanupWatcher = () => {
       configPatterns.clear()
-      // useFsWatcher 会自动处理资源的清理，不需要手动调用 dispose
     }
 
     return cleanupWatcher
   }
 
+  const initAIConfig = async () => {
+    await readAIConfig()
+    watchModelConfigChanges()
+  }
+
   return {
-    readAIConfig,
-    sendModelConfigToWebview,
-    watchModelConfigChanges,
+    aiConfig,
+    initAIConfig,
+    sendAIConfigToWebview,
   }
 })

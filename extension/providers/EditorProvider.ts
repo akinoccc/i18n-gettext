@@ -1,35 +1,30 @@
+import { createSingletonComposable, ref, shallowRef, useWebviewPanel } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { EditorType } from '../../constants'
-import { useMessageHandler, useTranslationsState, useWebviewHandler } from '../composables'
+import { useTranslationsState, useWebview, useWebviewHandler } from '../composables'
 import { logger } from '../utils/logger'
 
-export class TranslationEditorProvider {
-  public static currentPanel: TranslationEditorProvider | undefined
-  public readonly _panel: vscode.WebviewPanel
-  private _disposables: vscode.Disposable[] = []
+export const useTranslationEditorProvider = createSingletonComposable(() =>{
+  const {setWebview} = useWebview()
+  const webViewPanel = shallowRef<vscode.WebviewPanel>()
+  const webviewHandler = useWebviewHandler()
+  const _disposables: vscode.Disposable[] = []
+  const context = ref<vscode.ExtensionContext>()
 
   /**
    * 设置 webview 面板的图标
    * @param panel WebviewPanel 实例
    * @param context 扩展上下文
    */
-  private static setWebviewIcon(panel: vscode.WebviewPanel, context: vscode.ExtensionContext): void {
-    panel.iconPath = {
-      light: vscode.Uri.joinPath(context.extensionUri, 'resources', 'i18n-gettext-light.svg'),
-      dark: vscode.Uri.joinPath(context.extensionUri, 'resources', 'i18n-gettext-dark.svg'),
+  const setWebviewIcon = () => {
+    webViewPanel.value!.iconPath = {
+      light: vscode.Uri.joinPath(context.value!.extensionUri, 'resources', 'i18n-gettext-light.svg'),
+      dark: vscode.Uri.joinPath(context.value!.extensionUri, 'resources', 'i18n-gettext-dark.svg'),
     }
   }
 
-  private constructor(panel: vscode.WebviewPanel, context: vscode.ExtensionContext) {
-    this._panel = panel
-    const { selectedEntry } = useTranslationsState()
-    const messageHandler = useMessageHandler()
-    const webviewHandler = useWebviewHandler()
-
-    this._panel.onDidDispose(() => this.dispose(), null, this._disposables)
-    this._panel.webview.html = webviewHandler.setupHtml(this._panel.webview, context)
-
-    webviewHandler.setupWebviewHooks(this._panel.webview, this._disposables)
+  const initialize = (ctx: vscode.ExtensionContext) => {
+    context.value = ctx
   }
 
   /**
@@ -38,70 +33,75 @@ export class TranslationEditorProvider {
    * @param viewColumn View column to show the panel in
    * @returns The created or existing panel
    */
-  public static render(context: vscode.ExtensionContext, viewColumn: vscode.ViewColumn = vscode.ViewColumn.Beside) {
-    if (TranslationEditorProvider.currentPanel) {
-      // 第二个参数设置为true，确保面板获得焦点
-      TranslationEditorProvider.currentPanel._panel.reveal(viewColumn, true)
-    }
-    else {
-      const panel = vscode.window.createWebviewPanel(
+  const render = (viewColumn: vscode.ViewColumn = vscode.ViewColumn.Beside) => {
+    if (!webViewPanel.value) {
+      webViewPanel.value = useWebviewPanel(
         EditorType.TRANSLATION_EDITOR,
         'i18n Gettext 编辑器',
+        "",
         viewColumn,
         {
-          enableScripts: true,
           retainContextWhenHidden: true,
-          enableCommandUris: true,
-          localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'dist')],
+          webviewOptions: {
+            enableScripts: true,
+            enableCommandUris: true,
+            localResourceRoots: [vscode.Uri.joinPath(context.value!.extensionUri, 'dist')],
+          }
         },
-      )
+      ).panel
+      setWebview(webViewPanel.value.webview)
 
       // 设置 webview 面板的图标
-      TranslationEditorProvider.setWebviewIcon(panel, context)
-
-      TranslationEditorProvider.currentPanel = new TranslationEditorProvider(panel, context)
-      // 确保新创建的面板获得焦点
-      panel.reveal(viewColumn, true)
+      setWebviewIcon()
     }
+    webViewPanel.value.reveal(viewColumn, true)
+    webViewPanel.value.onDidDispose(() => dispose(), null, _disposables)
+    webViewPanel.value.webview.html = webviewHandler.setupHtml(webViewPanel.value.webview, context.value!)
 
-    return TranslationEditorProvider.currentPanel
+    webviewHandler.setupWebviewHooks(webViewPanel.value.webview, _disposables)
   }
 
   /**
    * Deserializes the webview panel state and restores the panel
-   * @param context Extension context
+   * @param ctx Extension context
    * @param state The serialized state containing the selected entry
    * @param panel The webview panel to restore
    * @returns The restored panel
    */
-  public static deserialize(context: vscode.ExtensionContext, state: any, panel: vscode.WebviewPanel) {
+  const deserialize = (ctx: vscode.ExtensionContext, state: any,panel: vscode.WebviewPanel) => {
     logger.info('Deserializing translation editor panel')
 
+    initialize(ctx)
+
     // 设置 webview 面板的图标
-    TranslationEditorProvider.setWebviewIcon(panel, context)
+    setWebviewIcon()
 
-    // Create a new panel instance with the restored panel
-    TranslationEditorProvider.currentPanel = new TranslationEditorProvider(panel, context)
-    useTranslationsState().setSelectedEntry(JSON.parse(state))
+    useTranslationsState().setSingleSelectedEntry(JSON.parse(state))
 
-    return TranslationEditorProvider.currentPanel
+    return webViewPanel.value
   }
 
   /**
    * Cleans up and disposes of webview resources when the webview panel is closed.
    */
-  public dispose() {
-    TranslationEditorProvider.currentPanel = undefined
-
+  const dispose = ()=> {
     // Dispose of the current webview panel
-    this._panel.dispose()
+    webViewPanel.value?.dispose()
+    webViewPanel.value = undefined
 
     // Dispose of all disposables (i.e. commands) for the current webview panel
-    while (this._disposables.length) {
-      const disposable = this._disposables.pop()
+    while (_disposables.length) {
+      const disposable = _disposables.pop()
       if (disposable) {
         disposable.dispose()
       }
     }
   }
-}
+
+  return {
+    initialize,
+    render,
+    deserialize,
+    dispose,
+  }
+})

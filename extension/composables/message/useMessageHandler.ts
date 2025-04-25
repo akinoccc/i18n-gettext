@@ -5,8 +5,7 @@ import { createSingletonComposable } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { CommandType, WebViewMessageType } from '../../../constants'
 import { logger } from '../../utils/logger'
-import { useAIConfig } from '../config/useAIConfig'
-import { localesConfig, translator as translatorConfig } from '../config/useConfig'
+import { useAIConfig, useVscodeConfig } from '../config'
 import { usePoEditor } from '../po'
 import { useTranslationsState } from '../state'
 import { useAITranslator } from '../translation/useAITranslator'
@@ -16,9 +15,11 @@ import { useTranslator } from '../translation/useMachineTranslator'
  * Message handler composable function
  */
 export const useMessageHandler = createSingletonComposable(() => {
-  const { selectedEntry } = useTranslationsState()
+  const { localesConfig, translatorConfig } = useVscodeConfig()
   const translator = useTranslator()
   const aiTranslator = useAITranslator()
+  const { aiConfig } = useAIConfig()
+  const { selectedEntries, translatorMode } = useTranslationsState()
 
   /**
    * Set up Webview hooks
@@ -81,10 +82,15 @@ export const useMessageHandler = createSingletonComposable(() => {
    * @param webview Webview instance
    */
   async function handleWebViewReady(webview: Webview) {
-    const { sendModelConfigToWebview, watchModelConfigChanges } = await useAIConfig()
-    sendModelConfigToWebview(webview)
-    watchModelConfigChanges()
-    sendSelectEntryMessage(webview, selectedEntry.value)
+    webview.postMessage({
+      type: WebViewMessageType.INIT_WEBVIEW,
+      data: {
+        vscodeConfig: JSON.stringify({ ...localesConfig.value, ...translatorConfig.value }),
+        mode: translatorMode.value,
+        aiConfig: JSON.stringify(aiConfig.value?.ai),
+        selectedEntries: JSON.stringify(selectedEntries.value),
+      },
+    })
   }
 
   /**
@@ -178,11 +184,7 @@ export const useMessageHandler = createSingletonComposable(() => {
    */
   async function handleTranslateByMachine(data: TranslateByMachineData, webview: Webview): Promise<void> {
     try {
-      await translator.handleGoogleTranslate({
-        entryId: data.entryId,
-        originalCode: data.originalCode,
-        targetCode: data.targetCode,
-      }, webview)
+      await translator.handleGoogleTranslate(data, webview)
     }
     catch (error) {
       logger.error(vscode.l10n.t('Machine translation failed: {error}', { error }))
@@ -191,7 +193,7 @@ export const useMessageHandler = createSingletonComposable(() => {
         type: WebViewMessageType.TRANSLATE_BY_MACHINE_RESULT,
         data: {
           result: '',
-          targetLanguage: data.originalCode,
+          targetLanguage: data.originalLanguageCode,
           error: error instanceof Error ? error.message : String(error),
         },
       })
@@ -230,24 +232,52 @@ export const useMessageHandler = createSingletonComposable(() => {
     }
   }
 
-  /**
-   * Send select entry message to WebView
-   * @param webview Webview instance
-   * @param entry Translation entry
-   */
-  function sendSelectEntryMessage(webview: Webview, entry?: TranslationEntry): Thenable<boolean> {
-    if (!entry)
-      return Promise.resolve(false)
+  // /**
+  //  * Send select entry message to WebView
+  //  * @param webview Webview instance
+  //  * @param entry Translation entry
+  //  */
+  // function sendSelectEntryMessage(webview: Webview, entry?: TranslationEntry): Thenable<boolean> {
+  //   if (!entry)
+  //     return Promise.resolve(false)
 
-    return webview.postMessage({
-      type: WebViewMessageType.SELECT_ENTRY,
-      data: {
-        ...entry,
-        sourceLanguage: localesConfig.value.sourceLanguage,
-        onlyTranslateUntranslated: translatorConfig.value.onlyTranslateUntranslated,
-      },
-    })
-  }
+  //   return webview.postMessage({
+  //     type: WebViewMessageType.SELECT_ENTRY,
+  //     data: {
+  //       ...entry,
+  //       sourceLanguage: localesConfig.value.sourceLanguage,
+  //       onlyTranslateUntranslated: translatorConfig.value.onlyTranslateUntranslated,
+  //     },
+  //   })
+  // }
+
+  // /**
+  //  * Send untranslated entries message to WebView
+  //  * @param webview Webview instance
+  //  * @param entries Untranslated entries
+  //  */
+  // function sendUntranslatedEntriesMessage(webview: Webview, entries: TranslationEntry[]): Thenable<boolean> {
+  //   return webview.postMessage({
+  //     type: WebViewMessageType.UNTRANSLATED_ENTRIES,
+  //     data: {
+  //       entries: JSON.stringify(entries),
+  //       sourceLanguage: localesConfig.value.sourceLanguage,
+  //       onlyTranslateUntranslated: translatorConfig.value.onlyTranslateUntranslated,
+  //     },
+  //   })
+  // }
+
+  // /**
+  //  * Send webview type message to WebView
+  //  * @param webview Webview instance
+  //  * @param type Webview type
+  //  */
+  // function sendWebviewTypeMessage(webview: Webview, type: 'single' | 'batch'): Thenable<boolean> {
+  //   return webview.postMessage({
+  //     type: WebViewMessageType.WEBVIEW_TYPE,
+  //     data: { type },
+  //   })
+  // }
 
   /**
    * Handle log message
@@ -265,7 +295,9 @@ export const useMessageHandler = createSingletonComposable(() => {
     handleTranslateByMachine,
     handleAITranslate,
     handleAIBatchTranslate,
-    sendSelectEntryMessage,
+    // sendSelectEntryMessage,
     handleLogMessage,
+    // sendWebviewTypeMessage,
+    // sendUntranslatedEntriesMessage,
   }
 })

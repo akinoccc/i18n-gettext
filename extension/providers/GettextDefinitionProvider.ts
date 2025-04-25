@@ -5,7 +5,6 @@ import * as vscode from 'vscode'
 import { GETTEXT_FUNCTION_REGEX, PGETTEXT_FUNCTION_REGEX, TEMPLATE_GETTEXT_REGEX } from '../../constants'
 import { useTranslationEntries, useTranslationsState } from '../composables'
 import { logger } from '../utils/logger'
-import { TranslationEditorProvider } from './EditorProvider'
 
 // Definition provider for gettext functions
 export class GettextDefinitionProvider implements vscode.DefinitionProvider {
@@ -28,7 +27,7 @@ export class GettextDefinitionProvider implements vscode.DefinitionProvider {
     document: vscode.TextDocument,
     position: vscode.Position,
   ): vscode.ProviderResult<vscode.Definition | vscode.LocationLink[]> {
-    const { setSelectedEntry } = useTranslationsState()
+    const { setSingleSelectedEntry } = useTranslationsState()
     try {
       let entry: TranslationEntry | undefined
 
@@ -116,8 +115,7 @@ export class GettextDefinitionProvider implements vscode.DefinitionProvider {
 
       if (entry) {
         logger.info(vscode.l10n.t('Selecting entry: {entryId}', { entryId: entry.id }))
-        setSelectedEntry(entry)
-        TranslationEditorProvider.render(this.context)
+        setSingleSelectedEntry(entry)
       }
     }
     catch (error) {

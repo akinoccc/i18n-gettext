@@ -29,7 +29,7 @@ import { createSingletonComposable, useWorkspaceFolders } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { WebViewMessageType } from '../../../constants'
 import { logger } from '../../utils/logger'
-import { localesConfig } from '../config'
+import { useVscodeConfig } from '../config'
 import { useAIConfig } from '../config/useAIConfig'
 import { usePoEditor } from '../po'
 import { useTranslationsState } from '../state'
@@ -62,6 +62,10 @@ export interface BatchTranslationOptions {
 export const useAITranslator = createSingletonComposable(() => {
   const poEditor = usePoEditor()
   const { getEntryById } = useTranslationsState()
+  const { localesConfig } = useVscodeConfig()
+  const { aiConfig } = useAIConfig()
+  const aiModels = aiConfig.value?.ai
+  const additionalPrompts = aiConfig.value?.additionalPrompts
 
   const BASE_PROMPT = `
     Users can send content to the assistant that needs to be translated.
@@ -92,55 +96,6 @@ export const useAITranslator = createSingletonComposable(() => {
       - No any explanations and comments or any other text
       - Clean formatting. Do not use any special characters.
 `
-  const additionalPrompts: string[] = []
-
-  // AI model list
-  const AI_MODELS: Omit<ModelConfig, 'apiKey'>[] = []
-
-  // API key mapping
-  const API_KEYS: Record<string, string> = {}
-
-  function buildModelKey(provider: string, modelId: string): string {
-    return `${provider}:::${modelId}`
-  }
-
-  /**
-   * Update AI models and API keys
-   * @param models AI model configuration
-   */
-  function updateAIModels(models: ModelConfig[]): void {
-    if (!models || !Array.isArray(models) || models.length === 0)
-      return
-
-    // Clear the current model list
-    AI_MODELS.length = 0
-
-    // Update the API key mapping and model list
-    models.forEach((model) => {
-      if (model.provider) {
-        API_KEYS[buildModelKey(model.provider, model.modelId)] = model.apiKey || ''
-      }
-
-      AI_MODELS.push({
-        provider: model.provider,
-        modelId: model.modelId,
-        baseURL: model.baseURL,
-        region: model.region,
-      })
-    })
-  }
-
-  /**
-   * Get the available AI model list
-   * @returns AI model list
-   */
-  async function getAvailableModels(): Promise<Omit<ModelConfig, 'apiKey'>[]> {
-    const modelConfig = await useAIConfig()
-    const { ai: models, additionalPrompts } = await modelConfig.readAIConfig()
-    updateAIModels(models)
-    additionalPrompts.push(...additionalPrompts)
-    return [...AI_MODELS]
-  }
 
   /**
    * Get an instance of a specific provider and model
@@ -148,15 +103,13 @@ export const useAITranslator = createSingletonComposable(() => {
    * @param modelId Model ID
    * @returns Language model instance
    */
-  function getModelInstance(options: ModelConfig): LanguageModelV1 {
-    const { provider, modelId, baseURL, region } = options
-    const apiKey = API_KEYS[buildModelKey(provider, modelId)]
-
-    logger.info('getModelInstance:', provider, modelId, baseURL, region, apiKey)
-
-    if (!apiKey) {
-      logger.warn(vscode.l10n.t('No API key found for {provider}', { provider }))
+  function getModelInstance(provider: string, modelId: string): LanguageModelV1 {
+    const config = aiModels?.find(model => model.provider === provider && model.modelId === modelId)
+    if (!config) {
+      throw new Error(vscode.l10n.t('No config found for {provider}:{modelId}', { provider, modelId }))
     }
+
+    const { apiKey, baseURL, region } = config
 
     switch (provider) {
       case 'openai':
@@ -173,8 +126,8 @@ export const useAITranslator = createSingletonComposable(() => {
         })(modelId)
       case 'amazon-bedrock':
         return createAmazonBedrock({
-          accessKeyId: apiKey.split(':')[0],
-          secretAccessKey: apiKey.split(':')[1],
+          accessKeyId: apiKey?.split(':')[0],
+          secretAccessKey: apiKey?.split(':')[1],
           region,
         })(modelId)
       case 'azure':
@@ -215,8 +168,7 @@ export const useAITranslator = createSingletonComposable(() => {
           apiKey,
         })(modelId)
       case 'google-vertex': {
-        // Google Vertex AI需要特殊的认证方式，这里假设用户在apiKey中提供了完整的JSON字符串
-        const credentials = JSON.parse(apiKey)
+        const credentials = JSON.parse(apiKey!)
         return createVertex({
           project: credentials.project_id,
           location: credentials.location || 'us-central1',
@@ -301,7 +253,7 @@ export const useAITranslator = createSingletonComposable(() => {
       Source Text:
       "${sourceText}"
       ${BASE_PROMPT}
-      ${additionalPrompts.join('\n')}
+      ${additionalPrompts?.join('\n')}
       ${contextInfo}
       **Only return the plain translation result, do not add any other explanation or mark.**
     `
@@ -339,7 +291,7 @@ export const useAITranslator = createSingletonComposable(() => {
       You are a multi-language translation expert,
       please translate the following ${sourceLanguage} text into ${targetLanguagesStr}.
       ${BASE_PROMPT}
-      ${additionalPrompts.join('\n')}
+      ${additionalPrompts?.join('\n')}
       ${contextInfo}
 
       Source Text:
@@ -367,7 +319,7 @@ export const useAITranslator = createSingletonComposable(() => {
     entryId,
   }: TranslationOptions): Promise<string> {
     try {
-      const modelInstance = getModelInstance(model)
+      const modelInstance = getModelInstance(model.provider, model.modelId)
       const { references, msgctxt } = getEntryInfo(entryId)
       const prompt = buildTranslationPrompt(
         sourceText,
@@ -410,7 +362,7 @@ export const useAITranslator = createSingletonComposable(() => {
   }: BatchTranslationOptions): Promise<Record<string, string>> {
     try {
       const { references, msgctxt } = getEntryInfo(entryId)
-      const modelInstance = getModelInstance(model)
+      const modelInstance = getModelInstance(model.provider, model.modelId)
       const prompt = buildBatchTranslationPrompt(sourceText, sourceLanguage, targetLanguages, references, msgctxt)
 
       const { text } = await generateText({
@@ -453,7 +405,10 @@ export const useAITranslator = createSingletonComposable(() => {
         sourceText: data.sourceText,
         sourceLanguage: data.sourceLanguage,
         targetLanguage: data.targetLanguage,
-        model: AI_MODELS.find(model => model.modelId === data.modelId) as Omit<ModelConfig, 'apiKey'>,
+        model: {
+          provider: data.provider,
+          modelId: data.modelId,
+        },
         entryId: data.entryId,
       })
 
@@ -462,6 +417,7 @@ export const useAITranslator = createSingletonComposable(() => {
         data: {
           result,
           entryId: data.entryId,
+          msgctxt: data.msgctxt,
           targetLanguage: data.targetLanguage,
         },
       })
@@ -478,6 +434,7 @@ export const useAITranslator = createSingletonComposable(() => {
         data: {
           result: '',
           entryId: data.entryId,
+          msgctxt: data.msgctxt,
           targetLanguage: data.targetLanguage,
           error: error?.message || 'Unknown error',
         },
@@ -498,7 +455,10 @@ export const useAITranslator = createSingletonComposable(() => {
         sourceText: data.sourceText,
         sourceLanguage: data.sourceLanguage,
         targetLanguages: data.targetLanguages,
-        model: AI_MODELS.find(model => model.modelId === data.modelId) as Omit<ModelConfig, 'apiKey'>,
+        model: {
+          provider: data.provider,
+          modelId: data.modelId,
+        },
         entryId: data.entryId,
       })
 
@@ -507,6 +467,8 @@ export const useAITranslator = createSingletonComposable(() => {
         data: {
           results,
           entryId: data.entryId,
+          msgctxt: data.msgctxt,
+          targetLanguages: JSON.stringify(data.targetLanguages),
         },
       })
 
@@ -526,6 +488,8 @@ export const useAITranslator = createSingletonComposable(() => {
           data: {
             results: {},
             entryId: data.entryId,
+            msgctxt: data.msgctxt,
+            targetLanguages: JSON.stringify(data.targetLanguages),
             error: error?.message || 'Unknown error',
           },
         })
@@ -536,8 +500,6 @@ export const useAITranslator = createSingletonComposable(() => {
   }
 
   return {
-    updateAIModels,
-    getAvailableModels,
     translateWithAI,
     batchTranslateWithAI,
     handleAITranslate,

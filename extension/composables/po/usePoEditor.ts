@@ -4,13 +4,14 @@ import * as path from 'node:path'
 import { createSingletonComposable } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { logger } from '../../utils'
-import { localesConfig } from '../config/useConfig'
+import { useVscodeConfig } from '../config'
 import { useTranslationsState } from '../state'
 import { usePath } from './usePath'
 
 export const usePoEditor = createSingletonComposable(() => {
   const { getEntryById } = useTranslationsState()
   const { updateTranslation } = useTranslationsState()
+  const { localesConfig } = useVscodeConfig()
 
   // 使用 usePathUtils composable
   const { getPoFilePath } = usePath()
@@ -116,7 +117,10 @@ export const usePoEditor = createSingletonComposable(() => {
       // 刷新翻译数据
       updateTranslation(entry)
 
-      logger.info(vscode.l10n.t('Translation saved: {entryId} [${locale}]', { entryId: entry.id }))
+      // 弹窗提示
+      vscode.window.showInformationMessage(vscode.l10n.t('Translation saved: {entryId} [{locale}]', { entryId: entry.id, locale }))
+
+      logger.info(vscode.l10n.t('Translation saved: {entryId} [{locale}]', { entryId: entry.id, locale }))
       return true
     }
     catch (error) {

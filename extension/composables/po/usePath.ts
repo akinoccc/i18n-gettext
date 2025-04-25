@@ -1,15 +1,17 @@
 import * as path from 'node:path'
 import { createSingletonComposable } from 'reactive-vscode'
-import { localesConfig } from '../config/useConfig'
+import { useVscodeConfig } from '../config'
 
 export const usePath = createSingletonComposable(() => {
+  const { localesConfig } = useVscodeConfig()
+
   /**
    * 根据配置生成PO文件路径
    * @param locale 语言代码
    * @param domain 域名(可选)，默认使用配置中的defaultDomain
    * @returns 相对于basePath的文件路径
    */
-  function getPoFilePath(locale: string, domain: string = localesConfig.value.defaultDomain || 'app'): string {
+  function getPoFilePath(locale: string, domain: string = localesConfig.value.defaultDomain): string {
     const relativePath = localesConfig.value.pattern
       .replace(/\$\{locale\}/g, locale)
       .replace(/\$\{domain\}/g, domain)

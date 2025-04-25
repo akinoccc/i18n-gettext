@@ -1,6 +1,12 @@
 <script setup lang="ts">
-import type { LocaleIdentifier, ModelInfo, TranslationEntry } from 'types'
+import type { TranslationEntryWithState } from '@/store/translation'
+import type { ModelInfo } from 'types'
+import { useTranslationEntry } from '@/composables/useTranslationEntry'
+import { useTranslator } from '@/composables/useTranslator'
+import { useConfigStore } from '@/store/config'
+import { TranslationState, useTranslationStore } from '@/store/translation'
 import { AlertCircle } from 'lucide-vue-next'
+import { storeToRefs } from 'pinia'
 import { computed, ref, watchEffect } from 'vue'
 import { localesMap } from '../../../constants/locale'
 import ReferencesList from './ReferencesList.vue'
@@ -8,34 +14,17 @@ import TranslationActions from './TranslateActions.vue'
 import TranslationItem from './TranslationItem.vue'
 
 interface Props {
-  translationEntry?: TranslationEntry
-  aiModels: ModelInfo[]
-  sourceLanguage: string
-  isAITranslating: boolean
-  isMachineTranslating: boolean
-  isAIBatchTranslating: boolean
-  isSingleAITranslating: boolean
-  isSingleMachineTranslating: boolean
-  currentTranslatingLang: string
-  languageTranslatingState: Record<string, { ai: boolean, machine: boolean }>
-  isLanguageRecentlyTranslated?: (lang: string) => boolean
-  hasLanguageError?: (lang: string) => boolean
-  getLanguageError?: (lang: string) => string | undefined
+  translationEntry?: TranslationEntryWithState
+  disableActions?: boolean
 }
 
 const props = defineProps<Props>()
-const emit = defineEmits<{
-  goToReference: [reference: string]
-  saveTranslation: [locale: string, value: string]
-  translateByMachine: [locale: LocaleIdentifier & { originalCode: string }]
-  translateAllByMachine: []
-  translateAllByAI: []
-  translateSingleByAI: [locale: LocaleIdentifier & { originalCode: string }]
-  updateSelectedModel: [modelId: string]
-  clearHighlight: [locale: string]
-}>()
-const onlyTranslateUntranslated = defineModel<boolean>('onlyTranslateUntranslated', { required: true })
 
+const { setOnlyTranslateUntranslated, setSelectedModel } = useConfigStore()
+const { vscodeConfig, aiModels } = storeToRefs(useConfigStore())
+const { translateAllByAI, translateAllByMachine, translateByMachine, translateSingleByAI } = useTranslator()
+const { saveTranslation, goToReference } = useTranslationEntry()
+const { setLocaleState } = useTranslationStore()
 const selectedModel = ref('')
 
 const locales = computed(() => {
@@ -76,21 +65,26 @@ const untranslatedCount = computed(() => {
 
   // Don't count source language
   return Object.entries(props.translationEntry.locales)
-    .filter(([code, value]) => code !== props.sourceLanguage && !value)
+    .filter(([code, value]) => code !== vscodeConfig.value!.sourceLanguage && !value)
     .length
 })
+
+function parseModel(model: string): ModelInfo {
+  const [provider, modelId] = model.split(':::')
+  return { provider, modelId }
+}
 
 // 监听translationEntry的变化，当切换到新条目时重置选中的AI模型
 watchEffect(() => {
   // 当切换条目时，如果有可用的AI模型，并且没有选择AI模型，将模型重置为第一个
-  if (props.aiModels.length && !selectedModel.value) {
-    selectedModel.value = `${props.aiModels[0].provider}:::${props.aiModels[0].modelId}`
-    emit('updateSelectedModel', selectedModel.value)
+  if (aiModels.value.length && !selectedModel.value) {
+    selectedModel.value = `${aiModels.value[0].provider}:::${aiModels.value[0].modelId}`
+    setSelectedModel(parseModel(selectedModel.value))
   }
 })
 
 function isSourceLanguage(locale: string): boolean {
-  return locale === props.sourceLanguage
+  return locale === vscodeConfig.value?.sourceLanguage
 }
 
 function getTranslationValue(locale: string): string {
@@ -103,58 +97,33 @@ function getTranslationValue(locale: string): string {
 }
 
 function handleSaveTranslation(locale: string, value: string) {
-  emit('saveTranslation', locale, value)
+  saveTranslation(props.translationEntry!, locale, value)
 }
 
 function handleReferenceClick(reference: string) {
-  emit('goToReference', reference)
+  goToReference(reference)
 }
 
-function handleModelChange(modelId: string) {
-  selectedModel.value = modelId
-  emit('updateSelectedModel', modelId)
-}
-
-function handleTranslateByMachine(locale: LocaleIdentifier & { originalCode: string }) {
-  emit('translateByMachine', locale)
-}
-
-function handleTranslateSingleByAI(locale: LocaleIdentifier & { originalCode: string }) {
-  emit('translateSingleByAI', locale)
+function handleModelChange(model: ModelInfo) {
+  setSelectedModel(model)
 }
 
 // 计算按钮状态的辅助函数
 function isItemAITranslating(locale: string): boolean {
-  return props.languageTranslatingState[locale]?.ai || false
+  return props.translationEntry?.localesState?.[locale]?.ai === TranslationState.None || false
 }
 
 function isItemMachineTranslating(locale: string): boolean {
-  return props.languageTranslatingState[locale]?.machine || false
-}
-
-function isItemDisabled(locale: string): boolean {
-  // 如果正在进行批量翻译，禁用所有按钮
-  if (props.isAIBatchTranslating || (props.isMachineTranslating && !props.isSingleMachineTranslating))
-    return true
-
-  // 否则根据自身的翻译状态决定是否禁用
-  return isItemAITranslating(locale) || isItemMachineTranslating(locale)
+  return props.translationEntry?.localesState?.[locale]?.machine === TranslationState.None || false
 }
 
 function handleClearHighlight(locale: string) {
-  emit('clearHighlight', locale)
-}
-
-function isRecentlyTranslated(locale: string): boolean {
-  return props.isLanguageRecentlyTranslated ? props.isLanguageRecentlyTranslated(locale) : false
-}
-
-function hasError(locale: string): boolean {
-  return props.hasLanguageError ? props.hasLanguageError(locale) : false
-}
-
-function getErrorMessage(locale: string): string | undefined {
-  return props.getLanguageError ? props.getLanguageError(locale) : undefined
+  setLocaleState({
+    entry: props.translationEntry!,
+    type: 'all',
+    locales: [locale],
+    state: TranslationState.None,
+  })
 }
 </script>
 
@@ -177,37 +146,37 @@ function getErrorMessage(locale: string): string | undefined {
         v-for="locale in locales"
         :key="locale.code"
         :locale="locale"
+        :state="translationEntry!.localesState[locale.originalCode]"
         :value="getTranslationValue(locale.originalCode)"
         :selected-model="selectedModel"
         placeholder="To be translated..."
         :is-source="isSourceLanguage(locale.originalCode)"
         :is-a-i-translating="isItemAITranslating(locale.originalCode)"
         :is-machine-translating="isItemMachineTranslating(locale.originalCode)"
-        :is-button-disabled="isItemDisabled(locale.originalCode)"
-        :is-recently-translated="isRecentlyTranslated(locale.originalCode)"
-        :has-error="hasError(locale.originalCode)"
-        :error-message="getErrorMessage(locale.originalCode)"
         @update:value="(value) => handleSaveTranslation(locale.originalCode, value)"
-        @translate-by-machine="handleTranslateByMachine"
-        @translate-single-by-a-i="() => handleTranslateSingleByAI(locale)"
-        @clear-highlight="handleClearHighlight"
+        @clear-highlight="handleClearHighlight(locale.originalCode)"
+        @translate-by-machine="() => translateByMachine(locale, props.translationEntry!)"
+        @translate-single-by-a-i="() => translateSingleByAI(vscodeConfig!.sourceLanguage, locale.code, translationEntry!)"
       />
     </div>
 
     <!-- Translation Actions & AI Model Selection -->
-    <div class="flex flex-col gap-3 p-3">
+    <div
+      v-if="!props.disableActions"
+      class="flex flex-col gap-3 p-3"
+    >
       <!-- AI Model Selection -->
-      <div v-if="props.aiModels.length" class="flex items-center justify-end gap-3 pb-2">
+      <div v-if="aiModels.length" class="flex items-center justify-end gap-3 pb-2">
         <select
           v-model="selectedModel"
           class="w-fit text-sm bg-transparent border border-truegray-200 dark:border-truegray-700 rounded-md px-3 py-1.5 text-truegray-600 dark:text-truegray-400 focus:border-purple-300 focus:outline-none cursor-pointer"
-          @change="(e) => handleModelChange((e.target as HTMLSelectElement).value)"
+          @change="(e) => handleModelChange(parseModel((e.target as HTMLSelectElement).value))"
         >
           <option value="" disabled selected>
             Select AI Model
           </option>
           <option
-            v-for="model in props.aiModels"
+            v-for="model in aiModels"
             :key="`${model.provider}:::${model.modelId}`"
             :value="`${model.provider}:::${model.modelId}`"
           >
@@ -217,17 +186,16 @@ function getErrorMessage(locale: string): string | undefined {
       </div>
       <!-- Batch Actions -->
       <TranslationActions
+        :locale-state="translationEntry!.localesState"
         :enable-a-i="!!selectedModel"
-        :is-a-i-translating="props.isAIBatchTranslating"
-        :is-machine-translating="props.isMachineTranslating && !props.isSingleMachineTranslating"
-        :is-any-item-translating="props.isSingleAITranslating || props.isSingleMachineTranslating"
-        @translate-all-machine="emit('translateAllByMachine')"
-        @translate-all-a-i="emit('translateAllByAI')"
+        @translate-all-machine="translateAllByMachine(vscodeConfig!.sourceLanguage, translationEntry!)"
+        @translate-all-a-i="translateAllByAI(vscodeConfig!.sourceLanguage, translationEntry!)"
       />
       <div class="flex justify-end gap-2">
         <input
-          v-model="onlyTranslateUntranslated"
+          :checked="vscodeConfig?.onlyTranslateUntranslated"
           type="checkbox"
+          @change="(e) => setOnlyTranslateUntranslated((e.target as HTMLInputElement).checked)"
         >
         <label>
           Only translate untranslated items

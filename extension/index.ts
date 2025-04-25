@@ -6,15 +6,18 @@ import {
 import * as vscode from 'vscode'
 import { EditorType } from '../constants'
 import { registerCommands } from './commands'
-import { useAITranslator } from './composables'
-import { GettextDecorationProvider, GettextDefinitionProvider, TranslationEditorProvider, useEntryListTreeView, useFileTranslationTreeView, useProgressTreeView } from './providers'
+import { useAIConfig, useAITranslator } from './composables'
+import { GettextDecorationProvider, GettextDefinitionProvider, useTranslationEditorProvider, useEntryListTreeView, useFileTranslationTreeView, useProgressTreeView } from './providers'
 import { logger } from './utils'
 
 export const { activate, deactivate } = defineExtension(async (context) => {
   logger.info(vscode.l10n.t('i18n gettext extension activated'))
 
-  // Get workspace folder
-  // const workspaceFolders = useWorkspaceFolders()
+  const { initAIConfig } = useAIConfig()
+  await initAIConfig()
+
+  const {initialize} = useTranslationEditorProvider()
+  initialize(context)
 
   // Initialize translation view - using composables
   useEntryListTreeView()
@@ -83,7 +86,7 @@ export const { activate, deactivate } = defineExtension(async (context) => {
         async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any) {
           logger.info(vscode.l10n.t('Deserializing webview panel'), typeof state)
           // Restore the webview panel with its state
-          TranslationEditorProvider.deserialize(context, state, webviewPanel)
+          useTranslationEditorProvider().deserialize(context, state, webviewPanel)
         },
       }),
     )
@@ -100,24 +103,6 @@ export const { activate, deactivate } = defineExtension(async (context) => {
   // Add decoration provider to disposables
   context.subscriptions.push(gettextDecorationProvider)
 
-  // Calculate workspace state
-  // const workspaceState = computed(() => {
-  //   const folders = workspaceFolders.value || []
-  //   return {
-  //     hasWorkspace: folders.length > 0,
-  //     rootPath: folders[0]?.uri.fsPath || '',
-  //   }
-  // })
-
-  // Listen for workspace changes
-  // const workspaceState = computed(() => {
-  //   const folders = workspaceFolders.value || []
-  //   return {
-  //     hasWorkspace: folders.length > 0,
-  //     rootPath: folders[0]?.uri.fsPath || '',
-  //   }
-  // })
-
   // Listen for theme changes
   const isDark = useIsDarkTheme()
   watchEffect(() => {
@@ -128,6 +113,4 @@ export const { activate, deactivate } = defineExtension(async (context) => {
       ),
     )
   })
-
-  useAITranslator().getAvailableModels()
 })

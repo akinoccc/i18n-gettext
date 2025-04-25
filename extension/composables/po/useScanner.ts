@@ -4,8 +4,7 @@ import * as path from 'node:path'
 import { computed, createSingletonComposable, ref, useWorkspaceFolders, watch } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { logger } from '../../utils'
-
-import { localesConfig } from '../config/useConfig'
+import { useVscodeConfig } from '../config'
 import { useTranslationsState } from '../state'
 import { usePath } from './usePath'
 
@@ -13,6 +12,8 @@ import { usePath } from './usePath'
  * 扫描组合式函数，提供PO文件扫描相关功能
  */
 export const useScanner = createSingletonComposable(() => {
+  const { localesConfig } = useVscodeConfig()
+
   // 获取 gettext-parser 模块实例
   let gettextParserModule: any = null
 

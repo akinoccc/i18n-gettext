@@ -10,7 +10,7 @@ import { logger } from '../../utils'
  */
 export function useTranslationEntries() {
   // 获取翻译状态
-  const { translationTree, selectedEntry, setSelectedEntry } = useTranslationsState()
+  const { translationTree, selectedEntries, setSingleSelectedEntry } = useTranslationsState()
 
   // 搜索文本
   const searchText = ref('')
@@ -95,14 +95,13 @@ export function useTranslationEntries() {
    */
   function selectEntry(entry: TranslationEntry) {
     logger.info(vscode.l10n.t('Selecting entry: {entryId}', { entryId: entry.id }))
-    setSelectedEntry(entry)
+    setSingleSelectedEntry(entry)
   }
 
   return {
     // 状态
     searchText,
     filterType,
-    selectedEntry,
 
     // 计算属性
     filteredEntries,

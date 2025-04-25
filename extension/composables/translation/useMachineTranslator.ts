@@ -5,7 +5,6 @@ import * as vscode from 'vscode'
 import { WebViewMessageType } from '../../../constants'
 import { logger } from '../../utils'
 import { usePoEditor } from '../po/usePoEditor'
-import { useTranslationsState } from '../state'
 
 /**
  * 语言代码映射类型
@@ -16,17 +15,16 @@ type LanguageMappings = Record<string, Record<string, string>>
  * 谷歌翻译请求数据
  */
 export interface GoogleTranslateRequestData {
-  originalCode: string
-  targetCode: string
+  originalLanguageCode: string
+  targetLanguage: string
   entryId: string
+  msgctxt?: string
 }
 
 /**
  * 翻译组合式函数
  */
 export const useTranslator = createSingletonComposable(() => {
-  const { getEntryById, setSelectedEntry } = useTranslationsState()
-
   /**
    * 翻译服务的语言代码映射
    * 不同翻译服务对语言代码的要求不同，需要进行映射
@@ -106,9 +104,9 @@ export const useTranslator = createSingletonComposable(() => {
    * @param targetLocale 目标语言
    * @returns 翻译结果
    */
-  async function translateByGoogle(text: string, targetLocale: string): Promise<string> {
+  async function translateByGoogle(text: string, targetLanguage: string): Promise<string> {
     try {
-      const targetLang = getTargetLanguage(targetLocale, 'google')
+      const targetLang = getTargetLanguage(targetLanguage, 'google')
       const result = await translate(text, { to: targetLang })
       return result.text || text
     }
@@ -126,12 +124,12 @@ export const useTranslator = createSingletonComposable(() => {
    */
   async function handleGoogleTranslate(data: GoogleTranslateRequestData, webview: vscode.Webview): Promise<string> {
     try {
-      const result = await translateByGoogle(data.entryId, data.targetCode)
+      const result = await translateByGoogle(data.entryId, data.targetLanguage)
 
       logger.info(vscode.l10n.t('Google translation completed'))
 
       // 保存翻译结果
-      await usePoEditor().save(data.entryId, data.originalCode, result)
+      await usePoEditor().save(data.entryId, data.originalLanguageCode, result)
 
       // 发送结果给webview
       await webview.postMessage({
@@ -139,15 +137,10 @@ export const useTranslator = createSingletonComposable(() => {
         data: {
           result,
           entryId: data.entryId,
-          targetLanguage: data.originalCode,
+          msgctxt: data.msgctxt,
+          targetLanguage: data.originalLanguageCode,
         },
       })
-
-      // 更新选中的条目
-      const updatedEntry = getEntryById(data.entryId)
-      if (updatedEntry) {
-        setSelectedEntry(updatedEntry)
-      }
 
       return result
     }
@@ -155,11 +148,13 @@ export const useTranslator = createSingletonComposable(() => {
       logger.error(vscode.l10n.t('Google translation failed: {error}', { error: error?.message || 'Unknown error' }))
 
       // 发送错误信息给webview
-      webview.postMessage({
+      await webview.postMessage({
         type: WebViewMessageType.TRANSLATE_BY_MACHINE_RESULT,
         data: {
           result: '',
-          targetLanguage: data.originalCode,
+          entryId: data.entryId,
+          msgctxt: data.msgctxt,
+          targetLanguage: data.originalLanguageCode,
           error: error?.message || 'Unknown error',
         },
       })

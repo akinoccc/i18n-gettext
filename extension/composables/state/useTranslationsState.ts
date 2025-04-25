@@ -1,11 +1,27 @@
 import type { TranslationEntry, TranslationStatisticsObject, TranslationTree } from '../../../types'
+import { watch } from 'node:fs'
 import { computed, createSingletonComposable, ref } from 'reactive-vscode'
-import { localesConfig } from '../config'
+import { WebViewMessageType } from '../../../constants'
+import { useTranslationEditorProvider } from '../../providers'
+import { useVscodeConfig } from '../config'
+import { useWebview } from './useWebview'
 
 export const useTranslationsState = createSingletonComposable(() => {
-  const selectedEntry = ref<TranslationEntry>()
+  const translatorMode = ref<'single' | 'batch'>('single')
+  const setTranslatorMode = (mode: 'single' | 'batch') => {
+    translatorMode.value = mode
+  }
+
+  const selectedEntries = ref<TranslationEntry[]>()
   const translationTree = ref<TranslationTree>()
   const localeStatistics = ref<Record<string, TranslationStatisticsObject>>()
+  const { localesConfig, translatorConfig } = useVscodeConfig()
+  const { render: renderWebview } = useTranslationEditorProvider()
+
+  const untranslatedEntries = computed(() => {
+    const entries = translationTree.value?.entries?.filter(e => e.hasUntranslated) || []
+    return entries.slice(0, 20)
+  })
 
   const statistics = computed(() => {
     if (!translationTree.value)
@@ -25,8 +41,28 @@ export const useTranslationsState = createSingletonComposable(() => {
     }
   })
 
-  const setSelectedEntry = (newSelectedEntry: TranslationEntry) => {
-    selectedEntry.value = newSelectedEntry
+  const sendUpdateSelectedEntriesMessage = () => {
+    renderWebview()
+    const { webview } = useWebview()
+    webview.value?.postMessage({
+      type: WebViewMessageType.UPDATE_SELECTED_ENTRY,
+      data: {
+        selectedEntries: JSON.stringify(selectedEntries.value),
+        mode: translatorMode.value,
+      },
+    })
+  }
+
+  const setSingleSelectedEntry = (newSelectedEntry: TranslationEntry) => {
+    setTranslatorMode('single')
+    selectedEntries.value = [newSelectedEntry]
+    sendUpdateSelectedEntriesMessage()
+  }
+
+  const setBatchSelectedEntries = () => {
+    setTranslatorMode('batch')
+    selectedEntries.value = untranslatedEntries.value
+    sendUpdateSelectedEntriesMessage()
   }
 
   const setTranslationTree = (newTranslationTree: TranslationTree) => {
@@ -52,10 +88,14 @@ export const useTranslationsState = createSingletonComposable(() => {
   }
 
   return {
+    translatorMode,
+    setTranslatorMode,
     statistics,
-    selectedEntry,
+    selectedEntries,
+    untranslatedEntries,
     translationTree,
-    setSelectedEntry,
+    setSingleSelectedEntry,
+    setBatchSelectedEntries,
     setTranslationTree,
     setLocaleStatistics,
     updateTranslation,
