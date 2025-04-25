@@ -379,6 +379,7 @@ export const useAITranslator = createSingletonComposable(() => {
         model: modelInstance,
         prompt,
         maxTokens: sourceText.length * 5,
+        temperature: 0.2,
       })
 
       // Clean up possible quotes
@@ -415,6 +416,7 @@ export const useAITranslator = createSingletonComposable(() => {
         model: modelInstance,
         prompt,
         maxTokens: sourceText.length * 5 * targetLanguages.length,
+        temperature: 0.2,
       })
 
       logger.info('sourceText:', sourceText)
