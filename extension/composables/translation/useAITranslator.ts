@@ -68,6 +68,7 @@ export const useAITranslator = createSingletonComposable(() => {
   const additionalPrompts = aiConfig.value?.additionalPrompts
 
   const BASE_PROMPT = `
+    ### System Role:
     Users can send content to the assistant that needs to be translated.
     The assistant will answer the corresponding translation results and ensure that it conforms to Chinese language habits.
     You can adjust your tone and style and take into account the cultural connotation and regional differences of certain words.
@@ -78,23 +79,31 @@ export const useAITranslator = createSingletonComposable(() => {
     The goal is to create a translation that is both faithful to the spirit of the original work,
     but also conforms to the target language and culture and readers' aesthetics.
 
-    And need to follow these rules:
+    ### Rules:
 
-    # Notes:
+    #### Notes:
       - Chinese has two different writing systems: Simplified and Traditional.
       - The translation should be in the same writing system as the source text.
+      - Respect the target language culture and habits.
 
-    # Whitespace Rules
+    #### Gettext Format
+      - Use the same format as the source text.
+      - Do not add any other explanation or mark.
+      - Do not add any other text.
+      - Keep variables and placeholders syntax. Like:
+        "Hello, %{name}!"
+
+    #### Whitespace Rules
       - Add space between non-Latin (CJK/Arabic) and Latin scripts:
         JP: "Reactを使う" → "React を使う"
         KO: "Node.js설치" → "Node.js 설치"
         TH: "ติดตั้งPython3.9" → "ติดตั้ง Python 3.9"
       - Exceptions: Numbers/Units/Operators (200GB硬盘 → 200GB 硬盘)
 
-    # Output
-      - Only return the plain translation result
-      - No any explanations and comments or any other text
-      - Clean formatting. Do not use any special characters.
+    #### Punctuation
+      - Use the target language punctuation.
+        EN → ZH: "Hello, world!" → "你好，世界！"
+        ZH → EN: "你好，世界！" → "Hello, world!"
 `
 
   /**
@@ -248,14 +257,27 @@ export const useAITranslator = createSingletonComposable(() => {
     }
 
     return `
+      ## Task:
       You are a translation expert,
       please translate the following ${sourceLanguage} text exactly into ${targetLanguage},
-      Source Text:
-      "${sourceText}"
+
+      ## Notes:
       ${BASE_PROMPT}
       ${additionalPrompts?.join('\n')}
+      
+      ## Source Text:
+      The following is the source text to be translated,
+      please translate it into the target language.
+      "${sourceText}"
+
+      ## Context Info:
+      The following is the context information of the source text,
+      it can help you understand the source text better and make the translation more accurate,
+      but do not use it in the translation result.
       ${contextInfo}
-      **Only return the plain translation result, do not add any other explanation or mark.**
+
+      ## Return Format:
+      Only return the plain translation result, do not add any other explanation or mark.
     `
   }
 
@@ -285,24 +307,48 @@ export const useAITranslator = createSingletonComposable(() => {
       contextInfo += `\n\nReferences: ${references.join(', \n')}`
     }
 
-    const targetLanguagesStr = targetLanguages.join('、')
+    const targetLanguagesStr = targetLanguages.join(',')
 
     return `
       You are a multi-language translation expert,
       please translate the following ${sourceLanguage} text into ${targetLanguagesStr}.
+      
+      ## Notes:
       ${BASE_PROMPT}
       ${additionalPrompts?.join('\n')}
+      
+      ## Context Info:
+      The following is the context information of the source text,
+      it can help you understand the source text better and make the translation more accurate,
+      but do not use it in the translation result.
       ${contextInfo}
-
-      Source Text:
+      
+      ## Source Text:
+      The following is the source text to be translated,
+      please translate it into the target languages.
       "${sourceText}"
-
-      Please return the result in the following format,
-      ensuring that each translation is marked with the language code:
-      [targetLanguageCode] Translation content
-      ...and so on
-
-      Only return the translation result, do not add any other explanation or mark.
+      
+      ## Return Format:
+      Please return the result in the following format of JSON,
+      Ensuring that each translation is marked with the language code.
+      Just return plain json string.
+      For example, translate "Hello World", do not use any extra symbol to wrap it:
+      \`\`\`json
+      {
+        "zh_CN": "你好，世界",
+        "ja_JP": "こんにちは、世界",
+        "ko_KR": "안녕하세요, 세계",
+        // ...
+      }
+      \`\`\`
+      the correct result format should be like this:
+      {
+        "zh_CN": "你好，世界",
+        "ja_JP": "こんにちは、世界",
+        "ko_KR": "안녕하세요, 세계",
+        // ...
+      }
+      Only return the translation result, do not add any other explanation or unneeded text.
     `
   }
 
@@ -332,7 +378,7 @@ export const useAITranslator = createSingletonComposable(() => {
       const { text } = await generateText({
         model: modelInstance,
         prompt,
-        maxTokens: 4000,
+        maxTokens: sourceText.length * 5,
       })
 
       // Clean up possible quotes
@@ -368,23 +414,14 @@ export const useAITranslator = createSingletonComposable(() => {
       const { text } = await generateText({
         model: modelInstance,
         prompt,
-        maxTokens: sourceText.length * 3 * targetLanguages.length,
+        maxTokens: sourceText.length * 5 * targetLanguages.length,
       })
 
       logger.info('sourceText:', sourceText)
       logger.info('batchTranslateWithAI result:', text)
 
       // Parse the multi-language result returned
-      const translations: Record<string, string> = {}
-      const lines = text.split('\n').filter(line => line.trim() !== '')
-
-      for (const line of lines) {
-        const match = line.match(/^\[([^\]]+)\]\s(.+)$/)
-        if (match) {
-          const [, langCode, translation] = match
-          translations[langCode] = translation.replace(/^["']|["']$/gm, '').trim()
-        }
-      }
+      const translations: Record<string, string> = JSON.parse(text.replace(/^```json\s*/, '').replace(/\s*```$/, '').trim())
 
       return translations
     }
@@ -411,6 +448,8 @@ export const useAITranslator = createSingletonComposable(() => {
         },
         entryId: data.entryId,
       })
+
+      logger.info('handleAITranslate result:', `${result}(${data.sourceText})`)
 
       await webview.postMessage({
         type: WebViewMessageType.AI_TRANSLATE_RESULT,
