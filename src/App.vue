@@ -29,6 +29,6 @@ onMounted(() => {
 <template>
   <main class="p-4 font-sans">
     <SingleTranslator v-if="translatorMode === 'single'" />
-    <!-- <BatchTranslator v-if="translatorMode === 'batch'" /> -->
+    <BatchTranslator v-if="translatorMode === 'batch'" />
   </main>
 </template>

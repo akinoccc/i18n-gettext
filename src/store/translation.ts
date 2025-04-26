@@ -41,8 +41,8 @@ export const useTranslationStore = defineStore('translation', () => {
     for (let i = 0; i < selectedEntries.value.length; i++) {
       if (
         option.entry
-        && selectedEntries.value[i].id !== option.entry.msgctxt
-        && selectedEntries.value[i].msgctxt !== option.entry.msgctxt
+        && (selectedEntries.value[i].id !== option.entry.id
+          || selectedEntries.value[i].msgctxt !== option.entry.msgctxt)
       ) {
         continue
       }

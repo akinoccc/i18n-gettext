@@ -104,10 +104,6 @@ function handleReferenceClick(reference: string) {
   goToReference(reference)
 }
 
-function handleModelChange(model: ModelInfo) {
-  setSelectedModel(model)
-}
-
 // 计算按钮状态的辅助函数
 function isItemAITranslating(locale: string): boolean {
   return props.translationEntry?.localesState?.[locale]?.ai === TranslationState.None || false
@@ -170,7 +166,7 @@ function handleClearHighlight(locale: string) {
         <select
           v-model="selectedModel"
           class="w-fit text-sm bg-transparent border border-truegray-200 dark:border-truegray-700 rounded-md px-3 py-1.5 text-truegray-600 dark:text-truegray-400 focus:border-purple-300 focus:outline-none cursor-pointer"
-          @change="(e) => handleModelChange(parseModel((e.target as HTMLSelectElement).value))"
+          @change="(e) => setSelectedModel(parseModel((e.target as HTMLSelectElement).value))"
         >
           <option value="" disabled selected>
             Select AI Model

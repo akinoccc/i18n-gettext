@@ -5,7 +5,7 @@ import { computed } from 'vue'
 
 interface Props {
   enableAI: boolean
-  localeState: Record<string, {
+  localeState?: Record<string, {
     ai: TranslationState
     machine: TranslationState
   }>
@@ -15,24 +15,24 @@ const props = defineProps<Props>()
 const emit = defineEmits(['translateAllMachine', 'translateAllAI'])
 
 const isAnyItemMachineTranslating = computed(() => {
-  return Object.keys(props.localeState)
+  return Object.keys(props?.localeState || {})
     .some(locale =>
-      props.localeState[locale].machine === TranslationState.Translating,
+      props.localeState?.[locale].machine === TranslationState.Translating,
     )
 })
 
 const isAnyItemAITranslating = computed(() => {
-  return Object.keys(props.localeState)
+  return Object.keys(props?.localeState ?? {})
     .some(locale =>
-      props.localeState[locale].ai === TranslationState.Translating,
+      props.localeState?.[locale].ai === TranslationState.Translating,
     )
 })
 
 const isAnyItemTranslating = computed(() => {
-  return Object.keys(props.localeState)
+  return Object.keys(props?.localeState || {})
     .some(locale =>
-      props.localeState[locale].ai === TranslationState.Translating
-      || props.localeState[locale].machine === TranslationState.Translating,
+      props.localeState?.[locale].ai === TranslationState.Translating
+      || props.localeState?.[locale].machine === TranslationState.Translating,
     )
 })
 </script>
@@ -60,7 +60,7 @@ const isAnyItemTranslating = computed(() => {
       class="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-purple-50 text-purple-600 hover:bg-purple-100 dark:bg-purple-700 dark:text-purple-100 dark:hover:bg-purple-800 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
       @click="emit('translateAllAI')"
     >
-      <span v-if="isAnyItemMachineTranslating" class="flex items-center gap-2">
+      <span v-if="isAnyItemAITranslating" class="flex items-center gap-2">
         <span class="w-3 h-3 border-2 border-purple-600 dark:border-purple-100 border-t-transparent rounded-full animate-spin" />
         Translating...
       </span>

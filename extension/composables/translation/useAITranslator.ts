@@ -330,25 +330,15 @@ export const useAITranslator = createSingletonComposable(() => {
       
       ## Return Format:
       Please return the result in the following format of JSON,
-      Ensuring that each translation is marked with the language code.
-      Just return plain json string.
+      Ensuring that each translation is marked with the target language code.
+      Just Return the result strictly as a plain JSON object, without any markdown formatting, comments, or explanation.
       For example, translate "Hello World", do not use any extra symbol to wrap it:
-      \`\`\`json
-      {
-        "zh_CN": "你好，世界",
-        "ja_JP": "こんにちは、世界",
-        "ko_KR": "안녕하세요, 세계",
-        // ...
-      }
-      \`\`\`
       the correct result format should be like this:
       {
-        "zh_CN": "你好，世界",
-        "ja_JP": "こんにちは、世界",
-        "ko_KR": "안녕하세요, 세계",
-        // ...
+        "TargetLanguageCode1": "TranslationResult1",
+        "TargetLanguageCode2": "TranslationResult2",
+        // ... and so on
       }
-      Only return the translation result, do not add any other explanation or unneeded text.
     `
   }
 
@@ -514,6 +504,8 @@ export const useAITranslator = createSingletonComposable(() => {
       })
 
       data.targetLanguages.forEach((targetLanguage) => {
+        if (!results[targetLanguage])
+          return
         poEditor.save(data.entryId, targetLanguage, results[targetLanguage])
       })
 

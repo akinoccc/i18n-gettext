@@ -1,5 +1,4 @@
 import type { TranslationEntry, TranslationStatisticsObject, TranslationTree } from '../../../types'
-import { watch } from 'node:fs'
 import { computed, createSingletonComposable, ref } from 'reactive-vscode'
 import { WebViewMessageType } from '../../../constants'
 import { useTranslationEditorProvider } from '../../providers'
@@ -20,7 +19,7 @@ export const useTranslationsState = createSingletonComposable(() => {
 
   const untranslatedEntries = computed(() => {
     const entries = translationTree.value?.entries?.filter(e => e.hasUntranslated) || []
-    return entries.slice(0, 20)
+    return entries.slice(0, 2)
   })
 
   const statistics = computed(() => {
@@ -77,7 +76,10 @@ export const useTranslationsState = createSingletonComposable(() => {
     newEntry.hasUntranslated = Object.keys(newEntry.locales).some((key) => {
       return !newEntry.locales[key] && key !== localesConfig.value.sourceLanguage
     })
-    const index = translationTree.value?.entries.findIndex(e => e.id === newEntry.id)
+    const index = translationTree.value?.entries.findIndex(e =>
+      e.id === newEntry.id
+      && e.msgctxt === newEntry.msgctxt,
+    )
     if (index !== undefined) {
       translationTree.value!.entries[index] = newEntry
     }

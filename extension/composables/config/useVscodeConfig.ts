@@ -41,8 +41,8 @@ export const useVscodeConfig = createSingletonComposable(() => {
     },
   })
 
-  logger.info(JSON.stringify(localesConfig.value)) 
-  logger.info(JSON.stringify(translatorConfig.value))   
+  logger.info(JSON.stringify(localesConfig.value))
+  logger.info(JSON.stringify(translatorConfig.value))
 
   return {
     localesConfig,

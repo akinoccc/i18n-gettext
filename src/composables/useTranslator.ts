@@ -41,7 +41,7 @@ export function useTranslator() {
   }
 
   // Translate all untranslated languages by machine
-  function translateAllByMachine(sourceLanguage: string, entry: TranslationEntry) {
+  function translateAllByMachine(sourceLanguage: string, entry: TranslationEntry, onTranslated?: (languageCode: string, isSuccess: boolean) => void) {
     const targetEntry = entry
 
     // Get all non-source languages
@@ -59,6 +59,11 @@ export function useTranslator() {
         return !isSourceLanguage
       })
       .map(code => ({ originalCode: code, code }))
+
+    // 如果没有需要翻译的语言，直接返回
+    if (toTranslateLocales.length === 0) {
+      return
+    }
 
     // Translate each language by machine
     toTranslateLocales.forEach((locale) => {
@@ -78,6 +83,31 @@ export function useTranslator() {
           targetLanguage: locale.code,
         },
       })
+
+      // 监听翻译结果事件
+      const handleTranslationResult = (event: MessageEvent) => {
+        const message = event.data
+        if (
+          message.type === WebViewMessageType.TRANSLATE_BY_MACHINE_RESULT
+          && message.data.entryId === targetEntry.id
+          && message.data.msgctxt === targetEntry.msgctxt
+        ) {
+          // 调用回调函数通知进度更新
+          if (onTranslated) {
+            // 对于批量翻译，需要为每个语言调用回调
+            const { result, error } = message.data
+            const isSuccess = !error && result
+  
+            onTranslated(locale.originalCode, isSuccess)
+          }
+  
+          // 移除事件监听器
+          window.removeEventListener('message', handleTranslationResult)
+        }
+      }
+  
+      // 添加事件监听器
+      window.addEventListener('message', handleTranslationResult)
     })
   }
 
@@ -108,7 +138,7 @@ export function useTranslator() {
   }
 
   // Translate all untranslated languages by AI
-  function translateAllByAI(sourceLanguage: string, entry?: TranslationEntry) {
+  function translateAllByAI(sourceLanguage: string, entry: TranslationEntry, onTranslated?: (languageCode: string, isSuccess: boolean) => void) {
     const targetEntry = entry
 
     // Use batch translation to reduce token consumption
@@ -123,6 +153,11 @@ export function useTranslator() {
           }
           return !isSourceLanguage
         })
+
+      // 如果没有需要翻译的语言，直接返回
+      if (targetLanguages.length === 0) {
+        return
+      }
 
       setLocaleState({
         entry: targetEntry,
@@ -144,6 +179,37 @@ export function useTranslator() {
           msgctxt: targetEntry?.msgctxt,
         },
       })
+
+      // 监听翻译结果事件
+      const handleTranslationResult = (event: MessageEvent) => {
+        const message = event.data
+        if (
+          message.type === WebViewMessageType.AI_BATCH_TRANSLATE_RESULT
+          && message.data.entryId === targetEntry.id
+          && message.data.msgctxt === targetEntry.msgctxt
+        ) {
+          // 调用回调函数通知进度更新
+          if (onTranslated) {
+            // 对于批量翻译，需要为每个语言调用回调
+            const { targetLanguages, results, error } = message.data
+            const isSuccess = !error && Object.keys(results || {}).length > 0
+            console.log('isSuccess', isSuccess)
+            console.log('results', results)
+            // 检查每个语言的翻译结果
+            targetLanguages.forEach((langCode: string) => {
+              const langSuccess = isSuccess && !!results[langCode]
+              console.log(langCode, langSuccess)
+              onTranslated(langCode, langSuccess)
+            })
+          }
+
+          // 移除事件监听器
+          window.removeEventListener('message', handleTranslationResult)
+        }
+      }
+
+      // 添加事件监听器
+      window.addEventListener('message', handleTranslationResult)
     }
   }
 

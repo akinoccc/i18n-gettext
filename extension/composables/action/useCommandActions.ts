@@ -3,11 +3,9 @@ import { createSingletonComposable } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { useEntryListTreeView, useTranslationEditorProvider } from '../../providers'
 import { logger } from '../../utils'
-import { useMessageHandler } from '../message'
 import { useScanner } from '../po'
 import { useTranslationsState } from '../state'
 import { useTranslationEntries } from '../state/useTranslationEntries'
-import { useWebview } from '../state/useWebview'
 
 /**
  * Command operation composable function
@@ -109,7 +107,10 @@ export const useCommandActions = createSingletonComposable(() => {
     }
 
     // Find the index of the current selected entry in the untranslated entries
-    const currentIndex = untranslatedEntries.findIndex(entry => entry.id === selectedEntries.value?.[0]?.id)
+    const currentIndex = untranslatedEntries.findIndex(entry =>
+      entry.id === selectedEntries.value?.[0]?.id
+      && entry.msgctxt === selectedEntries.value?.[0]?.msgctxt,
+    )
 
     // If the current entry is not found or it's the last one, select the first untranslated entry
     if (currentIndex === -1 || currentIndex === untranslatedEntries.length - 1) {
@@ -134,20 +135,8 @@ export const useCommandActions = createSingletonComposable(() => {
    * Check all untranslated entries
    */
   function checkAllUntranslatedEntries(context: vscode.ExtensionContext): void {
-    const {setTranslatorMode} = useTranslationsState()
-    setTranslatorMode('batch')
-    useTranslationEditorProvider().render(vscode.ViewColumn.Beside)
-    // useWebview().setCurrentWebviewType('batch')
-    // // Render the editor panel and ensure it's focused
-    // const panel = TranslationEditorProvider.render(context)
-
-    // // Ensure the WebView panel gets focus
-    // if (panel) {
-    //   const { untranslatedEntries } = useTranslationsState()
-    //   useMessageHandler().sendWebviewTypeMessage(panel._panel.webview, 'batch')
-    //   useMessageHandler().sendUntranslatedEntriesMessage(panel._panel.webview, untranslatedEntries.value)
-    //   panel._panel.reveal(vscode.ViewColumn.Beside, true) // Second parameter true ensures focus
-    // }
+    const { setBatchSelectedEntries } = useTranslationsState()
+    setBatchSelectedEntries()
   }
 
   return {

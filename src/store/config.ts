@@ -1,6 +1,6 @@
 import type { ModelInfo } from '../../types'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 export type TranslatorMode = 'single' | 'batch'
 
@@ -33,6 +33,11 @@ export const useConfigStore = defineStore('config', () => {
       modelId: model.modelId,
     }
   }
+  watch(aiModels, (newModels) => {
+    if (newModels.length && !selectedModel.value.provider) {
+      setSelectedModel(newModels[0])
+    }
+  }, { immediate: true, deep: true })
 
   // Source language
   const vscodeConfig = ref<VSCodeConfig>()

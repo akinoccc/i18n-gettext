@@ -6,8 +6,8 @@ import {
 import * as vscode from 'vscode'
 import { EditorType } from '../constants'
 import { registerCommands } from './commands'
-import { useAIConfig, useAITranslator } from './composables'
-import { GettextDecorationProvider, GettextDefinitionProvider, useTranslationEditorProvider, useEntryListTreeView, useFileTranslationTreeView, useProgressTreeView } from './providers'
+import { useAIConfig } from './composables'
+import { GettextDecorationProvider, GettextDefinitionProvider, useEntryListTreeView, useFileTranslationTreeView, useProgressTreeView, useTranslationEditorProvider } from './providers'
 import { logger } from './utils'
 
 export const { activate, deactivate } = defineExtension(async (context) => {
@@ -16,7 +16,7 @@ export const { activate, deactivate } = defineExtension(async (context) => {
   const { initAIConfig } = useAIConfig()
   await initAIConfig()
 
-  const {initialize} = useTranslationEditorProvider()
+  const { initialize } = useTranslationEditorProvider()
   initialize(context)
 
   // Initialize translation view - using composables

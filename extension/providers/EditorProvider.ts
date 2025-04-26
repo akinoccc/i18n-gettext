@@ -4,8 +4,8 @@ import { EditorType } from '../../constants'
 import { useTranslationsState, useWebview, useWebviewHandler } from '../composables'
 import { logger } from '../utils/logger'
 
-export const useTranslationEditorProvider = createSingletonComposable(() =>{
-  const {setWebview} = useWebview()
+export const useTranslationEditorProvider = createSingletonComposable(() => {
+  const { setWebview } = useWebview()
   const webViewPanel = shallowRef<vscode.WebviewPanel>()
   const webviewHandler = useWebviewHandler()
   const _disposables: vscode.Disposable[] = []
@@ -28,17 +28,32 @@ export const useTranslationEditorProvider = createSingletonComposable(() =>{
   }
 
   /**
+   * Cleans up and disposes of webview resources when the webview panel is closed.
+   */
+  const dispose = () => {
+    // Dispose of the current webview panel
+    webViewPanel.value?.dispose()
+    webViewPanel.value = undefined
+
+    // Dispose of all disposables (i.e. commands) for the current webview panel
+    while (_disposables.length) {
+      const disposable = _disposables.pop()
+      if (disposable) {
+        disposable.dispose()
+      }
+    }
+  }
+
+  /**
    * Create or show the translation editor panel
-   * @param context Extension context
    * @param viewColumn View column to show the panel in
-   * @returns The created or existing panel
    */
   const render = (viewColumn: vscode.ViewColumn = vscode.ViewColumn.Beside) => {
     if (!webViewPanel.value) {
       webViewPanel.value = useWebviewPanel(
         EditorType.TRANSLATION_EDITOR,
         'i18n Gettext 编辑器',
-        "",
+        '',
         viewColumn,
         {
           retainContextWhenHidden: true,
@@ -46,7 +61,7 @@ export const useTranslationEditorProvider = createSingletonComposable(() =>{
             enableScripts: true,
             enableCommandUris: true,
             localResourceRoots: [vscode.Uri.joinPath(context.value!.extensionUri, 'dist')],
-          }
+          },
         },
       ).panel
       setWebview(webViewPanel.value.webview)
@@ -68,7 +83,7 @@ export const useTranslationEditorProvider = createSingletonComposable(() =>{
    * @param panel The webview panel to restore
    * @returns The restored panel
    */
-  const deserialize = (ctx: vscode.ExtensionContext, state: any,panel: vscode.WebviewPanel) => {
+  const deserialize = (ctx: vscode.ExtensionContext, state: any, panel: vscode.WebviewPanel) => {
     logger.info('Deserializing translation editor panel')
 
     initialize(ctx)
@@ -79,23 +94,6 @@ export const useTranslationEditorProvider = createSingletonComposable(() =>{
     useTranslationsState().setSingleSelectedEntry(JSON.parse(state))
 
     return webViewPanel.value
-  }
-
-  /**
-   * Cleans up and disposes of webview resources when the webview panel is closed.
-   */
-  const dispose = ()=> {
-    // Dispose of the current webview panel
-    webViewPanel.value?.dispose()
-    webViewPanel.value = undefined
-
-    // Dispose of all disposables (i.e. commands) for the current webview panel
-    while (_disposables.length) {
-      const disposable = _disposables.pop()
-      if (disposable) {
-        disposable.dispose()
-      }
-    }
   }
 
   return {
