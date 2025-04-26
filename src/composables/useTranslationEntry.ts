@@ -1,4 +1,4 @@
-import type { TranslationEntry } from '../../types'
+import type { TranslationEntry } from '../../typings'
 import { useTranslationStore } from '@/store/translation'
 import { storeToRefs } from 'pinia'
 import { WebViewMessageType } from '../../constants'

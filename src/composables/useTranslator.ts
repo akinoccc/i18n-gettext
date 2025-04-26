@@ -3,7 +3,7 @@ import type {
   AITranslateResultData,
   TranslateByMachineResultData,
   TranslationEntry,
-} from '../../types'
+} from '../../typings'
 import { useConfigStore } from '@/store/config'
 import { TranslationState, useTranslationStore } from '@/store/translation'
 import { storeToRefs } from 'pinia'
@@ -97,15 +97,15 @@ export function useTranslator() {
             // 对于批量翻译，需要为每个语言调用回调
             const { result, error } = message.data
             const isSuccess = !error && result
-  
+
             onTranslated(locale.originalCode, isSuccess)
           }
-  
+
           // 移除事件监听器
           window.removeEventListener('message', handleTranslationResult)
         }
       }
-  
+
       // 添加事件监听器
       window.addEventListener('message', handleTranslationResult)
     })
@@ -193,12 +193,9 @@ export function useTranslator() {
             // 对于批量翻译，需要为每个语言调用回调
             const { targetLanguages, results, error } = message.data
             const isSuccess = !error && Object.keys(results || {}).length > 0
-            console.log('isSuccess', isSuccess)
-            console.log('results', results)
             // 检查每个语言的翻译结果
             targetLanguages.forEach((langCode: string) => {
               const langSuccess = isSuccess && !!results[langCode]
-              console.log(langCode, langSuccess)
               onTranslated(langCode, langSuccess)
             })
           }

@@ -26,6 +26,13 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits(['close'])
 
+// 计算成功和失败的翻译数量
+const successCount = computed(() => {
+  return props.entriesProgress.reduce((count, entry) => {
+    return count + entry.languages.filter(lang => lang.completed && lang.success).length
+  }, 0)
+})
+
 // 计算总体完成百分比（只计算成功的翻译）
 const completionPercentage = computed(() => {
   if (props.totalCount === 0)
@@ -66,13 +73,6 @@ function getEntryProgressPercentage(entry: EntryProgress) {
 
   return Math.round((successCount / entry.totalLanguages) * 100)
 }
-
-// 计算成功和失败的翻译数量
-const successCount = computed(() => {
-  return props.entriesProgress.reduce((count, entry) => {
-    return count + entry.languages.filter(lang => lang.completed && lang.success).length
-  }, 0)
-})
 
 const failedCount = computed(() => {
   return props.entriesProgress.reduce((count, entry) => {

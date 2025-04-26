@@ -1,4 +1,4 @@
-import type { TranslationEntry } from '../../../types'
+import type { TranslationEntry } from '../../../typings'
 import { computed, ref } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { useTranslationsState } from '.'

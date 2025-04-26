@@ -1,5 +1,5 @@
 import type { ExtensionContext } from 'vscode'
-import type { TranslationEntry } from '../../types'
+import type { TranslationEntry } from '../../typings'
 import { useCommands as useVscodeCommands } from 'reactive-vscode'
 import { CommandType } from '../../constants'
 import { useCommandActions } from '../composables'

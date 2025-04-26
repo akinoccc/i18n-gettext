@@ -1,4 +1,4 @@
-import type { PoData, TranslationEntry, TranslationStatisticsObject, TranslationTree } from '../../../types'
+import type { PoData, TranslationEntry, TranslationStatisticsObject, TranslationTree } from '../../../typings'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { computed, createSingletonComposable, ref, useWorkspaceFolders, watch } from 'reactive-vscode'

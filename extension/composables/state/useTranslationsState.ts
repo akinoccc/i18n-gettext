@@ -1,4 +1,4 @@
-import type { TranslationEntry, TranslationStatisticsObject, TranslationTree } from '../../../types'
+import type { TranslationEntry, TranslationStatisticsObject, TranslationTree } from '../../../typings'
 import { computed, createSingletonComposable, ref } from 'reactive-vscode'
 import { WebViewMessageType } from '../../../constants'
 import { useTranslationEditorProvider } from '../../providers'

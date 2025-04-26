@@ -1,5 +1,5 @@
 // import type { Webview } from 'vscode'
-import type { AIConfig } from '../../../types'
+import type { AIConfig } from '../../../typings'
 
 import { createSingletonComposable, reactive, ref, useFsWatcher } from 'reactive-vscode'
 import * as vscode from 'vscode'

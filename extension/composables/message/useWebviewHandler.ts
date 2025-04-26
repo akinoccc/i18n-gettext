@@ -1,5 +1,5 @@
 import type { Disposable, ExtensionContext, Webview } from 'vscode'
-import type { WebViewMessage } from '../../../types'
+import type { WebViewMessage } from '../../../typings'
 import { createSingletonComposable } from 'reactive-vscode'
 import { useMessageHandler } from './useMessageHandler'
 

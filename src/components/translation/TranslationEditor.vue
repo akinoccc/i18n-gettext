@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TranslationEntryWithState } from '@/store/translation'
-import type { ModelInfo } from 'types'
+import type { ModelInfo } from 'typings/config'
 import { useTranslationEntry } from '@/composables/useTranslationEntry'
 import { useTranslator } from '@/composables/useTranslator'
 import { useConfigStore } from '@/store/config'

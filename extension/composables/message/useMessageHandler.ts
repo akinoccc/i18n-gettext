@@ -1,5 +1,5 @@
 import type { Disposable, Webview } from 'vscode'
-import type { AIBatchTranslateData, AITranslateData, LogData, TranslateByMachineData, UpdateTranslationData, WebViewMessage } from '../../../types'
+import type { AIBatchTranslateData, AITranslateData, LogData, TranslateByMachineData, UpdateTranslationData, WebViewMessage } from '../../../typings'
 
 import { createSingletonComposable } from 'reactive-vscode'
 import * as vscode from 'vscode'

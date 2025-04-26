@@ -1,4 +1,4 @@
-import type { ModelInfo } from '../../types'
+import type { ModelInfo } from 'typings/config'
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 

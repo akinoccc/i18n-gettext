@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ModelInfo } from 'types'
+import type { ModelInfo } from '../../typings'
 import TranslateActions from '@/components/translation/TranslateActions.vue'
 import TranslationProgressDialog from '@/components/translation/TranslationProgressDialog.vue'
 import { useTranslator } from '@/composables/useTranslator'
@@ -93,6 +93,10 @@ function initEntriesProgress(type: 'ai' | 'machine') {
   })
 }
 
+// 记录最后一次翻译的类型和结果
+const lastTranslationType = ref<'ai' | 'machine' | null>(null)
+const hasTranslationResults = ref(false)
+
 // 更新条目的翻译进度
 function updateEntryProgress(entryId: string, languageCode: string, isSuccess: boolean) {
   const entryIndex = entriesProgress.value.findIndex(e => e.id === entryId)
@@ -117,16 +121,12 @@ function updateEntryProgress(entryId: string, languageCode: string, isSuccess: b
   hasTranslationResults.value = true
 }
 
-// 记录最后一次翻译的类型和结果
-const lastTranslationType = ref<'ai' | 'machine' | null>(null)
-const hasTranslationResults = ref(false)
-
 // 监听 selectedEntries 变化，重置翻译进度
 watch(selectedEntries, (newValue, oldValue) => {
   const hasChange = newValue.some((entry, index) => {
     return entry.id !== oldValue[index]?.id || entry.msgctxt !== oldValue[index]?.msgctxt
   })
-  if(!hasChange)
+  if (!hasChange)
     return
 
   // 重置翻译进度
@@ -154,9 +154,9 @@ function handleTranslateAllByMachine() {
   hasTranslationResults.value = false
 
   selectedEntries.value.forEach((entry) => {
-      translateAllByMachine(vscodeConfig.value!.sourceLanguage, entry, (languageCode: string, isSuccess: boolean) => {
-        updateEntryProgress(entry.id, languageCode, isSuccess)
-      })
+    translateAllByMachine(vscodeConfig.value!.sourceLanguage, entry, (languageCode: string, isSuccess: boolean) => {
+      updateEntryProgress(entry.id, languageCode, isSuccess)
+    })
   })
 }
 

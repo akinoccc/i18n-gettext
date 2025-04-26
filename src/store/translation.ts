@@ -1,4 +1,4 @@
-import type { TranslationEntry } from 'types'
+import type { TranslationEntry } from 'typings/translation'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 

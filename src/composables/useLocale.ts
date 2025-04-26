@@ -1,4 +1,4 @@
-import type { LocaleIdentifier } from '../../types'
+import type { LocaleIdentifier } from 'typings/locale'
 
 const localesMap: Record<string, LocaleIdentifier> = {
   en: {

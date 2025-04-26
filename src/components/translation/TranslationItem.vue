@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { LocaleIdentifier } from 'types'
+import type { LocaleIdentifier } from 'typings/locale'
 import { useConfigStore } from '@/store/config'
 import { TranslationState } from '@/store/translation'
 import { AlertCircle, Bot, Languages, XCircle } from 'lucide-vue-next'

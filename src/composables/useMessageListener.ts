@@ -1,5 +1,7 @@
 import type { TranslatorMode, VSCodeConfig } from '@/store/config'
-import type { AIBatchTranslateResultData, AITranslateResultData, ModelInfo, TranslateByMachineResultData, TranslationEntry } from 'types'
+import type { ModelInfo } from 'typings/config'
+import type { AIBatchTranslateResultData, AITranslateResultData, TranslateByMachineResultData } from 'typings/message'
+import type { TranslationEntry } from 'typings/translation'
 import { useConfigStore } from '@/store/config'
 import { useTranslationStore } from '@/store/translation'
 import { vscodeApi } from '@/utils'

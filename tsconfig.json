@@ -3,18 +3,19 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "typings": ["typings"],
+      "constant": ["constants"]
     },
-    "declaration": true,
-    "declarationMap": true
+    "noEmit": true
   },
   "references": [
     { "path": "./tsconfig.node.json" }
   ],
   "include": [
     "src/**/*.ts",
-    "src/**/*.d.ts",
     "src/**/*.tsx",
-    "src/**/*.vue"
+    "src/**/*.vue",
+    "typings/**/*.d.ts"
   ]
 }

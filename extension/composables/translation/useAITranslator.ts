@@ -2,7 +2,7 @@
 import type { LanguageModelV1 } from 'ai'
 import type { Webview } from 'vscode'
 
-import type { AIBatchTranslateData, AITranslateData, ModelConfig } from '../../../types'
+import type { AIBatchTranslateData, AITranslateData, ModelConfig } from '../../../typings'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 // 导入所有AI SDK

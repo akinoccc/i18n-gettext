@@ -1,5 +1,5 @@
 import type { TreeViewNode } from 'reactive-vscode'
-import type { TranslationEntry } from '../../types'
+import type { TranslationEntry } from '../../typings'
 import { computed, createSingletonComposable, useTreeView } from 'reactive-vscode'
 import * as vscode from 'vscode'
 import { CommandType } from '../../constants'
