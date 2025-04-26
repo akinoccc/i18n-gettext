@@ -68,12 +68,13 @@ export const useTranslationEditorProvider = createSingletonComposable(() => {
 
       // 设置 webview 面板的图标
       setWebviewIcon()
+
+      webViewPanel.value.onDidDispose(() => dispose(), null, _disposables)
+      webViewPanel.value.webview.html = webviewHandler.setupHtml(webViewPanel.value.webview, context.value!)
+
+      webviewHandler.setupWebviewHooks(webViewPanel.value.webview, _disposables)
     }
     webViewPanel.value.reveal(viewColumn, true)
-    webViewPanel.value.onDidDispose(() => dispose(), null, _disposables)
-    webViewPanel.value.webview.html = webviewHandler.setupHtml(webViewPanel.value.webview, context.value!)
-
-    webviewHandler.setupWebviewHooks(webViewPanel.value.webview, _disposables)
   }
 
   /**

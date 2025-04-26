@@ -232,53 +232,6 @@ export const useMessageHandler = createSingletonComposable(() => {
     }
   }
 
-  // /**
-  //  * Send select entry message to WebView
-  //  * @param webview Webview instance
-  //  * @param entry Translation entry
-  //  */
-  // function sendSelectEntryMessage(webview: Webview, entry?: TranslationEntry): Thenable<boolean> {
-  //   if (!entry)
-  //     return Promise.resolve(false)
-
-  //   return webview.postMessage({
-  //     type: WebViewMessageType.SELECT_ENTRY,
-  //     data: {
-  //       ...entry,
-  //       sourceLanguage: localesConfig.value.sourceLanguage,
-  //       onlyTranslateUntranslated: translatorConfig.value.onlyTranslateUntranslated,
-  //     },
-  //   })
-  // }
-
-  // /**
-  //  * Send untranslated entries message to WebView
-  //  * @param webview Webview instance
-  //  * @param entries Untranslated entries
-  //  */
-  // function sendUntranslatedEntriesMessage(webview: Webview, entries: TranslationEntry[]): Thenable<boolean> {
-  //   return webview.postMessage({
-  //     type: WebViewMessageType.UNTRANSLATED_ENTRIES,
-  //     data: {
-  //       entries: JSON.stringify(entries),
-  //       sourceLanguage: localesConfig.value.sourceLanguage,
-  //       onlyTranslateUntranslated: translatorConfig.value.onlyTranslateUntranslated,
-  //     },
-  //   })
-  // }
-
-  // /**
-  //  * Send webview type message to WebView
-  //  * @param webview Webview instance
-  //  * @param type Webview type
-  //  */
-  // function sendWebviewTypeMessage(webview: Webview, type: 'single' | 'batch'): Thenable<boolean> {
-  //   return webview.postMessage({
-  //     type: WebViewMessageType.WEBVIEW_TYPE,
-  //     data: { type },
-  //   })
-  // }
-
   /**
    * Handle log message
    * @param message Log message
@@ -295,9 +248,6 @@ export const useMessageHandler = createSingletonComposable(() => {
     handleTranslateByMachine,
     handleAITranslate,
     handleAIBatchTranslate,
-    // sendSelectEntryMessage,
     handleLogMessage,
-    // sendWebviewTypeMessage,
-    // sendUntranslatedEntriesMessage,
   }
 })
