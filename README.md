@@ -1,3 +1,6 @@
+> [!NOTE]
+> 此仓库仅用于提交与回复问题反馈
+
 # i18n Gettext for VSCode
 
 基于Gettext的VSCode国际化翻译管理扩展，帮助您轻松处理多语言项目的翻译工作。
