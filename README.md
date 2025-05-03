@@ -95,11 +95,21 @@
 
 - **onlyTranslateUntranslatedAndFuzzy**: 是否仅翻译未翻译/fuzzy标志的字段
 - **batch**:
-  - **pageSize**: 批量翻译模式没批次显示的翻译条目数量
+  - **pageSize**: 批量翻译模式每批次显示的翻译条目数量
 
 ## AI翻译配置
 
 要使用AI翻译功能，需要在项目根目录或 `.vscode` 目录下创建 `.i18n-gettext.secret` 配置文件，格式如下：
+
+```ts
+interface ModelConfig {
+  provider: string
+  modelId: string
+  apiKey?: string
+  baseURL?: string
+  region?: string
+}
+```
 
 ```json
 {
