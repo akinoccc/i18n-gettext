@@ -1,63 +1,65 @@
-> [!NOTE]
-> 此仓库仅用于提交与回复问题反馈
-
 # i18n Gettext for VSCode
 
-基于Gettext的VSCode国际化翻译管理扩展，帮助您轻松处理多语言项目的翻译工作。
+> [!NOTE]
+> This repository is only for submitting and responding to issues and feedback.
 
-## 功能特点
+English | [简体中文](./README.zh-CN.md)
 
-- 🌍 **翻译管理**：集中管理和编辑 PO 翻译文件
-- 🔍 **快速搜索**：轻松查找和导航翻译条目
-- 📊 **翻译进度**：直观显示项目翻译完成度
-- 🤖 **AI翻译**：支持多种AI模型进行高质量翻译，包括Deepseek、OpenAI、Anthropic、Mistral等
-- 🔄 **机器翻译**：支持Google翻译引擎
-- 📝 **编辑器集成**：专用的翻译编辑界面
-- 🔗 **引用导航**：支持从代码直接跳转到对应的翻译条目
-- 🔢 **条目过滤**：支持按全部/已翻译/未翻译条目进行筛选
+A VSCode extension for Gettext-based internationalization (i18n) translation management, helping you easily handle translation tasks in multilingual projects.
 
-## 安装
+## Features
 
-在VSCode扩展商店中搜索"i18n Gettext"，点击安装即可使用。
+- 🌍 **Translation Management**: Centrally manage and edit PO translation files
+- 🔍 **Quick Search**: Easily find and navigate translation entries
+- 📊 **Translation Progress**: Visually display project translation completion status
+- 🤖 **AI Translation**: Support for high-quality translation using various AI models, including Deepseek, OpenAI, Anthropic, Mistral, and more
+- 🔄 **Machine Translation**: Support for Google Translate engine
+- 📝 **Editor Integration**: Dedicated translation editing interface
+- 🔗 **Reference Navigation**: Support direct navigation from code to corresponding translation entries
+- 🔢 **Entry Filtering**: Filter entries by all/translated/untranslated status
 
-## 要求
+## Installation
 
-- VSCode 1.89.0 或更高版本
+Search for "i18n Gettext" in the VSCode Extension Marketplace and click install.
 
-## 使用方法
+## Requirements
 
-1. **配置翻译文件路径**：
-  扩展默认配置翻译文件位于 `src/language/${locale}/${domain}.po`，您可以根据您的项目结构进行自定义。
+- VSCode 1.89.0 or higher
 
-2. **访问翻译管理面板**：
-  点击活动栏中的"i18n Gettext"图标，即可打开翻译管理面板。
+## Usage
 
-3. **查看当前文件翻译**：
-  打开包含国际化字符串的文件，在翻译面板中将显示该文件中的所有翻译内容。
+1. **Configure Translation File Path**:
+   The extension defaults to translation files located at `src/language/${locale}/${domain}.po`. You can customize this according to your project structure.
 
-4. **多条目批量翻译**：
-  点击翻译进度标题栏右侧的【Check Untranslated Entries】按钮打开翻译面板。
+2. **Access Translation Management Panel**:
+   Click the "i18n Gettext" icon in the activity bar to open the translation management panel.
 
-4. **编辑翻译**：
-  点击任意翻译条目右侧的编辑图标，即可打开翻译编辑器。
+3. **View Current File Translations**:
+   Open a file containing internationalization strings, and all translations from that file will be displayed in the translation panel.
 
-5. **查看翻译进度**：
-  在"翻译进度"视图中，可以查看项目中各语言的翻译完成度。
+4. **Batch Translation**:
+   Click the [Check Untranslated Entries] button in the translation progress title bar to open the translation panel.
 
-6. **搜索翻译条目**：
-  使用翻译面板顶部的搜索功能，可以快速查找特定的翻译条目。
+5. **Edit Translations**:
+   Click the edit icon next to any translation entry to open the translation editor.
 
-7. **过滤翻译条目**：
-  使用翻译面板顶部的过滤按钮，可以筛选显示全部/已翻译/未翻译的条目。
+6. **View Translation Progress**:
+   Check the translation completion status for each language in the "Translation Progress" view.
 
-8. **使用AI翻译**：
-  在翻译编辑器中，可以选择AI模型进行单条或批量翻译。
+7. **Search Translation Entries**:
+   Use the search functionality at the top of the translation panel to quickly find specific translation entries.
 
-## 配置选项
+8. **Filter Translation Entries**:
+   Use the filter buttons at the top of the translation panel to show all/translated/untranslated entries.
 
-在VSCode设置中，可以找到"i18n Gettext"部分，配置以下选项：
+9. **Use AI Translation**:
+   Select an AI model in the translation editor for single or batch translation.
 
-默认配置：
+## Configuration Options
+
+In VSCode settings, you can find the "i18n Gettext" section with the following options:
+
+Default configuration:
 
 ```json
 {
@@ -80,25 +82,25 @@
 
 ### localesConfig
 
-- **root**：项目根目录
-- **type**：翻译文件组织方式，支持以下几种类型：
-  - **flat**：所有翻译文件位于同一目录层级，通常使用 `${locale}.${domain}.po` 格式命名
-  - **nested**：翻译文件按语言代码分层组织，形如 `${locale}/${domain}.po`
-  - **custom**：自定义组织方式，完全按照 pattern 定义的模式组织
-- **basePath**：翻译文件所在目录（相对于项目根目录）
-- **pattern**：翻译文件路径模式，使用 `${locale}` 和 `${domain}` 占位符, 仅在 `type` 为 `custom` 时有效，其他 `type` 无需设置
-- **defaultDomain**：默认域名
-- **sourceLanguage**：源语言代码
+- **root**: Project root directory
+- **type**: Translation file organization method, supports the following types:
+  - **flat**: All translation files are in the same directory level, typically named as `${locale}.${domain}.po`
+  - **nested**: Translation files organized by language code hierarchy, like `${locale}/${domain}.po`
+  - **custom**: Custom organization, following the pattern defined in the pattern field
+- **basePath**: Translation files directory (relative to project root)
+- **pattern**: Translation file path pattern, using `${locale}` and `${domain}` placeholders, only effective when `type` is `custom`
+- **defaultDomain**: Default domain name
+- **sourceLanguage**: Source language code
 
 ### translatorConfig
 
-- **onlyTranslateUntranslatedAndFuzzy**: 是否仅翻译未翻译/fuzzy标志的字段
+- **onlyTranslateUntranslatedAndFuzzy**: Whether to only translate untranslated/fuzzy-flagged fields
 - **batch**:
-  - **pageSize**: 批量翻译模式每批次显示的翻译条目数量
+  - **pageSize**: Number of translation entries to display per batch in batch translation mode
 
-## AI翻译配置
+## AI Translation Configuration
 
-要使用AI翻译功能，需要在项目根目录或 `.vscode` 目录下创建 `.i18n-gettext.secret` 配置文件，格式如下：
+To use AI translation features, create a `.i18n-gettext.secret` configuration file in the project root or `.vscode` directory with the following format:
 
 ```ts
 interface ModelConfig {
@@ -112,17 +114,17 @@ interface ModelConfig {
 
 ```json
 {
-  // 额外补充的 Prompts
+  // Additional Prompts
   "additionalPrompts": [],
 
-  // 对翻译结果进行质量评审的 AI 模型
+  // AI model for translation quality review
   "reviewAI": {
     "provider": "openai",
     "modelId": "gpt-4o",
     "apiKey": "your-api-key"
   },
 
-  // 进行翻译的 AI 模型
+  // AI models for translation
   "ai": [
     {
       "provider": "openai",
@@ -143,7 +145,7 @@ interface ModelConfig {
 }
 ```
 
-支持的AI提供商包括：
+Supported AI providers include:
 - openai
 - deepseek
 - ollama
@@ -157,16 +159,16 @@ interface ModelConfig {
 - amazon-bedrock
 - azure
 - google-vertex
-- 等多种AI模型提供商
+- And many other AI model providers
 
-## 提示与技巧
+## Tips and Tricks
 
-- 在代码中可以通过定义跳转直接导航到对应的翻译条目
-- 在翻译编辑器中，可以一次性编辑多个语言的翻译
-- 对于大型项目，可以通过搜索功能快速定位需要修改的翻译
-- 使用AI批量翻译功能可以同时翻译多种语言，提高效率
-- 翻译条目列表支持按全部/已翻译/未翻译进行筛选，方便管理
+- Navigate directly to translation entries through code definitions
+- Edit translations for multiple languages simultaneously in the translation editor
+- Use search functionality to quickly locate translations that need modification in large projects
+- Use AI batch translation to translate multiple languages simultaneously for improved efficiency
+- Translation entry list supports filtering by all/translated/untranslated status for better management
 
-## 问题反馈
+## Issue Reporting
 
-如果您在使用过程中遇到任何问题，或者有功能建议，请在[GitHub 仓库](https://github.com/akinoccc/i18n-gettext/issues)上提交issue。
+If you encounter any issues or have feature suggestions, please submit an issue on the [GitHub repository](https://github.com/akinoccc/i18n-gettext/issues).
