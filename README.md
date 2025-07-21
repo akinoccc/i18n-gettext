@@ -84,10 +84,9 @@
 - **type**：翻译文件组织方式，支持以下几种类型：
   - **flat**：所有翻译文件位于同一目录层级，通常使用 `${locale}.${domain}.po` 格式命名
   - **nested**：翻译文件按语言代码分层组织，形如 `${locale}/${domain}.po`
-  - **domain**：翻译文件按域名分层组织，形如 `${domain}/${locale}.po`
   - **custom**：自定义组织方式，完全按照 pattern 定义的模式组织
-- **basePath**：翻译文件所在目录（相对于项目根目录）, 仅在 `type` 为 `custom` 时有效
-- **pattern**：翻译文件路径模式，使用 `${locale}` 和 `${domain}` 占位符
+- **basePath**：翻译文件所在目录（相对于项目根目录）
+- **pattern**：翻译文件路径模式，使用 `${locale}` 和 `${domain}` 占位符, 仅在 `type` 为 `custom` 时有效，其他 `type` 无需设置
 - **defaultDomain**：默认域名
 - **sourceLanguage**：源语言代码
 
