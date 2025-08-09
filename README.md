@@ -13,7 +13,7 @@ A VSCode extension for Gettext-based internationalization (i18n) translation man
 - 🔍 **Quick Search**: Easily find and navigate translation entries
 - 📊 **Translation Progress**: Visually display project translation completion status
 - 🤖 **AI Translation**: Support for high-quality translation using various AI models, including Deepseek, OpenAI, Anthropic, Mistral, and more
-- 🔄 **Machine Translation**: Support for Google Translate engine
+
 - 📝 **Editor Integration**: Dedicated translation editing interface
 - 🔗 **Reference Navigation**: Support direct navigation from code to corresponding translation entries
 - 🔢 **Entry Filtering**: Filter entries by all/translated/untranslated status
