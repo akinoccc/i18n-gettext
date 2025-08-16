@@ -76,6 +76,15 @@
     "batch": {
       "pageSize": 20
     }
+  },
+  "i18n-gettext.aiConfig": {
+    "additionalPrompts": [],
+    "reviewAI": {
+      "provider": "",
+      "modelId": "",
+      "apiKey": ""
+    },
+    "ai": []
   }
 }
 ```
@@ -100,7 +109,11 @@
 
 ## AI翻译配置
 
-要使用AI翻译功能，需要在项目根目录或 `.vscode` 目录下创建 `.i18n-gettext.secret` 配置文件，格式如下：
+1. **配置在vscode settings for extension(推荐)**
+
+2. **创建.i18n-gettext.secret配置文件**
+
+在项目根目录或 `.vscode` 目录下创建 `.i18n-gettext.secret.{json,ts,js,yaml}` 配置文件，格式如下：
 
 ```ts
 interface ModelConfig {
@@ -160,6 +173,8 @@ interface ModelConfig {
 - azure
 - google-vertex
 - 等多种AI模型提供商
+
+> 更多关于AI模型配置的信息，请参考[AI SDK文档](https://ai-sdk.dev/docs/foundations/providers-and-models)。
 
 ## 提示与技巧
 

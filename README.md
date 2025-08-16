@@ -76,6 +76,15 @@ Default configuration:
     "batch": {
       "pageSize": 20
     }
+  },
+  "i18n-gettext.aiConfig": {
+    "additionalPrompts": [],
+    "reviewAI": {
+      "provider": "",
+      "modelId": "",
+      "apiKey": ""
+    },
+    "ai": []
   }
 }
 ```
@@ -100,7 +109,9 @@ Default configuration:
 
 ## AI Translation Configuration
 
-To use AI translation features, create a `.i18n-gettext.secret` configuration file in the project root or `.vscode` directory with the following format:
+1. **Config in vscode settings for extension(recommended)**
+
+2. Create a `.i18n-gettext.secret` configuration file in the project root or `.vscode` directory with the following format:
 
 ```ts
 interface ModelConfig {
@@ -160,6 +171,8 @@ Supported AI providers include:
 - azure
 - google-vertex
 - And many other AI model providers
+
+> For more information about AI model configuration, please refer to the [AI SDK documentation](https://ai-sdk.dev/docs/foundations/providers-and-models).
 
 ## Tips and Tricks
 
