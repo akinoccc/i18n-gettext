@@ -1,9 +1,11 @@
+# i18n Gettext for VSCode
+
+![i18n Gettext](./screenshots/translation-with-ai-done.png)
+
 > [!NOTE]
 > 此仓库仅用于提交与回复问题反馈
 
 [English](./README.md) | 简体中文
-
-# i18n Gettext for VSCode
 
 基于Gettext的VSCode国际化翻译管理扩展，帮助您轻松处理多语言项目的翻译工作。
 
@@ -31,17 +33,25 @@
 1. **配置翻译文件路径**：
   扩展默认配置翻译文件位于 `src/language/${locale}/${domain}.po`，您可以根据您的项目结构进行自定义。
 
+   ![设置界面](./screenshots/settings.png)
+
 2. **访问翻译管理面板**：
   点击活动栏中的"i18n Gettext"图标，即可打开翻译管理面板。
 
 3. **查看当前文件翻译**：
   打开包含国际化字符串的文件，在翻译面板中将显示该文件中的所有翻译内容。
 
+   ![当前文件翻译](./screenshots/current-file-translations.png)
+
 4. **多条目批量翻译**：
   点击翻译进度标题栏右侧的【Check Untranslated Entries】按钮打开翻译面板。
 
-4. **编辑翻译**：
+   ![批量翻译](./screenshots/batch-translations.png)
+
+5. **编辑翻译**：
   点击任意翻译条目右侧的编辑图标，即可打开翻译编辑器。
+
+   ![单条翻译](./screenshots/single-translation.png)
 
 5. **查看翻译进度**：
   在"翻译进度"视图中，可以查看项目中各语言的翻译完成度。
@@ -54,6 +64,8 @@
 
 8. **使用AI翻译**：
   在翻译编辑器中，可以选择AI模型进行单条或批量翻译。
+
+   ![AI翻译进行中](./screenshots/translations-with-ai-progressing.png)
 
 ## 配置选项
 
