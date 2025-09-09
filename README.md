@@ -1,5 +1,7 @@
 # i18n Gettext for VSCode
 
+![i18n Gettext](./screenshots/translation-with-ai-done.png)
+
 > [!NOTE]
 > This repository is only for submitting and responding to issues and feedback.
 
@@ -31,17 +33,25 @@ Search for "i18n Gettext" in the VSCode Extension Marketplace and click install.
 1. **Configure Translation File Path**:
    The extension defaults to translation files located at `src/language/${locale}/${domain}.po`. You can customize this according to your project structure.
 
+   ![Settings](./screenshots/settings.png)
+
 2. **Access Translation Management Panel**:
    Click the "i18n Gettext" icon in the activity bar to open the translation management panel.
 
 3. **View Current File Translations**:
    Open a file containing internationalization strings, and all translations from that file will be displayed in the translation panel.
 
+   ![Current File Translations](./screenshots/current-file-translations.png)
+
 4. **Batch Translation**:
    Click the [Check Untranslated Entries] button in the translation progress title bar to open the translation panel.
 
+   ![Batch Translations](./screenshots/batch-translations.png)
+
 5. **Edit Translations**:
    Click the edit icon next to any translation entry to open the translation editor.
+
+   ![Single Translation](./screenshots/single-translation.png)
 
 6. **View Translation Progress**:
    Check the translation completion status for each language in the "Translation Progress" view.
@@ -54,6 +64,8 @@ Search for "i18n Gettext" in the VSCode Extension Marketplace and click install.
 
 9. **Use AI Translation**:
    Select an AI model in the translation editor for single or batch translation.
+
+   ![AI Translation in Progress](./screenshots/translations-with-ai-progressing.png)
 
 ## Configuration Options
 
