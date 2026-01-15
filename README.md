@@ -75,6 +75,7 @@ Default configuration:
 
 ```json
 {
+  "i18n-gettext.requestTimeoutMs": 600000,
   "i18n-gettext.localesConfig": {
     "root": ".",
     "type": "nested",
@@ -100,6 +101,10 @@ Default configuration:
   }
 }
 ```
+
+### Global
+
+- **requestTimeoutMs**: Timeout for AI requests in milliseconds. Set to `0` to disable timeout. Default: `600000` (10 minutes).
 
 ### localesConfig
 
