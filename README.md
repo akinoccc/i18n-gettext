@@ -92,6 +92,7 @@ Default configuration:
   },
   "i18n-gettext.aiConfig": {
     "additionalPrompts": [],
+    "excludeLocales": [],
     "reviewAI": {
       "provider": "",
       "modelId": "",
@@ -123,6 +124,13 @@ Default configuration:
 - **onlyTranslateUntranslatedAndFuzzy**: Whether to only translate untranslated/fuzzy-flagged fields
 - **batch**:
   - **pageSize**: Number of translation entries to display per batch in batch translation mode
+
+### aiConfig
+
+- **additionalPrompts**: Additional prompts to include in AI translation requests
+- **excludeLocales**: Array of locale codes to exclude from AI translation (e.g., `["zh-CN", "ja-JP"]`)
+- **reviewAI**: Configuration for AI model used to review translation quality
+- **ai**: Array of AI model configurations for translation
 
 ## AI Translation Configuration
 

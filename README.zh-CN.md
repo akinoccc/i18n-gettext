@@ -91,6 +91,7 @@
   },
   "i18n-gettext.aiConfig": {
     "additionalPrompts": [],
+    "excludeLocales": [],
     "reviewAI": {
       "provider": "",
       "modelId": "",
@@ -118,6 +119,13 @@
 - **onlyTranslateUntranslatedAndFuzzy**: 是否仅翻译未翻译/fuzzy标志的字段
 - **batch**:
   - **pageSize**: 批量翻译模式每批次显示的翻译条目数量
+
+### aiConfig
+
+- **additionalPrompts**: 在 AI 翻译请求中包含的额外提示
+- **excludeLocales**: 排除 AI 翻译的语言代码数组（例如：`["zh-CN", "ja-JP"]`）
+- **reviewAI**: 用于评审翻译质量的 AI 模型配置
+- **ai**: 用于翻译的 AI 模型配置数组
 
 ## AI翻译配置
 
